@@ -1,10 +1,8 @@
 # Run as client on local area network
 import socket as s
-import socketserver as ss
 
 
 class Client:
-
     socket: s.socket                # active socket
     host: str = 'localhost'         # host name
     port: int = 5555                # port number (default is 5555)
