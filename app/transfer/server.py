@@ -3,27 +3,29 @@
 import socket as s
 import argparse
 
+# adds arguments when running script from the console
 parser = argparse.ArgumentParser(description="Specify connection parameters")
-parser.add_argument('--port', help="Change port number from default 5555")
+parser.add_argument('--port', type=int, help="Change port number from default 5555")
+parser.add_argument('--time', type=float, help="Sets the duration until the connection times out")
 args = parser.parse_args()
 
-class Server:
-    socket: s.socket  # active socket
-    host: str = 'localhost'  # host name
-    port: int = 5555  # port number (default is 5555)
 
-    def __init__(self, timeout_mins: float):
+class Server:
+    socket: s.socket         # active socket
+    host: str = 'localhost'  # host name
+    port: int = 5555         # port number (default is 5555)
+
+    def __init__(self):
         try:
             self.socket = s.socket(s.AF_INET, s.SOCK_STREAM)
-            if args.port:
-                self.port = args.port
+            if args.port: self.port = args.port
+            if args.time:
+                self.socket.settimeout(args.time*60)
         except s.error as error:
             print("could not establish socket: %s" % error)
         finally:
             self.socket.bind((self.host, self.port))
-            self.socket.settimeout(timeout_mins*60)
-
-
+            self.listen()
 
     def listen(self):
         # Listen for client TCP connections and output a clarification
@@ -33,11 +35,12 @@ class Server:
            client, address = self.socket.accept()
            print('Got connection from {} ({})'.format(
                address[0], s.gethostbyaddr(address[0])[0]))
-           client.send(bytes('You are now connected to %s' % s.gethostname(), 'utf-8'))
+           client.send(bytes('successfully connected to %s (%s)' %
+                (address[0], s.gethostbyaddr(address[0])[0]), 'utf-8'))
            client.close()
 
 
 if __name__ == '__main__':
-    Server(1)
+    Server()
 
 
