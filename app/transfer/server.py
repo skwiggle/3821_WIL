@@ -2,6 +2,7 @@
 # Use on computer with unity
 import socket as s
 import argparse
+from datetime import datetime
 
 # adds arguments when running script from the console
 parser = argparse.ArgumentParser(description="Specify connection parameters")
@@ -32,11 +33,12 @@ class Server:
         # message to the client, otherwise, stop listening
         self.socket.listen(5)
         while True:
+           current_time = datetime.now().strftime("%I:%M%p")
            client, address = self.socket.accept()
-           print('Got connection from {} ({})'.format(
-               address[0], s.gethostbyaddr(address[0])[0]))
-           client.send(bytes('successfully connected to %s (%s)' %
-                (address[0], s.gethostbyaddr(address[0])[0]), 'utf-8'))
+           print('%s\tConnected to %s (%s)' % (current_time,
+                address[0], s.gethostbyaddr(address[0])[0]))
+           client.send(bytes('%s\tSuccessfully connected to %s (%s)' %
+                (current_time, address[0], s.gethostbyaddr(address[0])[0]), 'utf-8'))
            client.close()
 
 
