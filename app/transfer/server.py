@@ -1,5 +1,6 @@
 # Run server host on local area network
 # Use on computer with unity
+# Handles all connection updates
 import socket as s
 import argparse
 from datetime import datetime
@@ -34,12 +35,16 @@ class Server:
         self.socket.listen(5)
         while True:
            current_time = datetime.now().strftime("%I:%M%p")
-           client, address = self.socket.accept()
-           print('%s\tConnected to %s (%s)' % (current_time,
-                address[0], s.gethostbyaddr(address[0])[0]))
-           client.send(bytes('%s\tSuccessfully connected to %s (%s)' %
-                (current_time, address[0], s.gethostbyaddr(address[0])[0]), 'utf-8'))
-           client.close()
+           try:
+               client, address = self.socket.accept()
+               print('%s\tConnected to %s (%s)' % (current_time,
+                    address[0], s.gethostbyaddr(address[0])[0]))
+               client.send(bytes('%s\tSuccessfully connected to %s (%s)' %
+                    (current_time, address[0], s.gethostbyaddr(address[0])[0]), 'utf-8'))
+           except s.timeout as error:
+               print("%s\tconnection timed out: %s" % (current_time, error))
+           finally:
+               client.close()
 
 
 if __name__ == '__main__':
