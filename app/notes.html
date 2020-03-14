@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<head>
+    <title>Notes</title>
+    <link rel="stylesheet" 
+        href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" 
+        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" 
+        crossorigin="anonymous">
+    <style>
+        th, td {
+            width: 50%;
+            padding: 1em;
+        }
+        .command {
+            font-family: monospace;
+            background-color: black;
+            color: white;
+        }
+        table {
+            border-color: black;
+            border-width: 2px;
+        }
+    </style>
+</head>
+<body style="padding: 50px 10% 50px 10%">
+    <h1>Unity info (delete this afterwards)</h1>
+    <h2>Debug Log file locations</h2>
+    <ul>
+        <li>
+            <h3>Windows:   </h3>%LOCALAPPDATA%/Unity/Editor/Editor.log
+            <h3>Mac OS X:  </h3>~/Library/Logs/Unity/Editor.log
+            <h3>Linux:     </h3>~/.config/unity3d/Editor.log
+        </li>
+    </ul>
+    <h1>Unity command line</h1>
+    <table>
+        <tr style="border: 1px; border-color: black;">
+            <th style="width: 50%;">Command</th>
+            <th style="width: 50%;">Description</th>
+        </tr>
+        <tr>
+            <td class="command">
+                <code>Windows:</code>  "%PROGRAMFILES%\Unity\Editor\Unity.exe"<br>
+                <code>Mac OS X:</code> /Applications/Unity/Unity.app/Contents/MacOS/Unity
+            </td>
+            <td>Open unity</td>
+        </tr>
+        <tr>
+            <td class="command">
+                <code>Windows:</code>  "%PROGRAMFILES%\Unity\Editor\Unity.exe"<br>
+                <code>Mac OS X:</code> /Applications/Unity/Unity.app/Contents/MacOS/Unity -quit -batchmode -serial SB-XXXX-XXXX-XXXX-XXXX-XXXX -username 'JoeBloggs@example.com' -password 'MyPassw0rd'
+            </td>
+            <td>Opens unity silently</td>
+        </tr>
+        <tr>
+            <td class="command">
+                <code>Windows:</code>  "%PROGRAMFILES%\Unity\Editor\Unity.exe" -quit -batchmode -returnlicense<br>
+                <code>Mac OS X:</code> /Applications/Unity/Unity.app/Contents/MacOS/Unity -quit -batchmode -returnlicense
+            </td>
+            <td>Returns license back to license server</td>
+        </tr>
+        <tr>
+            <td class="command">
+                <code>Windows:</code>  <ul>
+                    <li>"%PROGRAMFILES%\Unity\Editor\Unity.exe" -batchmode -createManualActivationFile -logfile</li>
+                    <li>"%PROGRAMFILES%\Unity\Editor\Unity.exe" -batchmode -manualLicenseFile (yourulffile) -logfile</li>
+                </ul>
+                <code>Mac OS X:</code> <ul>
+                    <li>/Applications/Unity/Unity.app/Contents/MacOS/Unity -batchmode -createManualActivationFile -logfile</li>
+                    <li>/Applications/Unity/Unity.app/Contents/MacOS/Unity -batchmode -manualLicenseFile (yourulffile) -logfile</li> 
+                </ul>
+            </td>
+            <td>Creates a license file and imports it into unity hub</td>
+        </tr>
+    </table>
+
+    <h1>Optionals</h1>
+    <table>
+        <tr>
+            <td class="command">-accept-apiupdate</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-batchmode</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-buildLinux64Player (pathname)</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-buildOSXUniversalPlayer (pathname)</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-buildTarget (name)</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-buildWindowsPlayer (pathname)</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-buildWindows64Player (pathname)</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-CacheServerIPAddress (host:port)</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-createProject (pathname)</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-deepprofiling</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-disable-assembly-updater (assembly1 assembly2)</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-diag-debug-shader-compiler</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-executeMethod (ClassName.MethodName) or -executeMethod (NamespaceName.ClassName.MethodName)</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-exportPackage (exportAssetPath1 exportAssetPath2 ExportAssetPath3 exportFileName)</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-force-d3d11 (Windows only)</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-force-d3d12 (Windows only)</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-force-device-index</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-force-gfx-metal</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-force-glcore</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-force-glcoreXY</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-force-gles (Windows only)</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-force-glesXY (Windows only)</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-force-vulkan</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-force-clamped</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-force-free</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-force-low-power-device (macOS only)</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-importPackage (pathname)</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-job-worker-count (N)</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-logFile (pathname)</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-nographics</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-noUpm</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-openfile (path)</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-password (password)</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-profiler-enable</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-profiler-log-file (Path/To/Log/File.raw)</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-profiler-capture-frame-count (NumberOfFrames)</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-profiler-maxusedmemory</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-projectPath (pathname)</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-quit</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-returnlicense</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-serial (serial)</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-setDefaultPlatformTextureFormat (Android only)</td>
+            <td></td>
+        </tr><tr>
+            <td class="command">-silent-crashes</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-stackTraceLogType</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-testPlatform, -testResults, -runTests</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td class="command">-username (username)</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-vcsMode (mode)</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-cacheServerEndpoint</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-cacheServerNamespacePrefix</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-cacheServerEnableDownload</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command">-cacheServerEnableUpload</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="command"></td>
+            <td></td>
+        </tr>
+    </table>
+</body>
+</html>
