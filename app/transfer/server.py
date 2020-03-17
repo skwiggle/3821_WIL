@@ -4,6 +4,8 @@
 import socket as s
 import argparse
 from datetime import datetime
+import time
+import asyncio
 
 # adds arguments when running script from the console
 parser = argparse.ArgumentParser(description="Specify connection parameters")
@@ -29,6 +31,7 @@ class Server:
             self.socket.bind((self.host, self.port))
             self.listen()
 
+
     def listen(self):
         # Listen for client TCP connections and output a clarification
         # message to the client, otherwise, stop listening
@@ -37,9 +40,9 @@ class Server:
            current_time = datetime.now().strftime("%I:%M%p")
            try:
                client, address = self.socket.accept()
-               print('%s\tConnected to %s (%s)' % (current_time,
+               print('[%s]\tConnected to %s (%s)' % (current_time,
                     address[0], s.gethostbyaddr(address[0])[0]))
-               client.send(bytes('%s\tSuccessfully connected to %s (%s)' %
+               client.send(bytes('[%s]\tSuccessfully connected to %s (%s)' %
                     (current_time, address[0], s.gethostbyaddr(address[0])[0]), 'utf-8'))
            except s.timeout as error:
                print("%s\tconnection timed out: %s" % (current_time, error))
@@ -47,7 +50,10 @@ class Server:
                client.close()
 
 
+
 if __name__ == '__main__':
     Server()
+
+
 
 
