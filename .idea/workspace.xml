@@ -2,10 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="bfae826f-5ace-47e0-a76b-60ead9169c60" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/app/transfer/log_reader.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/transfer/client.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/transfer/client.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/notes.html" beforeDir="false" afterPath="$PROJECT_DIR$/app/notes.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/transfer/log_reader.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/app/transfer/server.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/transfer/server.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/ui/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/ui/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -35,7 +36,7 @@
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
-  <component name="RunManager" selected="Python.client">
+  <component name="RunManager" selected="Python.main">
     <configuration name="client" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="3821_WIL" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -120,7 +121,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="test" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="testing" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="3821_WIL" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -132,7 +133,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/app/transfer/test.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/app/transfer/testing.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -143,11 +144,11 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.client" />
-        <item itemvalue="Python.test" />
-        <item itemvalue="Python.server" />
-        <item itemvalue="Python.log_reader" />
         <item itemvalue="Python.main" />
+        <item itemvalue="Python.server" />
+        <item itemvalue="Python.testing" />
+        <item itemvalue="Python.log_reader" />
+        <item itemvalue="Python.client" />
       </list>
     </recent_temporary>
   </component>
@@ -169,33 +170,37 @@
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
     <state x="739" y="267" key="FileChooserDialogImpl/0.0.1920.1050@0.0.1920.1050" timestamp="1584144010459" />
-    <state width="1899" height="285" key="GridCell.Tab.0.bottom" timestamp="1584447029660">
+    <state width="1899" height="285" key="GridCell.Tab.0.bottom" timestamp="1584519912086">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
-    <state width="1899" height="285" key="GridCell.Tab.0.bottom/0.0.1920.1050@0.0.1920.1050" timestamp="1584447029660" />
-    <state width="1899" height="285" key="GridCell.Tab.0.center" timestamp="1584447029660">
+    <state width="1899" height="285" key="GridCell.Tab.0.bottom/0.0.1920.1050@0.0.1920.1050" timestamp="1584519912086" />
+    <state width="1899" height="285" key="GridCell.Tab.0.center" timestamp="1584519912086">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
-    <state width="1899" height="285" key="GridCell.Tab.0.center/0.0.1920.1050@0.0.1920.1050" timestamp="1584447029660" />
-    <state width="1899" height="285" key="GridCell.Tab.0.left" timestamp="1584447029660">
+    <state width="1899" height="285" key="GridCell.Tab.0.center/0.0.1920.1050@0.0.1920.1050" timestamp="1584519912086" />
+    <state width="1899" height="285" key="GridCell.Tab.0.left" timestamp="1584519912086">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
-    <state width="1899" height="285" key="GridCell.Tab.0.left/0.0.1920.1050@0.0.1920.1050" timestamp="1584447029660" />
-    <state width="1899" height="285" key="GridCell.Tab.0.right" timestamp="1584447029660">
+    <state width="1899" height="285" key="GridCell.Tab.0.left/0.0.1920.1050@0.0.1920.1050" timestamp="1584519912086" />
+    <state width="1899" height="285" key="GridCell.Tab.0.right" timestamp="1584519912086">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
-    <state width="1899" height="285" key="GridCell.Tab.0.right/0.0.1920.1050@0.0.1920.1050" timestamp="1584447029660" />
+    <state width="1899" height="285" key="GridCell.Tab.0.right/0.0.1920.1050@0.0.1920.1050" timestamp="1584519912086" />
     <state x="461" y="167" key="SettingsEditor" timestamp="1584144019146">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
     <state x="461" y="167" key="SettingsEditor/0.0.1920.1050@0.0.1920.1050" timestamp="1584144019146" />
-    <state x="655" y="349" key="com.intellij.ide.util.TipDialog" timestamp="1584436857896">
+    <state x="655" y="349" key="com.intellij.ide.util.TipDialog" timestamp="1584508964706">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
-    <state x="655" y="349" key="com.intellij.ide.util.TipDialog/0.0.1920.1050@0.0.1920.1050" timestamp="1584436857896" />
-    <state width="600" height="424" key="javadoc.popup" timestamp="1584443919151">
+    <state x="655" y="349" key="com.intellij.ide.util.TipDialog/0.0.1920.1050@0.0.1920.1050" timestamp="1584508964706" />
+    <state width="600" height="424" key="javadoc.popup" timestamp="1584520368321">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
-    <state width="600" height="424" key="javadoc.popup/0.0.1920.1050@0.0.1920.1050" timestamp="1584443919151" />
+    <state width="600" height="424" key="javadoc.popup/0.0.1920.1050@0.0.1920.1050" timestamp="1584520368321" />
+    <state x="616" y="178" width="670" height="676" key="search.everywhere.popup" timestamp="1584489039509">
+      <screen x="0" y="0" width="1920" height="1050" />
+    </state>
+    <state x="616" y="178" width="670" height="676" key="search.everywhere.popup/0.0.1920.1050@0.0.1920.1050" timestamp="1584489039509" />
   </component>
 </project>

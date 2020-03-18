@@ -1,10 +1,13 @@
 # Run server host on local area network
 # Use on computer with unity
 # Handles all connection updates
+import os
+import sys
 import socket as s
 import argparse
-from datetime import datetime
+from datetime import datetime as DT
 import time
+import multiprocessing
 import asyncio
 
 # adds arguments when running script from the console
@@ -30,29 +33,86 @@ class Server:
         finally:
             self.socket.bind((self.host, self.port))
             self.listen()
-
+            '''
+            while True:
+                self.listen()
+                time.sleep(5)'''
 
     def listen(self):
         # Listen for client TCP connections and output a clarification
         # message to the client, otherwise, stop listening
         self.socket.listen(5)
         while True:
-           current_time = datetime.now().strftime("%I:%M%p")
-           try:
-               client, address = self.socket.accept()
-               print('[%s]\tConnected to %s (%s)' % (current_time,
+            current_time = DT.now().strftime("%I:%M%p")
+            try:
+                client, address = self.socket.accept()
+                print('[%s]\tConnected to %s (%s)' % (current_time,
                     address[0], s.gethostbyaddr(address[0])[0]))
-               client.send(bytes('[%s]\tSuccessfully connected to %s (%s)' %
-                    (current_time, address[0], s.gethostbyaddr(address[0])[0]), 'utf-8'))
-           except s.timeout as error:
-               print("%s\tconnection timed out: %s" % (current_time, error))
-           finally:
-               client.close()
+                client.send(bytes('[%s]\tSuccessfully connected to %s (%s)' %
+                                 (current_time, address[0], s.gethostbyaddr(address[0])[0]), 'utf-8'))
+            except s.timeout as error:
+                print("%s\tconnection timed out: %s" % (current_time, error))
+            finally:
+                client.close()
 
+
+class ReadLogFile:
+    location: str = None
+    loglocations: dict = {
+        'windows': 'C:/Users/%s/AppData/Local/Unity/Editor/Editor.log' %
+                   (os.getlogin()),
+        'macos': '~/Library/Logs/Unity/Editor.log',
+        'linux': '~/.config/unity3d/Editor.log'
+    }
+
+    def __init__(self):
+        self.check_location_exists()
+
+    def check_location_exists(self):
+        '''
+        Check the debug log file location for each platform
+        :return: URL string
+        '''
+        platform: str = sys.platform
+        for pf in self.loglocations.keys():
+            if platform.__contains__('win'):
+                platform = pf
+                break
+            if platform.__contains__('mac'):
+                platform = pf
+                break
+            if platform.__contains__('lin'):
+                platform = pf
+                break
+        if os.path.exists(self.loglocations[platform]):
+            self.location = self.loglocations[platform]
+        else:
+            print("File could not be found at \'%s\';\n" %
+            self.loglocations[platform])
+            raise FileExistsError
+
+    def read_lines(self, url: str) -> iter([bytes]):
+        current_time = DT.now().strftime("%I:%m%p")
+        with open(url, 'r') as file:
+            return iter([bytes("[%s]: %s" % (current_time, line),
+                               'utf-8') for line in file])
+
+    def read_until_eof(self, line):
+        print("[%s]:\t%s" % (DT.now()
+                .strftime("%I%m%p"), line))
 
 
 if __name__ == '__main__':
-    Server()
+    server = Server()
+    reader = ReadLogFile()
+    def read_log():
+        lines = reader.read_lines(reader.location)
+        pool = multiprocessing.Pool(int(multiprocessing.cpu_count()/2))
+        pool.map(reader.read_until_eof, lines)
+        pool.close()
+        pool.join()
+
+
 
 
 
