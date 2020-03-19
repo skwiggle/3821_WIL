@@ -38,7 +38,7 @@ class Server:
                 self.listen()
                 time.sleep(5)'''
 
-    def listen(self):
+    def listen(self) -> None:
         # Listen for client TCP connections and output a clarification
         # message to the client, otherwise, stop listening
         self.socket.listen(5)
@@ -50,6 +50,8 @@ class Server:
                       (current_time, address[0], s.gethostbyaddr(address[0])[0])
                 print(msg)
                 client.send(bytes(msg, 'utf-8'))
+                rec = client.recv(1024).decode('utf-8')
+                print(rec)
             except s.timeout as error:
                 print("%s\tconnection timed out: %s" % (current_time, error))
             finally:
@@ -68,7 +70,7 @@ class ReadLogFile:
     def __init__(self):
         self.check_location_exists()
 
-    def check_location_exists(self):
+    def check_location_exists(self) -> str:
         '''
         Check the debug log file location for each platform
         :return: URL string
@@ -98,12 +100,11 @@ class ReadLogFile:
                                'utf-8') for line in file])
 
     def read_until_eof(self, line):
-        print("[%s]:\t%s" % (DT.now()
-                .strftime("%I%m%p"), line))
+        print(line)
 
 
 if __name__ == '__main__':
-    server = Server()
+    # server = Server()
     reader = ReadLogFile()
     def read_log():
         lines = reader.read_lines(reader.location)
@@ -111,6 +112,7 @@ if __name__ == '__main__':
         pool.map(reader.read_until_eof, lines)
         pool.close()
         pool.join()
+    read_log()
 
 
 

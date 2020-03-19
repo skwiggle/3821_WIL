@@ -1,7 +1,7 @@
 from app.transfer.client import Client
 from app.transfer.server import Server, ReadLogFile
 import threading
-
+import asyncio
 import kivy
 from kivy.app import App
 from kivy.core.window import Window
@@ -11,33 +11,30 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
 from kivy.uix.label import Label
-
 import time
 
 Window.minimum_width = 500
 Window.minimum_height = 500
 
 
-class mainApp(App):
+class Interface(BoxLayout):
 
-    title = "Unity Tool (You Guys Decide The Name)"
+    def init(self):
+        client = Client()
 
-    def build(self) -> BoxLayout:
-        client: Client
+        self.orientation = 'vertical'
+        self.spacing = 0
+        self.padding = 20
 
         def connect(instance) -> None:
-            global client
             try:
-                client = Client()
+                client.__init__(auto_connect=True)
                 instance.text = 'Connection Active'
                 instance.background_color = [0, 1, 0, 1]
             except:
-                instance.text = 'Connection not found'
+                instance.text = 'No connection available'
                 instance.background_color = [1, 0, 0, 1]
 
-        layout = BoxLayout(
-            orientation='vertical',
-            spacing=0, padding=20)
         debug_window = ScrollView(
             size_hint=(1, 0.8))
         debug_layout = BoxLayout(
@@ -69,9 +66,17 @@ class mainApp(App):
 
         input_layout.add_widget(input)
         input_layout.add_widget(send_btn)
-        layout.add_widget(debug_window)
-        layout.add_widget(input_layout)
-        return layout
+        self.add_widget(debug_window)
+        self.add_widget(input_layout)
+
+        return self
+
+
+class mainApp(App):
+    title = "Unity Tool (You Guys Decide The Name)"
+
+    def build(self) -> BoxLayout:
+        return Interface().init()
 
 
 if __name__ == '__main__':

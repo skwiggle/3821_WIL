@@ -20,7 +20,19 @@
     </option>
   </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="master" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GithubPullRequestsUISettings">
+    <option name="hiddenUrls">
+      <set>
+        <option value="https://github.com/skwiggle/3821_WIL.git" />
+      </set>
+    </option>
   </component>
   <component name="ProjectId" id="1Z1GI9eki6G8Zw66Mwetc4AThgi" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
@@ -35,7 +47,7 @@
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
-  <component name="RunManager" selected="Python.main">
+  <component name="RunManager" selected="Python.server">
     <configuration name="client" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="3821_WIL" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -143,10 +155,10 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.server" />
         <item itemvalue="Python.main" />
         <item itemvalue="Python.client" />
         <item itemvalue="Python.json_test" />
-        <item itemvalue="Python.server" />
         <item itemvalue="Python.testing" />
       </list>
     </recent_temporary>
@@ -169,34 +181,38 @@
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
     <state x="739" y="267" key="FileChooserDialogImpl/0.0.1920.1050@0.0.1920.1050" timestamp="1584144010459" />
-    <state width="1899" height="285" key="GridCell.Tab.0.bottom" timestamp="1584583120203">
+    <state width="1899" height="285" key="GridCell.Tab.0.bottom" timestamp="1584590114358">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
-    <state width="1899" height="285" key="GridCell.Tab.0.bottom/0.0.1920.1050@0.0.1920.1050" timestamp="1584583120203" />
-    <state width="1899" height="285" key="GridCell.Tab.0.center" timestamp="1584583120203">
+    <state width="1899" height="285" key="GridCell.Tab.0.bottom/0.0.1920.1050@0.0.1920.1050" timestamp="1584590114358" />
+    <state width="1899" height="285" key="GridCell.Tab.0.center" timestamp="1584590114358">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
-    <state width="1899" height="285" key="GridCell.Tab.0.center/0.0.1920.1050@0.0.1920.1050" timestamp="1584583120203" />
-    <state width="1899" height="285" key="GridCell.Tab.0.left" timestamp="1584583120203">
+    <state width="1899" height="285" key="GridCell.Tab.0.center/0.0.1920.1050@0.0.1920.1050" timestamp="1584590114358" />
+    <state width="1899" height="285" key="GridCell.Tab.0.left" timestamp="1584590114358">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
-    <state width="1899" height="285" key="GridCell.Tab.0.left/0.0.1920.1050@0.0.1920.1050" timestamp="1584583120203" />
-    <state width="1899" height="285" key="GridCell.Tab.0.right" timestamp="1584583120203">
+    <state width="1899" height="285" key="GridCell.Tab.0.left/0.0.1920.1050@0.0.1920.1050" timestamp="1584590114358" />
+    <state width="1899" height="285" key="GridCell.Tab.0.right" timestamp="1584590114358">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
-    <state width="1899" height="285" key="GridCell.Tab.0.right/0.0.1920.1050@0.0.1920.1050" timestamp="1584583120203" />
+    <state width="1899" height="285" key="GridCell.Tab.0.right/0.0.1920.1050@0.0.1920.1050" timestamp="1584590114358" />
     <state x="461" y="167" key="SettingsEditor" timestamp="1584144019146">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
     <state x="461" y="167" key="SettingsEditor/0.0.1920.1050@0.0.1920.1050" timestamp="1584144019146" />
-    <state x="655" y="349" key="com.intellij.ide.util.TipDialog" timestamp="1584577508141">
+    <state x="655" y="349" key="com.intellij.ide.util.TipDialog" timestamp="1584584090377">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
-    <state x="655" y="349" key="com.intellij.ide.util.TipDialog/0.0.1920.1050@0.0.1920.1050" timestamp="1584577508141" />
-    <state width="600" height="424" key="javadoc.popup" timestamp="1584582769727">
+    <state x="655" y="349" key="com.intellij.ide.util.TipDialog/0.0.1920.1050@0.0.1920.1050" timestamp="1584584090377" />
+    <state x="769" y="442" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1584587739295">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
-    <state width="600" height="424" key="javadoc.popup/0.0.1920.1050@0.0.1920.1050" timestamp="1584582769727" />
+    <state x="769" y="442" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.0.1920.1050@0.0.1920.1050" timestamp="1584587739295" />
+    <state width="600" height="424" key="javadoc.popup" timestamp="1584584737793">
+      <screen x="0" y="0" width="1920" height="1050" />
+    </state>
+    <state width="600" height="424" key="javadoc.popup/0.0.1920.1050@0.0.1920.1050" timestamp="1584584737793" />
     <state x="616" y="178" width="670" height="676" key="search.everywhere.popup" timestamp="1584489039509">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>

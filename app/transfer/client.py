@@ -20,9 +20,9 @@ class Client():
     timeout: float
     host: str = 'localhost'     # host name
     port: int = 5555            # port number (default is 5555)
-    host_addr: str
+    error: str = 'none'
 
-    def __init__(self):
+    def __init__(self, auto_connect=False):
         # Asynchronously attempt to connect to terminal
         # and then send verification message. Afterwards,
         # Continue to update terminal until a timeout occurs
@@ -35,11 +35,9 @@ class Client():
         if args.port and isinstance(args.port, int):
             self.port = args.port
 
-        # Test if connection is available
-        asyncio.run(self.connect())
-
-        # Send a verification message to terminal
-        asyncio.run(self.send_msg('Successfully connected'))
+        if auto_connect:
+            # Test if connection is available
+            asyncio.run(self.connect())
 
     async def connect(self):
         # Attempt to connect to host otherwise timeout
@@ -55,11 +53,10 @@ class Client():
             await writer.wait_closed()
         except OSError as error:
             # return error if connection timed out and then exit
-            print("Timeout Exception Occured:\n%s\n"
-                  "connection timed out, please restart session and check\n"
-                  "that an active wireless connection is available and that\n"
-                  "the server script is running on another machine." % error)
-            exit()
+            self.error = "Timeout Exception Occured:\n%s\n" \
+                  "connection timed out, please restart session and check\n" \
+                  "that an active wireless connection is available and that\n" \
+                  "the server script is running on another machine." % error
 
     async def update(self):
         # constantly check for updates from terminal
@@ -78,4 +75,4 @@ class Client():
 
 
 if __name__ == '__main__':
-    Client().run()
+    Client(auto_connect=True)
