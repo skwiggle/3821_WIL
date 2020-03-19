@@ -1,7 +1,11 @@
 # Run as client on local area network
+import os
+import sys
 import argparse
 import asyncio
+from datetime import datetime as DT
 import time
+import threading
 
 # List of OPTIONAL command line arguments including...
 # --port    port number (integer)
@@ -12,10 +16,11 @@ parser.add_argument('--time', type=float, help="Sets the duration until the conn
 args = parser.parse_args()
 
 
-class Client:
+class Client():
     timeout: float
     host: str = 'localhost'     # host name
     port: int = 5555            # port number (default is 5555)
+    host_addr: str
 
     def __init__(self):
         # Asynchronously attempt to connect to terminal
@@ -36,41 +41,32 @@ class Client:
         # Send a verification message to terminal
         asyncio.run(self.send_msg('Successfully connected'))
 
-        # Constantly update application of incoming messages
-        while True:
-            asyncio.run(self.update())
-            time.sleep(10)
-            self.close_connection()    # temporary (for testing only)
-
     async def connect(self):
         # Attempt to connect to host otherwise timeout
         # Creates stream reader and writer to receive/send
         # streams to terminal, however, the writer will close
         # once the function ends
         try:
-            self.reader, self.writer = await \
+            reader, writer = await \
                 asyncio.open_connection(self.host, self.port)
-            msg = await self.reader.read(1024)
+            msg = await reader.read(1024)
             print(msg.decode('utf-8'))
-            self.writer.close()
-            await self.writer.wait_closed()
-        except:
+            writer.close()
+            await writer.wait_closed()
+        except OSError as error:
             # return error if connection timed out and then exit
-            print("[Timeout Exception Occured]\n"
+            print("Timeout Exception Occured:\n%s\n"
                   "connection timed out, please restart session and check\n"
                   "that an active wireless connection is available and that\n"
-                  "the server script is running on another machine.")
+                  "the server script is running on another machine." % error)
             exit()
 
     async def update(self):
         # constantly check for updates from terminal
         # every (specified) number of seconds
-        msg = await self.reader.read(1024)
-        print(msg.decode('utf-8'))
-
-    def close_connection(self):
-        # close the connection and exit the application
-        exit()
+        reader, writer = await \
+            asyncio.open_connection(self.host, self.port)
+        msg = await reader.read(1024)
 
     async def send_msg(self, message: str):
         # Send stream to terminal
@@ -82,4 +78,4 @@ class Client:
 
 
 if __name__ == '__main__':
-    Client()
+    Client().run()

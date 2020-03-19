@@ -46,10 +46,10 @@ class Server:
             current_time = DT.now().strftime("%I:%M%p")
             try:
                 client, address = self.socket.accept()
-                print('[%s]\tConnected to %s (%s)' % (current_time,
-                    address[0], s.gethostbyaddr(address[0])[0]))
-                client.send(bytes('[%s]\tSuccessfully connected to %s (%s)' %
-                                 (current_time, address[0], s.gethostbyaddr(address[0])[0]), 'utf-8'))
+                msg = "[%s]\tSuccessfully connected to %s (%s)" % \
+                      (current_time, address[0], s.gethostbyaddr(address[0])[0])
+                print(msg)
+                client.send(bytes(msg, 'utf-8'))
             except s.timeout as error:
                 print("%s\tconnection timed out: %s" % (current_time, error))
             finally:
