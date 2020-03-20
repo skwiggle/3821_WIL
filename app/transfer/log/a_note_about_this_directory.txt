@@ -1,0 +1,25 @@
+I was thinking about adding this directory to store a temporary log
+file cause in the vision it says we need to be able to read the previous
+log. so basically everytime it reads a log from the remote terminal and gets
+sent to the application... the app writes it to a temporary file and
+saves it here. Whenever the file is overwritten, all data beforehand is
+destroyed
+
+-------------------- OPTION 2 -------------------
+the second option is to keep all logs in 1 file but seperate each line
+with an identifier for example
+
+log1---
+text blah blah text
+log2---
+
+and then use regex to retrieve each log (and maybe store up to 3, 4 or 5 logs
+at a time so it doesn't affect performance)
+
+if I remember correctly the command would be
+
+log = re.split('log[\d]---', thelogfiletext, flags=re.MULTILINE)
+
+which will return an array of text [log1, log2, log3]
+which than the app can just reference
+---------------------------------------------------
