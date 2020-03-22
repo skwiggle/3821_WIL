@@ -65,8 +65,8 @@ class Server:
                       (current_time, address[0],
                        s.gethostbyaddr(address[0])[0])      # create verification message
                 client.send(bytes(msg, 'utf-8'))            # send verification message
-                rec = client.recv(1024).decode('utf-8')     # receives decoded verification message from
-                print(rec)                                  # application and prints
+                rec = client.recv(1024)                     # receives decoded verification message from
+                print(rec.decode('utf-8'))                                  # application and prints
             except s.timeout as error:
                 print("%s\tconnection timed out: %s" % (current_time, error))
             finally:
@@ -136,7 +136,7 @@ class ReadLogFile:
 
 
 if __name__ == '__main__':
-    # server = Server()         # start server
+    server = Server()         # start server
     reader = ReadLogFile()      # read log file
     def read_log():
         """
@@ -148,7 +148,7 @@ if __name__ == '__main__':
         pool.map(reader.read_until_eof, lines)
         pool.close()
         pool.join()
-    read_log()
+
 
 
 
