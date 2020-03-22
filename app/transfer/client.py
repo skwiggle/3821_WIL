@@ -5,25 +5,17 @@
 # -   receives messages from terminal
 # -   sends messages back to terminal
 
-import argparse
 import asyncio
 
-""" List of OPTIONAL command line arguments including...
-    --port    port number (integer)
-    --time    timeout duration (float) """
-parser = argparse.ArgumentParser(description="Specify connection parameters")
-parser.add_argument('--port', type=int, help="Change port number from default 5555")
-parser.add_argument('--time', type=float, help="Sets the duration until the connection times out")
-args = parser.parse_args()
 
-
-class Client():
+class Client:
     timeout: float              # time until connection resets
     host: str = 'localhost'     # host name
     port: int = 5555            # port number (default is 5555)
     error: str = 'none'         # global error string
 
-    def __init__(self, auto_connect=False):
+    def __init__(self, auto_connect=False,
+                 port: int = 5555, time: float = 60):
         """
         Asynchronously attempt to connect to terminal
         and then send verification message. Afterwards,
@@ -34,10 +26,10 @@ class Client():
         """
         # Assign command line arguments to variables if values
         # are given and the values match the correct type
-        if args.time and isinstance(args.time, float):
-            self.timeout = (args.time*60)
-        if args.port and isinstance(args.port, int):
-            self.port = args.port
+        if time and isinstance(time, float):
+            self.timeout = (time*60)
+        if port and isinstance(port, int):
+            self.port = port
         # Test if connection is available
         if auto_connect:
             asyncio.run(self.connect())
