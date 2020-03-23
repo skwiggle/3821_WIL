@@ -1,4 +1,4 @@
 @echo off
 cd ./
-python client.py
+python android_client.py
 pause

@@ -22,4 +22,4 @@ log = re.split('log[\d]---', thelogfiletext, flags=re.MULTILINE)
 
 which will return an array of text [log1, log2, log3]
 which than the app can just reference
----------------------------------------------------
+----------------------------------------------------

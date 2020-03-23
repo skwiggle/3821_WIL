@@ -1,4 +1,4 @@
 @echo off
 cd ./
-python server.py
+python terminal_server.py
 pause
