@@ -1,6 +1,4 @@
-import asyncio
-
-from app.transfer.client import Client
+from app.transfer.android_client import Client
 
 import kivy
 kivy.require('1.11.1')
@@ -23,6 +21,7 @@ from kivy.uix.scrollview import ScrollView
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.core.window import Window
+import asyncio
 
 padding_def = 20
 
