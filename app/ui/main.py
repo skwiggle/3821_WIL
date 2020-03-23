@@ -1,8 +1,10 @@
 from app.transfer.android_client import Client
 
 import kivy
+
 kivy.require('1.11.1')
 from kivy.config import Config
+
 Config.set('graphics', 'width', '640')
 Config.set('graphics', 'height', '960')
 Config.set('graphics', 'minimum_width', '360')
@@ -21,19 +23,22 @@ from kivy.uix.scrollview import ScrollView
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.core.window import Window
+from functools import partial
 import asyncio
 
 padding_def = 20
 
 
 class MainLayout(GridLayout):
+    debug_panel: BoxLayout
+    cmd_panel: BoxLayout
 
     def __init__(self):
         GridLayout.__init__(self)
 
         self.cols = 1
         self.padding = padding_def
-        self.spacing = padding_def/2
+        self.spacing = padding_def / 2
 
         self.debug_panel = DebugPanel()
         self.cmd_panel = CmdPanel()
@@ -43,23 +48,27 @@ class MainLayout(GridLayout):
         self.add_widget(self.cmd_panel)
 
     def active_connection(self):
-        client = Client(auto_connect=True)
+        client = Client(auto_connect=False)
+        self.debug_panel.add_widget(MDLabel(
+            text=client.update()))
 
 
 class DebugPanel(BoxLayout):
     layout: GridLayout
+
     def __init__(self, **kwargs):
         BoxLayout.__init__(self, **kwargs)
-        self.size = (Window.width, Window.height*0.6)
+        self.size = (Window.width, Window.height * 0.6)
         layout = GridLayout(
             cols=1, size_hint=(None, None),
             width=self.width, height=self.height
         )
         layout.bind(minimum_height=layout.setter('height'))
-        for i in range(30):
-            text = MDLabel(text=f"Text {i}" * 50, size=self.size,
-                         size_hint=(None, None))
-            layout.add_widget(text)
+        # 50 rows of scrollable placeholder text
+        layout.add_widget(MDLabel(text=f"50 rows of text\n" * 25, size=self.size,
+                       size_hint=(None, None)))
+        layout.add_widget(MDLabel(text=f"50 rows of text\n" * 25, size=self.size,
+                                  size_hint=(None, None)))
 
         root = ScrollView(size_hint=(None, None), size=self.size,
                           do_scroll_x=False)
@@ -74,16 +83,23 @@ class CmdPanel(BoxLayout):
         self.size_hint = (1, 0.4)
         self.spacing = 10
 
-        send_btn = MDRaisedButton()
-        send_btn.text = 'send'
-        send_btn.md_bg_color = (0.2, 0.6, 1, 1)
-        send_btn.specific_text_color = [1, 1, 1, 0.87]
-        send_btn.pos_hint = {'right': 1}
+        cmd_input = TextInput(
+            size_hint_y=None,
+            height=self.height,
+            font_size=(Window.height / 42)
+        )
 
-        cmd_input = TextInput()
-        cmd_input.size_hint_y = None
-        cmd_input.height = self.height
-        cmd_input.font_size = Window.height / 42
+        def send_cmd(instance):
+            client = Client(auto_connect=True)
+            client.send_cmd(cmd_input.text)
+
+        send_btn = MDRaisedButton(
+            text='send',
+            md_bg_color=(0.2, 0.6, 1, 1),
+            specific_text_color=[1, 1, 1, 0.87],
+            pos_hint={'right': 1},
+            on_press=send_cmd
+        )
 
         self.add_widget(cmd_input)
         self.add_widget(send_btn)

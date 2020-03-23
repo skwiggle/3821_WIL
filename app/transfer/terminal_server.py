@@ -9,6 +9,7 @@
 
 import os
 import sys
+import time
 from datetime import datetime as DT
 import socket as s
 
@@ -24,12 +25,20 @@ class Server:
     -   receives messages from application
     -   sends messages to application
     """
-    def __init__(self, auto_connect=True, port=5555):
-        self.port = port
-        if auto_connect:
-            self.update(port)
 
-    def update(self, port: int, host='localhost') -> None:
+    HOST, PORT = 'localhost', 5555
+    BUFFER_SIZE: int = 2048
+
+    def __init__(self, auto_connect=True,
+                 host='localhost', port=5555):
+        self.PORT = port
+        self.HOST = host
+        if auto_connect:
+            while True:
+                self.update()
+                time.sleep(5)
+
+    def update(self) -> None:
         """
         Continuously waits for incoming messages or a 'LOG'
         request from client(s)
@@ -38,20 +47,20 @@ class Server:
         """
         request_log = False
         with s.socket(s.AF_INET, s.SOCK_STREAM) as sock:
-            sock.bind((host, port))
+            sock.bind((self.HOST, self.PORT))
             sock.listen()
             client, addr = sock.accept()
             with client:
                 current_time = DT.now().strftime("%I:%M%p")
                 client.send(bytes("[%s]\tconnected to server: " \
-                            "%s (%s)" % (current_time, host,
+                            "%s (%s)" % (current_time, self.HOST,
                             s.gethostbyaddr(addr[0])[0]), 'utf-8'))
                 while True:
-                    reply = client.recv(1024)
+                    reply = client.recv(self.BUFFER_SIZE)
                     print(reply.decode('utf-8'))
                     if request_log:
-                        for l in self.debug_info():
-                            print(l)
+                        for line in self.debug_info():
+                            print(line)
                         request_log = False
                     if not reply:
                         break
