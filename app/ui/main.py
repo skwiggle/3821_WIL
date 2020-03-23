@@ -1,3 +1,5 @@
+import asyncio
+
 from app.transfer.client import Client
 
 import kivy
@@ -9,10 +11,6 @@ Config.set('graphics', 'minimum_width', '360')
 Config.set('graphics', 'minimum_height', '480')
 Config.set('graphics', 'resizable', '1')
 Config.set('widgets', 'scroll_moves', '10')
-Config.setdefault(
-    'kivy', 'window_shape',
-    'data/images/defaultshape.png'
-)
 
 from kivy.graphics import Color, Rectangle
 from kivymd.app import MDApp
@@ -30,35 +28,35 @@ padding_def = 20
 
 
 class MainLayout(GridLayout):
+
     def __init__(self):
         GridLayout.__init__(self)
+
         self.cols = 1
         self.padding = padding_def
         self.spacing = padding_def/2
 
-        debug_panel = DebugPanel()
-        cmd_panel = CmdPanel()
+        self.debug_panel = DebugPanel()
+        self.cmd_panel = CmdPanel()
 
-        self.connect_to_machine()
-        self.add_widget(debug_panel)
-        self.add_widget(cmd_panel)
+        self.active_connection()
+        self.add_widget(self.debug_panel)
+        self.add_widget(self.cmd_panel)
 
-    @classmethod
-    def connect_to_machine(cls):
+    def active_connection(self):
         client = Client(auto_connect=True)
 
 
 class DebugPanel(BoxLayout):
+    layout: GridLayout
     def __init__(self, **kwargs):
         BoxLayout.__init__(self, **kwargs)
         self.size = (Window.width, Window.height*0.6)
-
         layout = GridLayout(
             cols=1, size_hint=(None, None),
             width=self.width, height=self.height
         )
         layout.bind(minimum_height=layout.setter('height'))
-
         for i in range(30):
             text = MDLabel(text=f"Text {i}" * 50, size=self.size,
                          size_hint=(None, None))
