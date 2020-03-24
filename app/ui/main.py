@@ -1,3 +1,5 @@
+from kivy.uix.widget import Widget
+
 from app.transfer.android_client import Client
 
 import kivy
@@ -13,9 +15,10 @@ Config.set('widgets', 'scroll_moves', '10')
 
 from kivy.graphics import Color, Rectangle
 from kivymd.app import MDApp
+from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.app import App
 from kivy.lang import Builder
-from kivy.properties import NumericProperty, StringProperty, OptionProperty
+from kivy.properties import NumericProperty, StringProperty, ListProperty
 from kivymd.button import MDRaisedButton
 from kivymd.label import MDLabel
 from kivy.uix.button import Button
@@ -26,15 +29,29 @@ from kivy.uix.scrollview import ScrollView
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.core.window import Window
-from kivymd.tabs import MDTabbedPanel, MDTab
+from kivymd.spinner import MDSpinner
+from kivy.clock import Clock
 
+import time
 from datetime import datetime as DT
 import asyncio
 
 padding_def = 20
 
 
-class MainLayout(GridLayout): pass
+class Manager(ScreenManager):
+    status = StringProperty('loading')
+    def __init__(self, **kwargs):
+        super(Manager, self).__init__(**kwargs)
+
+    def setup(self):
+        try:
+            client = Client(auto_connect=False)
+            self.status = client.update()
+            if not self.status.__contains__('connection failed'):
+                self.current = 'main'
+        except:
+            self.status = 'a problem occured,\nplease reload the app'
 
 
 class Content(GridLayout):
@@ -60,10 +77,12 @@ class CmdPanel(BoxLayout):
 
 
 class mainApp(MDApp):
-    padding_def = NumericProperty(20)
+
     title = "What should we call the program"
     icon = './icon/placeholder.jpg'
-    pass
+    padding_def = NumericProperty(20)
+    global_error = StringProperty('none')
+    status: ListProperty = ['', '']
 
 
 if __name__ == '__main__':
