@@ -1,10 +1,40 @@
 #: import Window kivy.core.window.Window
 #: import MDApp kivymd.app.MDApp
+#: import ListProperty kivy.properties.ListProperty
 #: import MDLabel kivymd.label.MDLabel
 #: import MDButton kivymd.button.MDRaisedButton
 #: import MDTextField kivymd.textfields.MDTextField
-#: import MDTabbedPanel kivymd.tabs.MDTabbedPanel
-#: import MDTab kivymd.tabs.MDTab
+#: import MDSpinner kivymd.spinner.MDSpinner
+
+<Main@Widget>
+    id: main_widget
+    size: Window.size
+    GridLayout:
+        id: main
+        size: root.size
+        cols: 1
+        padding: app.padding_def
+        spacing: app.padding_def/2
+        DebugPanel:
+            size_hint: (1, 0.8)
+        CmdPanel:
+            size_hint: (1, 0.2)
+
+<Manager@ScreenManager>:
+    Screen:
+        name: 'loading'
+        Button:
+            id: 'start_btn'
+            text: root.status
+            on_press: root.setup()
+        MDSpinner:
+            id: 'load_icon'
+            size_hint: (None, None)
+            size: (50, 50)
+            pos_hint: {'center_x': .5, 'center_y': .4}
+    Screen:
+        name: 'main'
+        Main:
 
 <CmdPanel@BoxLayout>:
     id: cmd_panel
@@ -68,12 +98,4 @@
         Content:
             id: content_layout
 
-GridLayout:
-    id: main
-    cols: 1
-    padding: app.padding_def
-    spacing: app.padding_def/2
-    DebugPanel:
-        size_hint: (1, 0.8)
-    CmdPanel:
-        size_hint: (1, 0.2)
+Manager:
