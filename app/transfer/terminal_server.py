@@ -45,7 +45,6 @@ class Server:
         :param port: connection port number (default 5555)
         :param host: hostname (default localhost)
         """
-        request_log = False
         with s.socket(s.AF_INET, s.SOCK_STREAM) as sock:
             sock.bind((self.HOST, self.PORT))
             sock.listen()
@@ -57,8 +56,7 @@ class Server:
                             s.gethostbyaddr(addr[0])[0]), 'utf-8'))
                 while True:
                     reply = client.recv(self.BUFFER_SIZE)
-                    print(reply.decode('utf-8'))
-                    if request_log:
+                    if reply.decode('utf-8') == 'LOG':
                         for line in self.debug_info():
                             print(line)
                         request_log = False

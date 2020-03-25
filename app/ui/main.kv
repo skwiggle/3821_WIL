@@ -6,96 +6,63 @@
 #: import MDTextField kivymd.textfields.MDTextField
 #: import MDSpinner kivymd.spinner.MDSpinner
 
-<Main@Widget>
-    id: main_widget
-    size: Window.size
-    GridLayout:
-        id: main
-        size: root.size
-        cols: 1
-        padding: app.padding_def
-        spacing: app.padding_def/2
-        DebugPanel:
-            size_hint: (1, 0.8)
-        CmdPanel:
-            size_hint: (1, 0.2)
-
 <Manager@ScreenManager>:
+    id: manager
     Screen:
         name: 'loading'
         Button:
-            id: 'start_btn'
-            text: root.status
+            id: start_btn
+            text: app.status
             on_press: root.setup()
         MDSpinner:
-            id: 'load_icon'
+            id: load_icon
             size_hint: (None, None)
             size: (50, 50)
             pos_hint: {'center_x': .5, 'center_y': .4}
     Screen:
         name: 'main'
-        Main:
-
-<CmdPanel@BoxLayout>:
-    id: cmd_panel
-    orientation: 'vertical'
-    spacing: 10
-    GridLayout:
-        id: client_active
-        cols: 4
-        spacing: [10, 0]
-        MDRaisedButton:
-            height: 20
-            text: 'Client 1'
-            md_bg_color: (0.2, 0.5, 0.1, 1)
-            specific_text_color: [1, 1, 1, 0.87]
-        MDRaisedButton:
-            height: 20
-            text: 'Client 2'
-            md_bg_color: (.8, 0, 0, 1)
-            specific_text_color: [1, 1, 1, 0.87]
-        MDRaisedButton:
-            height: 20
-            text: 'Client 3'
-            md_bg_color: (.8, 0, 0, 1)
-            specific_text_color: [1, 1, 1, 0.87]
-        MDRaisedButton:
-            height: 20
-            text: 'Client 4'
-            md_bg_color: (.8, 0, 0, 1)
-            specific_text_color: [1, 1, 1, 0.87]
-    MDTextField:
-        id: cmd_input
-        size_hint_y: None
-        height: 60
-        font_size: '12sp'
-    MDRaisedButton:
-        id: send_btn
-        height: 20
-        text: 'send'
-        md_bg_color: (0.2, 0.6, 1, 1)
-        specific_text_color: [1, 1, 1, 0.87]
-        pos_hint: {'right': 1}
-
-<Content@GridLayout>:
-    cols:1
-    row_default_height: 30
-    size_hint_y: None
-    height: self.minimum_height
-
-<DebugPanel@BoxLayout>:
-    id: debug_panel
-    orientation: "vertical"
-    padding: [20, 0]
-    canvas:
-        Color:
-            rgba: 0, 0, 0, .2
-        Rectangle:
-            size: debug_panel.size
-            pos: debug_panel.pos
-    layout: content_layout
-    ScrollView:
-        Content:
-            id: content_layout
+        Widget:
+            id: main_widget
+            size: Window.size
+            GridLayout:
+                id: main
+                size: root.size
+                cols: 1
+                padding: app.padding_def
+                spacing: app.padding_def/2
+                BoxLayout:
+                    id: debug_panel
+                    size_hint: (1, 0.8)
+                    orientation: "vertical"
+                    padding: [20, 0]
+                    canvas:
+                        Color:
+                            rgba: 0, 0, 0, .2
+                        Rectangle:
+                            size: debug_panel.size
+                            pos: debug_panel.pos
+                    ScrollView:
+                        GridLayout:
+                            id: content_layout
+                            cols:1
+                            row_default_height: 30
+                            size_hint_y: None
+                            height: self.minimum_height
+                BoxLayout:
+                    id: cmd_panel
+                    orientation: 'vertical'
+                    spacing: 10
+                    MDTextField:
+                        id: cmd_input
+                        size_hint_y: None
+                        height: 60
+                        font_size: '12sp'
+                    MDRaisedButton:
+                        id: send_btn
+                        height: 20
+                        text: 'send'
+                        md_bg_color: (0.2, 0.6, 1, 1)
+                        specific_text_color: [1, 1, 1, 0.87]
+                        pos_hint: {'right': 1}
 
 Manager:
