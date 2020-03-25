@@ -33,12 +33,12 @@ class Client:
             with s.socket(s.AF_INET, s.SOCK_STREAM) as sock:
                 current_time = DT.now().strftime("%I:%M%p")
                 sock.connect((self.HOST, self.PORT))
-                sock.send(bytes(f'[{current_time}]\t{os.getlogin()} is now connected to server\n', 'utf-8'))
+                sock.send(bytes(f'(CONSOLE) [{current_time}]\t{os.getlogin()} is now connected to server\n', 'utf-8'))
                 msg = sock.recv(self.BUFFER_SIZE).decode('utf-8')
                 print(msg)
                 return msg
         except:
-            return f"[{current_time}]\tconnection failed, check that the server is running"
+            return f"(CONSOLE) [{current_time}]\tconnection failed, check that the server is running"
 
     def send_cmd(self, command: str):
         current_time = DT.now().strftime("%I:%M%p")
@@ -54,7 +54,7 @@ class Client:
                     sock.close()
                     return f"sent -> '{command}'"
         except:
-            return f"[{current_time}]\tconnection failed, check that the server is running"
+            return f"(CONSOLE) [{current_time}]\tconnection failed, check that the server is running"
 
 
 if __name__ == '__main__':

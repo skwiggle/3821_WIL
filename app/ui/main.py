@@ -1,4 +1,4 @@
-import functools
+import re
 
 from kivy.uix.widget import Widget
 
@@ -8,6 +8,7 @@ import kivy
 
 kivy.require('1.11.1')
 from kivy.config import Config
+
 Config.set('graphics', 'width', '480')
 Config.set('graphics', 'height', '720')
 Config.set('graphics', 'minimum_width', '480')
@@ -32,6 +33,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.core.window import Window
 from kivymd.spinner import MDSpinner
+from kivymd.button import MDIconButton
 from kivy.clock import Clock
 
 import time
@@ -51,33 +53,34 @@ import threading
             ))
 '''
 
-
-
-class Manager(ScreenManager):
-    def __init__(self, **kwargs):
-        super(Manager, self).__init__(**kwargs)
-
-    def setup(self):
-        try:
-            client = Client(auto_connect=False)
-            self.status = client.update()
-            print(self.status)
-            if not self.status.__contains__('connection failed'):
-                self.current = 'main'
-        except:
-            self.status = 'a problem occured,\nplease reload the app'
-
-
 class mainApp(MDApp):
     title = "What should we call the program"
     icon = './icon/placeholder.jpg'
     padding_def = NumericProperty(20)
-    status = StringProperty('Press to connect')
-    def on_start(self):
-        self.test()
+    status = StringProperty('')
+    command = StringProperty('')
+    client: Client = None+
 
-    def test(self):
-        print(self.root.ids['debug_panel'].orientation)
+    def on_start(self):
+        self.setup()
+
+    def setup(self):
+        try:
+            self.client = Client(auto_connect=False)
+            self.status = self.client.update()
+            log_msg = MDLabel(
+                text=self.status)
+            Clock.schedule_once(lambda x: self.root.ids['content_layout']
+                                .add_widget(log_msg))
+        except:
+            self.status = 'a problem occured,\nplease reload the app'
+
+    def send_command(self):
+
+        msg = re.sub('[\\"]', '\'',
+              re.sub('[\\\\]', '/',
+              self.root.ids['cmd_input'].text))
+        self.client.send_cmd(msg)
 
 
 if __name__ == '__main__':

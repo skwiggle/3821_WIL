@@ -9,7 +9,6 @@
 
 import os
 import sys
-import time
 from datetime import datetime as DT
 import socket as s
 
@@ -25,43 +24,38 @@ class Server:
     -   receives messages from application
     -   sends messages to application
     """
-
-    HOST, PORT = 'localhost', 5555
-    BUFFER_SIZE: int = 2048
-
-    def __init__(self, auto_connect=True,
-                 host='localhost', port=5555):
-        self.PORT = port
-        self.HOST = host
+    def __init__(self, auto_connect=True, port=5555):
+        self.port = port
         if auto_connect:
-            while True:
-                self.update()
-                time.sleep(5)
+            self.update(port)
 
-    def update(self) -> None:
+    def update(self, port: int, host='localhost') -> None:
         """
         Continuously waits for incoming messages or a 'LOG'
         request from client(s)
         :param port: connection port number (default 5555)
         :param host: hostname (default localhost)
         """
-        with s.socket(s.AF_INET, s.SOCK_STREAM) as sock:
-            sock.bind((self.HOST, self.PORT))
-            sock.listen()
-            client, addr = sock.accept()
-            with client:
-                current_time = DT.now().strftime("%I:%M%p")
-                client.send(bytes("[%s]\tconnected to server: " \
-                            "%s (%s)" % (current_time, self.HOST,
-                            s.gethostbyaddr(addr[0])[0]), 'utf-8'))
-                while True:
-                    reply = client.recv(self.BUFFER_SIZE)
-                    if reply.decode('utf-8') == 'LOG':
-                        for line in self.debug_info():
-                            print(line)
-                        request_log = False
-                    if not reply:
-                        break
+        request_log = False
+        while True:
+            with s.socket(s.AF_INET, s.SOCK_STREAM) as sock:
+                sock.bind((host, port))
+                sock.listen()
+                client, addr = sock.accept()
+                with client:
+                    current_time = DT.now().strftime("%I:%M%p")
+                    client.send(bytes("[%s]\tconnected to server: " \
+                                "%s (%s)" % (current_time, host,
+                                s.gethostbyaddr(addr[0])[0]), 'utf-8'))
+                    while True:
+                        reply = client.recv(1024)
+                        print(reply.decode('utf-8'))
+                        if request_log:
+                            for l in self.debug_info():
+                                print(l)
+                            request_log = False
+                        if not reply:
+                            break
 
     def debug_info(self) -> [str]:
         """
