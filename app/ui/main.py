@@ -59,7 +59,7 @@ class mainApp(MDApp):
     padding_def = NumericProperty(20)
     status = StringProperty('')
     command = StringProperty('')
-    client: Client = None+
+    client: Client = None
 
     def on_start(self):
         self.setup()
