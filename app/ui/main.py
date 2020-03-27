@@ -62,18 +62,17 @@ class mainApp(MDApp):
     client: Client = None
 
     def on_start(self):
-        main_thr = threading.Thread(self.setup())
-        main_thr.start()
-        main_thr.join()
+        self.setup()
 
     def setup(self):
         try:
             self.client = Client(auto_connect=False)
             self.status = self.client.update()
             log_msg = MDLabel(
-                text=self.status)
-            log_msg.theme_text_color = 'Custom'
-            log_msg.text_color = (1, 1, 1, 1)
+                text=self.status,
+                theme_text_color = 'Custom',
+                text_color = (1, 1, 1, 1)
+            )
             Clock.schedule_once(lambda x: self.root.ids['content_layout']
                                 .add_widget(log_msg))
         except:

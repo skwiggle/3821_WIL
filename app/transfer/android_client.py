@@ -38,11 +38,22 @@ class Client:
                 current_time = DT.now().strftime("%I:%M%p")
                 sock.connect((self.HOST, self.PORT))
                 sock.send(bytes(f'CONSOLE [{current_time}]: {os.getlogin()} is now connected to server\n', 'utf-8'))
-                while True:
-                    msg = sock.recv(self.BUFFER_SIZE).decode('utf-8')
-                    print(msg)
-                    if not msg:
-                        break
+                with open('./log/temp-log.txt', 'a+') as file:
+                    single_line: str = ''
+                    while True:
+                        msg = sock.recv(self.BUFFER_SIZE).decode('utf-8')
+                        if msg and re.search('(CONSOLE|CLIENT) \[', msg):
+                            print(msg)
+                        elif msg:
+                            if re.search('\[[\W\S\D]+\]', msg):
+                                single_line += msg
+                                file.write(''.join(single_line))
+                                single_line = ''
+                            else:
+                                single_line += msg
+                        else:
+                            break
+
         except:
             return f"CONSOLE [{current_time}]: connection failed, check that the server is running"
 
