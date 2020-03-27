@@ -4,7 +4,7 @@
     <list default="true" id="bfae826f-5ace-47e0-a76b-60ead9169c60" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/transfer/android_client.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/transfer/android_client.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/transfer/terminal_server.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/transfer/terminal_server.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/ui/main.kv" beforeDir="false" afterPath="$PROJECT_DIR$/app/ui/main.kv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/ui/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/ui/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -52,7 +52,7 @@
       <recent name="D:\MAX\griffith\3821_WIL\app\transfer\log" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.watchdog_example">
+  <component name="RunManager" selected="Python.main">
     <configuration name="client" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="3821_WIL" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -160,8 +160,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.watchdog_example" />
         <item itemvalue="Python.main" />
+        <item itemvalue="Python.watchdog_example" />
         <item itemvalue="Python.log_modified" />
         <item itemvalue="Python.server" />
         <item itemvalue="Python.client" />
@@ -226,22 +226,22 @@
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
     <state x="739" y="267" key="FileChooserDialogImpl/0.0.1920.1050@0.0.1920.1050" timestamp="1584661549933" />
-    <state width="1899" height="177" key="GridCell.Tab.0.bottom" timestamp="1585284357262">
+    <state width="1899" height="177" key="GridCell.Tab.0.bottom" timestamp="1585311875787">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
-    <state width="1899" height="177" key="GridCell.Tab.0.bottom/0.0.1920.1050@0.0.1920.1050" timestamp="1585284357262" />
-    <state width="1899" height="177" key="GridCell.Tab.0.center" timestamp="1585284357262">
+    <state width="1899" height="177" key="GridCell.Tab.0.bottom/0.0.1920.1050@0.0.1920.1050" timestamp="1585311875787" />
+    <state width="1899" height="177" key="GridCell.Tab.0.center" timestamp="1585311875787">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
-    <state width="1899" height="177" key="GridCell.Tab.0.center/0.0.1920.1050@0.0.1920.1050" timestamp="1585284357262" />
-    <state width="1899" height="177" key="GridCell.Tab.0.left" timestamp="1585284357262">
+    <state width="1899" height="177" key="GridCell.Tab.0.center/0.0.1920.1050@0.0.1920.1050" timestamp="1585311875787" />
+    <state width="1899" height="177" key="GridCell.Tab.0.left" timestamp="1585311875787">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
-    <state width="1899" height="177" key="GridCell.Tab.0.left/0.0.1920.1050@0.0.1920.1050" timestamp="1585284357262" />
-    <state width="1899" height="177" key="GridCell.Tab.0.right" timestamp="1585284357262">
+    <state width="1899" height="177" key="GridCell.Tab.0.left/0.0.1920.1050@0.0.1920.1050" timestamp="1585311875787" />
+    <state width="1899" height="177" key="GridCell.Tab.0.right" timestamp="1585311875787">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
-    <state width="1899" height="177" key="GridCell.Tab.0.right/0.0.1920.1050@0.0.1920.1050" timestamp="1585284357262" />
+    <state width="1899" height="177" key="GridCell.Tab.0.right/0.0.1920.1050@0.0.1920.1050" timestamp="1585311875787" />
     <state width="1899" height="352" key="GridCell.Tab.1.bottom" timestamp="1584956575096">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
@@ -262,10 +262,10 @@
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
     <state x="461" y="24" width="1131" height="978" key="SettingsEditor/0.0.1920.1050@0.0.1920.1050" timestamp="1585224415208" />
-    <state x="655" y="349" key="com.intellij.ide.util.TipDialog" timestamp="1585295806253">
+    <state x="655" y="349" key="com.intellij.ide.util.TipDialog" timestamp="1585305867839">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
-    <state x="655" y="349" key="com.intellij.ide.util.TipDialog/0.0.1920.1050@0.0.1920.1050" timestamp="1585295806253" />
+    <state x="655" y="349" key="com.intellij.ide.util.TipDialog/0.0.1920.1050@0.0.1920.1050" timestamp="1585305867839" />
     <state x="769" y="442" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1584587739295">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>

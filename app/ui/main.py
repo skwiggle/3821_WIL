@@ -62,7 +62,9 @@ class mainApp(MDApp):
     client: Client = None
 
     def on_start(self):
-        self.setup()
+        main_thr = threading.Thread(self.setup())
+        main_thr.start()
+        main_thr.join()
 
     def setup(self):
         try:
@@ -70,13 +72,14 @@ class mainApp(MDApp):
             self.status = self.client.update()
             log_msg = MDLabel(
                 text=self.status)
+            log_msg.theme_text_color = 'Custom'
+            log_msg.text_color = (1, 1, 1, 1)
             Clock.schedule_once(lambda x: self.root.ids['content_layout']
                                 .add_widget(log_msg))
         except:
             self.status = 'a problem occured,\nplease reload the app'
 
     def send_command(self):
-
         msg = re.sub('[\\"]', '\'',
               re.sub('[\\\\]', '/',
               self.root.ids['cmd_input'].text))

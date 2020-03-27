@@ -33,7 +33,6 @@ class Client:
         :param host: client hostname (default localhost)
         :param port: connection port number (default 5555)
         """
-        full_msg: str = ''
         try:
             with s.socket(s.AF_INET, s.SOCK_STREAM) as sock:
                 current_time = DT.now().strftime("%I:%M%p")
