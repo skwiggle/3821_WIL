@@ -6,7 +6,9 @@
 # -   sends messages back to terminal
 
 import os
+import re
 import socket as s
+import time
 from datetime import datetime as DT
 
 
@@ -20,7 +22,9 @@ class Client:
         self.HOST = host
         self.PORT = port
         if auto_connect:
-            self.update()
+            while True:
+                self.update()
+                time.sleep(2)
 
     def update(self) -> str:
         """
@@ -33,12 +37,25 @@ class Client:
             with s.socket(s.AF_INET, s.SOCK_STREAM) as sock:
                 current_time = DT.now().strftime("%I:%M%p")
                 sock.connect((self.HOST, self.PORT))
-                sock.send(bytes(f'[{current_time}]\t{os.getlogin()} is now connected to server\n', 'utf-8'))
-                msg = sock.recv(self.BUFFER_SIZE).decode('utf-8')
-                print(msg)
-                return msg
+                sock.send(bytes(f'CONSOLE [{current_time}]: {os.getlogin()} is now connected to server\n', 'utf-8'))
+                with open('./log/temp-log.txt', 'a+') as file:
+                    single_line: str = ''
+                    while True:
+                        msg = sock.recv(self.BUFFER_SIZE).decode('utf-8')
+                        if msg and re.search('(CONSOLE|CLIENT) \[', msg):
+                            print(msg)
+                        elif msg:
+                            if re.search('\[[\W\S\D]+\]', msg):
+                                single_line += msg
+                                file.write(''.join(single_line))
+                                single_line = ''
+                            else:
+                                single_line += msg
+                        else:
+                            break
+
         except:
-            return f"[{current_time}]\tconnection failed, check that the server is running"
+            return f"CONSOLE [{current_time}]: connection failed, check that the server is running"
 
     def send_cmd(self, command: str):
         current_time = DT.now().strftime("%I:%M%p")
@@ -54,7 +71,7 @@ class Client:
                     sock.close()
                     return f"sent -> '{command}'"
         except:
-            return f"[{current_time}]\tconnection failed, check that the server is running"
+            return f"CONSOLE [{current_time}]: connection failed, check that the server is running"
 
 
 if __name__ == '__main__':

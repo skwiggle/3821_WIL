@@ -5,64 +5,82 @@
 #: import MDButton kivymd.button.MDRaisedButton
 #: import MDTextField kivymd.textfields.MDTextField
 #: import MDSpinner kivymd.spinner.MDSpinner
+#: import MDIconButton kivymd.button.MDIconButton
+<RefreshBtn>:
+    icon: './icon/refresh/refresh_icon_64x64'
+    height: 20
+    on_press: app.setup()
 
-<Manager@ScreenManager>:
-    id: manager
-    Screen:
-        name: 'loading'
-        Button:
-            id: start_btn
-            text: app.status
-            on_press: root.setup()
-        MDSpinner:
-            id: load_icon
-            size_hint: (None, None)
-            size: (50, 50)
-            pos_hint: {'center_x': .5, 'center_y': .4}
-    Screen:
-        name: 'main'
-        Widget:
-            id: main_widget
+Widget:
+    id: main_widget
+    size: Window.size
+    canvas:
+        Color:
+            rgba: (0.57, 0.87, 0.87, 1)
+        Rectangle:
             size: Window.size
-            GridLayout:
-                id: main
-                size: root.size
-                cols: 1
-                padding: app.padding_def
-                spacing: app.padding_def/2
-                BoxLayout:
-                    id: debug_panel
-                    size_hint: (1, 0.8)
-                    orientation: "vertical"
-                    padding: [20, 0]
-                    canvas:
-                        Color:
-                            rgba: 0, 0, 0, .2
-                        Rectangle:
-                            size: debug_panel.size
-                            pos: debug_panel.pos
-                    ScrollView:
-                        GridLayout:
-                            id: content_layout
-                            cols:1
-                            row_default_height: 30
-                            size_hint_y: None
-                            height: self.minimum_height
-                BoxLayout:
-                    id: cmd_panel
-                    orientation: 'vertical'
-                    spacing: 10
-                    MDTextField:
-                        id: cmd_input
-                        size_hint_y: None
-                        height: 60
-                        font_size: '12sp'
-                    MDRaisedButton:
-                        id: send_btn
-                        height: 20
-                        text: 'send'
-                        md_bg_color: (0.2, 0.6, 1, 1)
-                        specific_text_color: [1, 1, 1, 0.87]
-                        pos_hint: {'right': 1}
+            pos: (0, 0)
+    GridLayout:
+        id: main
+        size: root.size
+        cols: 1
+        padding: app.padding_def
+        spacing: app.padding_def/2
+        BoxLayout:
+            id: debug_panel
+            size_hint: (1, 0.5)
+            orientation: "vertical"
+            ScrollView:
+                id: scroll
+                canvas:
+                    Color:
+                        rgba: (0.09, 0.13, 0.13, .5)
+                    Rectangle:
+                        size: root.size
+                        pos: root.pos
+                GridLayout:
+                    id: content_layout
+                    cols:1
+                    padding: [10, 0, 10, 0]
+                    row_default_height: 50
+                    size_hint_y: None
+                    height: self.minimum_height
+        StackLayout:
+            id: debug_taskbar
+            size_hint: (1, 0.05)
+            MDIconButton:
+                id: reconnect
+                icon: 'wifi'
+                height: 20
+                pos_hint: {'right': 1}
+                on_press: app.something()
+        BoxLayout:
+            id: cmd_panel
+            orientation: 'vertical'
+            size_hint: (1, 0.2)
+            spacing: 10
+            canvas:
+                Color:
+                    rgba: (0, 0, 0, 1)
+                Rectangle:
+                    size: cmd_panel.size
+                    pos: cmd_panel.pos
+            MDTextField:
+                id: cmd_input
+                size_hint_y: None
+                height: 60
+                font_size: '20sp'
+                specific_text_color: [1, 0, 1, 1]
+        BoxLayout:
+            id: bottom_panel
+            size_hint: (1, 0.25)
+            MDRaisedButton:
+                id: send_btn
+                height: 50
+                text: 'send'
+                pos_hint: {'right': 1}
+                md_bg_color: (0.2, 0.6, 1, 1)
+                specific_text_color: [1, 1, 1, 0.87]
+                on_press: app.send_command()
 
-Manager:
+
