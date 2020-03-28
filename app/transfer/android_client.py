@@ -33,10 +33,6 @@ class Client:
         except:
             return self.verification_msg['failed']
 
-    @get_connection.setter
-    def get_connection(self, error_msg: str):
-        self.get_connection = f'CLIENT [{self.current_time}]: {error_msg}'
-
     def __init__(self, auto_connect=False,
                  host='localhost', port=5555):
         self.HOST = host
@@ -56,7 +52,7 @@ class Client:
         try:
             with s.socket(s.AF_INET, s.SOCK_STREAM) as sock:
                 sock.connect((self.HOST, self.PORT))
-                sock.send(bytes(self.verification_msg['success']), 'utf-8')
+                sock.send(bytes(self.verification_msg['success'], 'utf-8'))
                 with open('./log/temp-log.txt', 'a+') as file:
                     single_line: str = ''
                     while True:

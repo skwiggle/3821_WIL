@@ -48,12 +48,13 @@ class Server(FileSystemEventHandler):
     def on_modified(self, event):
         with open(event.src_path, 'r') as file:
             try:
-                start_time = time.clock()
+                start_time = time.time()
                 print('sending log to client...')
                 for line in file:
-                    current_time = time.clock()
+                    current_time = time.time()
                     self.client.send(bytes(line, 'utf-8'))
-                    print(f'time elapsed: {current_time - start_time}', sep='\r')
+                    sys.stdout.write(f'time elapsed: {current_time - start_time}\r')
+                    sys.stdout.flush()
                 print(self.verification_msg['log_success'])
             except:
                 print(self.verification_msg['log_failed'])
@@ -77,8 +78,8 @@ class Server(FileSystemEventHandler):
                     sock.listen()
                     self.client, addr = sock.accept()
                     with self.client:
-                        self.client.send(bytes(self.verification_msg['client_success'] %
-                                        (s.gethostbyaddr(addr[0])[0]), host, 'utf-8'))
+                        self.client.send(bytes(str(self.verification_msg['client_success']) %
+                                        (s.gethostbyaddr(addr[0])[0], host), 'utf-8'))
                         while True:
                             reply = self.client.recv(1024)
                             print(reply.decode('utf-8'))
