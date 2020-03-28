@@ -16,6 +16,22 @@ class Client:
 
     HOST, PORT = 'localhost', 5555
     BUFFER_SIZE: int = 2048
+    current_time = DT.now().strftime("%I:%M%p")
+    verification_msg: dict = {
+        'success': f'CONSOLE [{current_time}]: {os.getlogin()} is now connected to server',
+        'failed': f'CONSOLE [{current_time}]: connection failed, check that the server is running'
+    }
+
+    @property
+    def get_connection(self) -> str:
+        try:
+            with s.socket(s.AF_INET, s.SOCK_STREAM) as sock:
+                sock.connect((self.HOST, self.PORT))
+                sock.send(bytes(self.verification_msg['success'], 'utf-8'))
+                recv = sock.recv(self.BUFFER_SIZE).decode('utf-8')
+                return recv
+        except:
+            return self.verification_msg['failed']
 
     def __init__(self, auto_connect=False,
                  host='localhost', port=5555):
@@ -26,7 +42,7 @@ class Client:
                 self.update()
                 time.sleep(2)
 
-    def update(self) -> str:
+    def update(self) -> None:
         """
         Continously waits for incoming log info requests or
         server updates from main server
@@ -35,9 +51,8 @@ class Client:
         """
         try:
             with s.socket(s.AF_INET, s.SOCK_STREAM) as sock:
-                current_time = DT.now().strftime("%I:%M%p")
                 sock.connect((self.HOST, self.PORT))
-                sock.send(bytes(f'CONSOLE [{current_time}]: {os.getlogin()} is now connected to server\n', 'utf-8'))
+                sock.send(bytes(self.verification_msg['success'], 'utf-8'))
                 with open('./log/temp-log.txt', 'a+') as file:
                     single_line: str = ''
                     while True:
@@ -53,12 +68,10 @@ class Client:
                                 single_line += msg
                         else:
                             break
-
         except:
-            return f"CONSOLE [{current_time}]: connection failed, check that the server is running"
+            print(self.verification_msg['failed'])
 
     def send_cmd(self, command: str):
-        current_time = DT.now().strftime("%I:%M%p")
         try:
             with s.socket(s.AF_INET, s.SOCK_STREAM) as sock:
                 sock.connect((self.HOST, self.PORT))
@@ -71,7 +84,7 @@ class Client:
                     sock.close()
                     return f"sent -> '{command}'"
         except:
-            return f"CONSOLE [{current_time}]: connection failed, check that the server is running"
+            return self.verification_msg['failed']
 
 
 if __name__ == '__main__':
