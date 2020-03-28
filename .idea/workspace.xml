@@ -2,11 +2,15 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="bfae826f-5ace-47e0-a76b-60ead9169c60" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/ui/icon/app/app_icon1024x1024.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/ui/icon/app/app_icon_128x128.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/ui/icon/app/app_icon_256x256.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/ui/icon/app/app_icon_512x512.jpg" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/transfer/android_client.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/transfer/android_client.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/transfer/log/temp-log.txt" beforeDir="false" afterPath="$PROJECT_DIR$/app/transfer/log/temp-log.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/transfer/terminal_server.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/transfer/terminal_server.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/transfer/log_modified.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/transfer/watchdog_example.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/ui/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/ui/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -231,22 +235,22 @@
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
     <state x="739" y="267" key="FileChooserDialogImpl/0.0.1920.1050@0.0.1920.1050" timestamp="1584661549933" />
-    <state width="1899" height="177" key="GridCell.Tab.0.bottom" timestamp="1585358886525">
+    <state width="1899" height="177" key="GridCell.Tab.0.bottom" timestamp="1585365862112">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
-    <state width="1899" height="177" key="GridCell.Tab.0.bottom/0.0.1920.1050@0.0.1920.1050" timestamp="1585358886525" />
-    <state width="1899" height="177" key="GridCell.Tab.0.center" timestamp="1585358886525">
+    <state width="1899" height="177" key="GridCell.Tab.0.bottom/0.0.1920.1050@0.0.1920.1050" timestamp="1585365862112" />
+    <state width="1899" height="177" key="GridCell.Tab.0.center" timestamp="1585365862112">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
-    <state width="1899" height="177" key="GridCell.Tab.0.center/0.0.1920.1050@0.0.1920.1050" timestamp="1585358886525" />
-    <state width="1899" height="177" key="GridCell.Tab.0.left" timestamp="1585358886525">
+    <state width="1899" height="177" key="GridCell.Tab.0.center/0.0.1920.1050@0.0.1920.1050" timestamp="1585365862112" />
+    <state width="1899" height="177" key="GridCell.Tab.0.left" timestamp="1585365862112">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
-    <state width="1899" height="177" key="GridCell.Tab.0.left/0.0.1920.1050@0.0.1920.1050" timestamp="1585358886525" />
-    <state width="1899" height="177" key="GridCell.Tab.0.right" timestamp="1585358886525">
+    <state width="1899" height="177" key="GridCell.Tab.0.left/0.0.1920.1050@0.0.1920.1050" timestamp="1585365862112" />
+    <state width="1899" height="177" key="GridCell.Tab.0.right" timestamp="1585365862112">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
-    <state width="1899" height="177" key="GridCell.Tab.0.right/0.0.1920.1050@0.0.1920.1050" timestamp="1585358886525" />
+    <state width="1899" height="177" key="GridCell.Tab.0.right/0.0.1920.1050@0.0.1920.1050" timestamp="1585365862112" />
     <state width="1899" height="352" key="GridCell.Tab.1.bottom" timestamp="1584956575096">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
