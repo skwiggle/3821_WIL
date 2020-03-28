@@ -32,6 +32,14 @@ class Server(FileSystemEventHandler):
     client = None
     request_log = False
     current_time = DT.now().strftime("%I:%M%p")
+    verification_msg: dict = {
+        'client_success': f'CLIENT [{current_time}]: you are now connected to %s (%s)',
+        'client_': f'CONSOLE [{current_time}]: client failed to connect',
+        'client_left': f'CONSOLE [{current_time}]: client (%s) disconnected from server',
+        'log_success': f'CONSOLE [{current_time}]: log finished sending',
+        'log_failed': f'CONSOLE [{current_time}]: could not send log'
+    }
+
     def __init__(self, auto_connect=True, port=5555):
         self.port = port
         if auto_connect:
@@ -40,11 +48,15 @@ class Server(FileSystemEventHandler):
     def on_modified(self, event):
         with open(event.src_path, 'r') as file:
             try:
+                start_time = time.clock()
+                print('sending log to client...')
                 for line in file:
+                    current_time = time.clock()
                     self.client.send(bytes(line, 'utf-8'))
-                    print(line)
+                    print(f'time elapsed: {current_time - start_time}', sep='\r')
+                print(self.verification_msg['log_success'])
             except:
-                print(f'CONSOLE [{self.current_time}]: could not send log')
+                print(self.verification_msg['log_failed'])
 
     def update(self, port: int, host='localhost') -> None:
         """
@@ -65,9 +77,8 @@ class Server(FileSystemEventHandler):
                     sock.listen()
                     self.client, addr = sock.accept()
                     with self.client:
-                        self.client.send(bytes("CLIENT [%s]: you are now connected to server on " \
-                                          "%s (%s)" % (self.current_time, host,
-                                          s.gethostbyaddr(addr[0])[0]), 'utf-8'))
+                        self.client.send(bytes(self.verification_msg['client_success'] %
+                                        (s.gethostbyaddr(addr[0])[0]), host, 'utf-8'))
                         while True:
                             reply = self.client.recv(1024)
                             print(reply.decode('utf-8'))
@@ -81,22 +92,21 @@ class Server(FileSystemEventHandler):
                 observer.stop()
                 observer.join()
                 self.client.close()
-                print('CONSOLE [%s]: client (%s) disconnected from server' %
-                      (self.current_time, s.gethostbyaddr(addr[0])[0]))
+                print(self.verification_msg['client_left']
+                      % s.gethostbyaddr(addr[0])[0])
 
     def send_log(self, log: [str]):
         try:
             for line in log:
                 self.client.send(bytes(line, 'utf-8'))
         except:
-            print(f'CONSOLE [{self.current_time}]: could not send log')
+            print(self.verification_msg['log_failed'])
 
     @staticmethod
     def debug_info(url="", get_observer_str=False) -> [str]:
         """
         Reads each line of the unity log file depending on the platform.
         """
-
         platform = sys.platform
         location: str
         current_time = DT.now().strftime("%I:%M%p")

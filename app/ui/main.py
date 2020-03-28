@@ -59,15 +59,14 @@ class mainApp(MDApp):
     padding_def = NumericProperty(20)
     status = StringProperty('')
     command = StringProperty('')
-    client: Client = None
 
     def on_start(self):
         self.setup()
 
     def setup(self):
         try:
-            self.client = Client(auto_connect=False)
-            self.status = self.client.update()
+            client = Client(auto_connect=False)
+            self.status = client.get_connection
             log_msg = MDLabel(
                 text=self.status,
                 theme_text_color = 'Custom',
