@@ -13,7 +13,12 @@ from datetime import datetime as DT
 
 
 class Client:
-
+    """
+    Main client class in charge of connecting to and handling incoming/outgoing messages
+    from itself and the target terminal. All messages are reconnected back the main
+    main application but also act as a communication tool to transfer user commands back
+    to the terminal
+    """
     HOST, PORT = 'localhost', 5555
     BUFFER_SIZE: int = 2048
     current_time = DT.now().strftime("%I:%M%p")
@@ -71,7 +76,7 @@ class Client:
         except:
             print(self.verification_msg['failed'])
 
-    def send_cmd(self, command: str):
+    def send_cmd(self, command: str) -> str:
         try:
             with s.socket(s.AF_INET, s.SOCK_STREAM) as sock:
                 sock.connect((self.HOST, self.PORT))
