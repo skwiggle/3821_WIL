@@ -13,5 +13,15 @@
 
 -- setting up project -----------------
 
-(still writing it)
+1. clone project to a folder (don't open in pycharm yet)
+2. delete .idea folder if there is one
+3. in pycharm go to open folder > choose the 3821_WIL folder
+   (you'll know it's recognised as a project folder cause the icon will look
+    different to a normal folder, if it doesn't then you might need to do step 3)
+4. if it says there's no interpreter, click
+   "add interpreter" > existing interpreter > open the python.exe file at
+   '3821_WIL/app/kivy_venv/Scripts/python.exe' in your project and then press OK
+   if there's no errors just skip to step 4
+5. open up a command prompt window (not the one in pycharm) and type: pip install watchdog
+6. try running the main.py file within pycharm and it should work
 
