@@ -29,37 +29,52 @@ class Server(FileSystemEventHandler):
     -   receives messages from application
     -   sends messages to application
     """
-    client = None
-    request_log = False
-    BUFFERSIZE: int = 2048
-    current_time = DT.now().strftime("%I:%M%p")
-    log_location: str = ''
+    client = None                       # active client object
+    request_log: bool = False           # send log over to application true/false
+    HOST, PORT = 'localhost', 5555      # default hostname and port number
+    BUFFERSIZE: int = 2048              # message size limit
+    verbose: bool = False               # display exception error true/false
+    log_location: str = ''              # location of log file
+    current_time = lambda: \
+        DT.now().strftime("%I:%M%p")    # returns the current time
+
+    # list of all custom error messages
     update_msg: dict = {
-        'client_success': f'CLIENT [{current_time}]: you are now connected to %s (%s)',
-        'client_': f'CONSOLE [{current_time}]: client failed to connect',
-        'client_left': f'CONSOLE [{current_time}]: client (%s) disconnected from server',
-        'log_success': f'CONSOLE [{current_time}]: log finished sending',
-        'log_failed': f'CONSOLE [{current_time}]: could not send log'
+        'client_success': f'CLIENT {current_time()}: you are now connected to %s (%s)',
+        'client_failed': f'CONSOLE {current_time()}: client failed to connect',
+        'client_left': f'CONSOLE {current_time()}: client (%s) disconnected from server',
+        'log_not_found': f'CONSOLE {current_time}: no log file found at \'%s\'',
+        'log_success': f'CONSOLE {current_time()}: log finished sending',
+        'log_failed': f'CONSOLE {current_time()}: could not send log',
+        'instance': f'CONSOLE {current_time()}: A terminal instance is already running'
     }
 
-    def __init__(self, auto_connect=True, port=5555):
-        self.port = port
+
+    def __init__(self, auto_connect=True, host='localhost',
+                 port=5555, verbose=False):
+        self.HOST = host
+        self.PORT = port
+        self.verbose = verbose
         if auto_connect:
             self.update(port)
 
     def on_modified(self, event):
+        """
+        if unity log file is modified aka. contents are overwritten, open and
+        copy the contents and then send it to the application
+        """
         with open(event.src_path, 'r') as file:
             try:
                 start_time = time.time()
-                print('sending log to client...')
+                print('log file was updated, sending log to client...')
                 for line in file:
                     current_time = time.time()
                     self.client.send(bytes(line, 'utf-8'))
                     sys.stdout.write(f'time elapsed: {current_time - start_time}\r')
                     sys.stdout.flush()
                 print(self.update_msg['log_success'])
-            except:
-                print(self.update_msg['log_failed'])
+            except Exception as e:
+                print(self.update_msg['log_failed'], f'\n\t\t -> {e}' if self.verbose else '')
 
     def update(self, port: int, host='localhost') -> None:
         """
@@ -75,14 +90,22 @@ class Server(FileSystemEventHandler):
             observer.schedule(self, self.log_location, recursive=True)
             observer.start()
             self.request_log = False
-            print('server started')
-            while True:
-                try:
-                    with s.socket(s.AF_INET, s.SOCK_STREAM) as sock:
-                        sock.bind((host, port))
+        except Exception as e:
+            print(self.update_msg['log_not_found'],
+                  f'\n\t\t -> {e}' if self.verbose else '')
+        while True:
+            try:
+                with s.socket(s.AF_INET, s.SOCK_STREAM) as sock:
+                    try:
+                        sock.bind((self.HOST, self.PORT))
                         sock.listen()
+                    except:
+                        print(self.update_msg['instance'])
+                        exit(-1)
+                    try:
                         self.client, addr = sock.accept()
                         with self.client:
+                            self.client.settimeout(600)
                             self.client.send(bytes(str(self.update_msg['client_success']) %
                                                    (s.gethostbyaddr(addr[0])[0], host), 'utf-8'))
                             while True:
@@ -92,23 +115,22 @@ class Server(FileSystemEventHandler):
                                     for line in self.debug_info():
                                         print(line)
                                     self.request_log = False
-                                if not reply:
-                                    break
-                except:
-                    observer.stop()
-                    observer.join()
-                    self.client.close()
-                    print(self.update_msg['client_left']
-                          % s.gethostbyaddr(addr[0])[0])
-        except:
-            print(f'CONSOLE [{self.current_time}]: no log file found at \'{self.log_location}\'')
+                    except WindowsError as e:
+                        print(self.update_msg['client_left'] % (s.gethostbyaddr(addr[0])[0]),
+                              f'\n\t\t -> {e}' if self.verbose else '')
+            except Exception as e:
+                observer.stop()
+                observer.join()
+                self.client.close()
+                print(self.update_msg['client_left'] % s.gethostbyaddr(addr[0])[0],
+                      f'\n\t\t -> {e}' if self.verbose else '')
 
     def send_log(self, log: [str]):
         try:
             for line in log:
                 self.client.send(bytes(line, 'utf-8'))
-        except:
-            print(self.update_msg['log_failed'])
+        except Exception as e:
+            print(self.update_msg['log_failed'], f'\n\t\t -> {e}' if self.verbose else '')
 
     @staticmethod
     def debug_info(url="", get_observer_str=False) -> [str]:
@@ -151,4 +173,4 @@ class Server(FileSystemEventHandler):
 
 
 if __name__ == '__main__':
-    Server(auto_connect=True)
+    server = Server(auto_connect=True, verbose=True)

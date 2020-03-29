@@ -63,10 +63,10 @@ class MainApp(MDApp):
 
     def setup(self):
         try:
-            self.status = Client(auto_connect=False).get_connection
+            self.status = Client(False).get_connection
             Clock.schedule_once(self.root.ids['debug_panel'].append(self.status))
-        except:
-            self.status = 'a problem occured,\nplease reload the app'
+        except Exception as e:
+            self.status = f'a problem occurred, please reload the app\n-> {e}'
 
     def clear_content(self):
         self.root.ids['debug_panel'].data = []
