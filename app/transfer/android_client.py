@@ -45,7 +45,7 @@ class Client:
         if auto_connect:
             while True:
                 self.update()
-                time.sleep(2)
+                time.sleep(5)
 
     def update(self) -> None:
         """
@@ -76,21 +76,7 @@ class Client:
         except:
             print(self.verification_msg['failed'])
 
-    def send_cmd(self, command: str) -> str:
-        try:
-            with s.socket(s.AF_INET, s.SOCK_STREAM) as sock:
-                sock.connect((self.HOST, self.PORT))
-                try:
-                    sock.send(b'{command}')
-                except:
-                    sock.close()
-                    return "command failed to send, try again"
-                finally:
-                    sock.close()
-                    return f"sent -> '{command}'"
-        except:
-            return self.verification_msg['failed']
-
 
 if __name__ == '__main__':
-    Client(auto_connect=True)
+    client = Client(auto_connect=True)
+

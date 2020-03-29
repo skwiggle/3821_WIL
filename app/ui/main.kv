@@ -51,6 +51,7 @@ Widget:
         padding: app.padding_def
         spacing: app.padding_def/2
         DebugPanel:
+            id: debug_panel
         StackLayout:
             id: debug_taskbar
             size_hint: (1, 0.05)
@@ -71,8 +72,9 @@ Widget:
                 height: 60
                 font_size: '20sp'
                 specific_text_color: [1, 0, 1, 1]
-        BoxLayout:
+        GridLayout:
             id: bottom_panel
+            cols: 2
             size_hint: (1, 0.1)
             MDRaisedButton:
                 id: send_btn
@@ -82,3 +84,11 @@ Widget:
                 md_bg_color: (0.2, 0.6, 1, 1)
                 specific_text_color: [1, 1, 1, 0.87]
                 on_press: app.send_command()
+            MDRaisedButton:
+                id: clear_btn
+                height: 50
+                text: 'clear'
+                pos_hint: {'right': 1}
+                md_bg_color: (0.2, 0.6, 1, 1)
+                specific_text_color: (1, 1, 1, 0.87)
+                on_press: app.clear_content()

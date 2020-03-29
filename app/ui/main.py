@@ -6,6 +6,7 @@
 #  -    receive/send user commands
 #  -    manually connect to client
 #  -    read from temporary log files
+import socket
 
 import kivy
 from kivy.lang import Builder
@@ -35,14 +36,20 @@ import time
 import asyncio
 import threading
 
+
 class DebugPanel(RecycleView):
     def __init__(self, **kwargs):
         super(DebugPanel, self).__init__(**kwargs)
-        self.data = [{'text': str(i)*40} for i in range(100)]
+        self.data = []
+
+    def append(self, element: str):
+        self.data.append({'text': str(element)})
+
 
 class DataCell(MDLabel):
     def __init__(self, **kwargs):
         super(DataCell, self).__init__(**kwargs)
+
 
 class MainApp(MDApp):
     title = "What should we call the program"
@@ -50,41 +57,23 @@ class MainApp(MDApp):
     padding_def = NumericProperty(20)
     status = StringProperty('')
     command = StringProperty('')
-    data = []
 
     def on_start(self):
         self.setup()
 
-    def send_command(self):
-        command = self.root.ids['cmd_input'].text
-        self.client.send_cmd(command)
-
     def setup(self):
         try:
-            client = Client(auto_connect=False)
-            self.status = client.get_connection
-            # at the moment I've disabled this because I recently reworked
-            # the debug panel to use a recycleview meaning this no longer
-            # works but I'll try to fix it today
-            '''
-            log_msg = MDLabel(
-                text=self.status,
-                theme_text_color='Custom',
-                text_color=(1, 1, 1, 1)
-            )
-            clear_btn = MDRaisedButton(
-                height=50,
-                text='clear',
-                pos_hint={'right': 1},
-                md_bg_color=(0.2, 0.6, 1, 1),
-                specific_text_color=[1, 1, 1, 0.87]
-            )
-            Clock.schedule_once(lambda x: self.root.ids['content_layout']
-                                .add_widget(log_msg))
-            Clock.schedule_once(lambda x: self.root.ids['bottom_panel']
-                                .add_widget(clear_btn))'''
+            self.status = Client(auto_connect=False).get_connection
+            Clock.schedule_once(self.root.ids['debug_panel'].append(self.status))
         except:
             self.status = 'a problem occured,\nplease reload the app'
+
+    def clear_content(self):
+        self.root.ids['debug_panel'].data = []
+
+    def send_command(self):
+        command = self.root.ids['cmd_input'].text
+        client = Client(ignore_setup=True, command=command)
 
 
 if __name__ == '__main__':

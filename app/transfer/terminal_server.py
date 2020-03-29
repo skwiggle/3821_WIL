@@ -31,8 +31,10 @@ class Server(FileSystemEventHandler):
     """
     client = None
     request_log = False
+    BUFFERSIZE: int = 2048
     current_time = DT.now().strftime("%I:%M%p")
-    verification_msg: dict = {
+    log_location: str = ''
+    update_msg: dict = {
         'client_success': f'CLIENT [{current_time}]: you are now connected to %s (%s)',
         'client_': f'CONSOLE [{current_time}]: client failed to connect',
         'client_left': f'CONSOLE [{current_time}]: client (%s) disconnected from server',
@@ -55,9 +57,9 @@ class Server(FileSystemEventHandler):
                     self.client.send(bytes(line, 'utf-8'))
                     sys.stdout.write(f'time elapsed: {current_time - start_time}\r')
                     sys.stdout.flush()
-                print(self.verification_msg['log_success'])
+                print(self.update_msg['log_success'])
             except:
-                print(self.verification_msg['log_failed'])
+                print(self.update_msg['log_failed'])
 
     def update(self, port: int, host='localhost') -> None:
         """
@@ -67,41 +69,46 @@ class Server(FileSystemEventHandler):
         :param host: hostname (default localhost)
         :param request_log: boolean for if the debug log should be sent to host
         """
-        observer = Observer()
-        observer.schedule(self, self.debug_info(get_observer_str=True)[0], recursive=True)
-        observer.start()
-        self.request_log = False
-        while True:
-            try:
-                with s.socket(s.AF_INET, s.SOCK_STREAM) as sock:
-                    sock.bind((host, port))
-                    sock.listen()
-                    self.client, addr = sock.accept()
-                    with self.client:
-                        self.client.send(bytes(str(self.verification_msg['client_success']) %
-                                        (s.gethostbyaddr(addr[0])[0], host), 'utf-8'))
-                        while True:
-                            reply = self.client.recv(1024)
-                            print(reply.decode('utf-8'))
-                            if self.request_log:
-                                for l in self.debug_info():
-                                    print(l)
-                                self.request_log = False
-                            if not reply:
-                                break
-            except:
-                observer.stop()
-                observer.join()
-                self.client.close()
-                print(self.verification_msg['client_left']
-                      % s.gethostbyaddr(addr[0])[0])
+        try:
+            observer = Observer()
+            self.log_location = self.debug_info(get_observer_str=True)[0]
+            observer.schedule(self, self.log_location, recursive=True)
+            observer.start()
+            self.request_log = False
+            print('server started')
+            while True:
+                try:
+                    with s.socket(s.AF_INET, s.SOCK_STREAM) as sock:
+                        sock.bind((host, port))
+                        sock.listen()
+                        self.client, addr = sock.accept()
+                        with self.client:
+                            self.client.send(bytes(str(self.update_msg['client_success']) %
+                                                   (s.gethostbyaddr(addr[0])[0], host), 'utf-8'))
+                            while True:
+                                reply = self.client.recv(self.BUFFERSIZE)
+                                print(reply.decode('utf-8'))
+                                if self.request_log:
+                                    for line in self.debug_info():
+                                        print(line)
+                                    self.request_log = False
+                                if not reply:
+                                    break
+                except:
+                    observer.stop()
+                    observer.join()
+                    self.client.close()
+                    print(self.update_msg['client_left']
+                          % s.gethostbyaddr(addr[0])[0])
+        except:
+            print(f'CONSOLE [{self.current_time}]: no log file found at \'{self.log_location}\'')
 
     def send_log(self, log: [str]):
         try:
             for line in log:
                 self.client.send(bytes(line, 'utf-8'))
         except:
-            print(self.verification_msg['log_failed'])
+            print(self.update_msg['log_failed'])
 
     @staticmethod
     def debug_info(url="", get_observer_str=False) -> [str]:
