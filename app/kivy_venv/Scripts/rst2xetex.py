@@ -1,4 +1,4 @@
-#!D:\MAX\griffith\3821_WIL\3821_WIL\app\kivy_venv\Scripts\python.exe
+#!D:\MAX\griffith\project\3821_WIL\app\kivy_venv\Scripts\python.exe
 
 # $Id: rst2xetex.py 7847 2015-03-17 17:30:47Z milde $
 # Author: Guenter Milde

@@ -27,7 +27,7 @@ function global:deactivate ([switch]$NonDestructive) {
 
 deactivate -nondestructive
 
-$env:VIRTUAL_ENV="D:\MAX\griffith\3821_WIL\3821_WIL\app\kivy_venv"
+$env:VIRTUAL_ENV="D:\MAX\griffith\project\3821_WIL\app\kivy_venv"
 
 if (! $env:VIRTUAL_ENV_DISABLE_PROMPT) {
     # Set the prompt to include the env name

@@ -1,15 +1,39 @@
 #: import Window kivy.core.window.Window
 #: import MDApp kivymd.app.MDApp
 #: import ListProperty kivy.properties.ListProperty
-#: import MDLabel kivymd.label.MDLabel
-#: import MDButton kivymd.button.MDRaisedButton
-#: import MDTextField kivymd.textfields.MDTextField
-#: import MDSpinner kivymd.spinner.MDSpinner
-#: import MDIconButton kivymd.button.MDIconButton
+#: import MDLabel kivymd.uix.label.MDLabel
+#: import MDButton kivymd.uix.button.MDRaisedButton
+#: import MDIconButton kivymd.uix.button.MDIconButton
+#: import MDTextField kivymd.uix.textfield.MDTextField
+#: import MDSpinner kivymd.uix.spinner.MDSpinner
 <RefreshBtn>:
     icon: './icon/refresh/refresh_icon_64x64'
     height: 20
     on_press: app.setup()
+
+<DataCell@MDLabel>:
+    size_hint_y: None
+    text_size: self.width, None
+    height: self.texture_size[1]
+    theme_text_color: 'Custom'
+    text_color: [0, 0.68, 0, 1]
+
+<DebugPanel@RecycleView>:
+    viewclass: 'DataCell'
+    canvas.before:
+        Color:
+            rgba: (0.09, 0.13, 0.13, 1)
+        Rectangle:
+            size: root.size
+            pos: root.pos
+    RecycleGridLayout:
+        cols: 1
+        padding: 10
+        default_size: None, dp(40)
+        default_size_hint: 1, None
+        size_hint_y: None
+        height: self.minimum_height
+        orientation: 'vertical'
 
 Widget:
     id: main_widget
@@ -26,25 +50,7 @@ Widget:
         cols: 1
         padding: app.padding_def
         spacing: app.padding_def/2
-        BoxLayout:
-            id: debug_panel
-            size_hint: (1, 0.5)
-            orientation: "vertical"
-            ScrollView:
-                id: scroll
-                canvas:
-                    Color:
-                        rgba: (0.09, 0.13, 0.13, .5)
-                    Rectangle:
-                        size: root.size
-                        pos: root.pos
-                GridLayout:
-                    id: content_layout
-                    cols:1
-                    padding: [10, 0, 10, 0]
-                    row_default_height: 50
-                    size_hint_y: None
-                    height: self.minimum_height
+        DebugPanel:
         StackLayout:
             id: debug_taskbar
             size_hint: (1, 0.05)

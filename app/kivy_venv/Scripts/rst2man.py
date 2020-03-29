@@ -1,4 +1,4 @@
-#!D:\MAX\griffith\3821_WIL\3821_WIL\app\kivy_venv\Scripts\python.exe
+#!D:\MAX\griffith\project\3821_WIL\app\kivy_venv\Scripts\python.exe
 
 # Author:
 # Contact: grubert@users.sf.net

@@ -1,4 +1,4 @@
-#!D:\MAX\griffith\3821_WIL\3821_WIL\app\kivy_venv\Scripts\python.exe
+#!D:\MAX\griffith\project\3821_WIL\app\kivy_venv\Scripts\python.exe
 
 # $Id: rst2html4.py 7994 2016-12-10 17:41:45Z milde $
 # Author: David Goodger <goodger@python.org>

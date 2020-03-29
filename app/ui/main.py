@@ -24,9 +24,10 @@ Config.set('widgets', 'scroll_moves', '10')
 
 from app.transfer.android_client import Client
 from kivymd.app import MDApp
+from kivy.uix.recycleview import RecycleView
 from kivy.properties import NumericProperty, StringProperty, ListProperty
-from kivymd.button import MDRaisedButton
-from kivymd.label import MDLabel
+from kivymd.uix.button import MDRaisedButton
+from kivymd.uix.label import MDLabel
 from kivy.clock import Clock
 import re
 from datetime import datetime as DT
@@ -34,6 +35,14 @@ import time
 import asyncio
 import threading
 
+class DebugPanel(RecycleView):
+    def __init__(self, **kwargs):
+        super(DebugPanel, self).__init__(**kwargs)
+        self.data = [{'text': str(i)*40} for i in range(100)]
+
+class DataCell(MDLabel):
+    def __init__(self, **kwargs):
+        super(DataCell, self).__init__(**kwargs)
 
 class MainApp(MDApp):
     title = "What should we call the program"
@@ -54,6 +63,10 @@ class MainApp(MDApp):
         try:
             client = Client(auto_connect=False)
             self.status = client.get_connection
+            # at the moment I've disabled this because I recently reworked
+            # the debug panel to use a recycleview meaning this no longer
+            # works but I'll try to fix it today
+            '''
             log_msg = MDLabel(
                 text=self.status,
                 theme_text_color='Custom',
@@ -69,7 +82,7 @@ class MainApp(MDApp):
             Clock.schedule_once(lambda x: self.root.ids['content_layout']
                                 .add_widget(log_msg))
             Clock.schedule_once(lambda x: self.root.ids['bottom_panel']
-                                .add_widget(clear_btn))
+                                .add_widget(clear_btn))'''
         except:
             self.status = 'a problem occured,\nplease reload the app'
 

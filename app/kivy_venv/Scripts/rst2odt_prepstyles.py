@@ -1,4 +1,4 @@
-#!D:\MAX\griffith\3821_WIL\3821_WIL\app\kivy_venv\Scripts\python.exe
+#!D:\MAX\griffith\project\3821_WIL\app\kivy_venv\Scripts\python.exe
 
 # $Id: rst2odt_prepstyles.py 8346 2019-08-26 12:11:32Z milde $
 # Author: Dave Kuhlman <dkuhlman@rexx.com>

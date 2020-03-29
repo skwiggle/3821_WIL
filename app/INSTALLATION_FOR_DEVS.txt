@@ -1,0 +1,17 @@
+-- setting up python --------------
+
+1. uninstall all versions of python
+2. type into windows search: "environment variables" and click on "Edit the system environment variables"
+3. go to ENVIRONMENT VARIABLES > USER VARIABLES > path > EDIT and then delete all python paths if there is any
+   (usually the paths will end with python.exe or python/lib etc.)
+4. create a new folder at C:/python
+5. download the python 3.7.3 installer
+6. open the installer and choose "customize installation" and change these 2 things
+    - install in C:/python folder
+    - tick "add to environment variables"
+7. done
+
+-- setting up project -----------------
+
+(still writing it)
+
