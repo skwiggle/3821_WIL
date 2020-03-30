@@ -126,7 +126,6 @@ class DebugPanel(RecycleView, Client):
                 sock.send(bytes(self.update_msg['success'], 'utf-8'))
                 with open('../transfer/log/temp-log.txt', 'a+') as file:
                     while True:
-                        print('yes')
                         msg = sock.recv(self.BUFFER_SIZE).decode('utf-8')
                         if msg and re.search('(CONSOLE|CLIENT)', msg):
                             self.data.append({'text': str(msg)})
@@ -161,7 +160,6 @@ class MainApp(MDApp):
     def alt_update(self):
         thr = threading.Thread(
             target=self.root.ids['debug_panel'].alt_update)
-        print(threading.enumerate())
         thr.start()
 
     def clear_content(self):
