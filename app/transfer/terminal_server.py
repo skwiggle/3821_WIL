@@ -49,7 +49,6 @@ class Server(FileSystemEventHandler):
         'instance': f'CONSOLE {current_time()}: A terminal instance is already running'
     }
 
-
     def __init__(self, auto_connect=True, host='localhost',
                  port=5555, verbose=False):
         self.HOST = host
@@ -91,8 +90,7 @@ class Server(FileSystemEventHandler):
             observer.start()
             self.request_log = False
         except Exception as e:
-            print(self.update_msg['log_not_found'],
-                  f'\n\t\t -> {e}' if self.verbose else '')
+            print(self.update_msg['log_not_found'], f'\n\t\t -> {e}' if self.verbose else '')
         while True:
             try:
                 with s.socket(s.AF_INET, s.SOCK_STREAM) as sock:
@@ -115,7 +113,9 @@ class Server(FileSystemEventHandler):
                                     for line in self.debug_info():
                                         print(line)
                                     self.request_log = False
-                    except WindowsError as e:
+                                if not reply:
+                                    break
+                    except Exception as e:
                         print(self.update_msg['client_left'] % (s.gethostbyaddr(addr[0])[0]),
                               f'\n\t\t -> {e}' if self.verbose else '')
             except Exception as e:
@@ -129,8 +129,10 @@ class Server(FileSystemEventHandler):
         try:
             for line in log:
                 self.client.send(bytes(line, 'utf-8'))
+            self.client.send(b'--EOF')
         except Exception as e:
-            print(self.update_msg['log_failed'], f'\n\t\t -> {e}' if self.verbose else '')
+            print(self.update_msg['log_failed'],
+                  f'\n\t\t -> {e}' if self.verbose else '')
 
     @staticmethod
     def debug_info(url="", get_observer_str=False) -> [str]:

@@ -28,21 +28,10 @@ class Client:
         'success': f'CONSOLE [{current_time()}]: {os.getlogin()} is now connected to server',
         'failed': f'CONSOLE [{current_time()}]: connection failed, check that the server is running'
     }
+    DATA: [set] = [f"--LOG-{DT.today().strftime('%x')}"]
 
-    @property
-    def get_connection(self) -> str:
-        try:
-            with s.socket(s.AF_INET, s.SOCK_STREAM) as sock:
-                sock.connect((self.HOST, self.PORT))
-                sock.send(bytes(self.verification_msg['success'], 'utf-8'))
-                recv = sock.recv(self.BUFFER_SIZE).decode('utf-8')
-                return recv
-        except Exception as e:
-            return f"{self.verification_msg['failed']}%s" % \
-                   (f'\n\t\t -> {e}' if self.verbose else '')
-
-    def __init__(self, auto_connect: bool, host: str = 'localhost',
-                 port: int = 5555, verbose=False, timeout: int = 6000):
+    def __init__(self, auto_connect: bool = False, host: str = 'localhost',
+                 port: int = 5555, verbose: bool = False, timeout: int = 3600):
         '''
         initialise host and port variables and then if auto_connect is enabled,
         connect via update()
@@ -55,12 +44,13 @@ class Client:
                 self.update(timeout)
                 time.sleep(600)
 
-    def update(self, timeout=6000) -> bool:
+    def update(self, timeout=3600) -> bool:
         """
         Continously waits for incoming log info requests or
         server updates from main server
         :param host: client hostname (default localhost)
         :param port: connection port number (default 5555)
+        :param timeout: duration until timeout (default 1 hour)
         """
         try:
             with s.socket(s.AF_INET, s.SOCK_STREAM) as sock:
@@ -68,23 +58,20 @@ class Client:
                 sock.connect((self.HOST, self.PORT))
                 sock.send(bytes(self.verification_msg['success'], 'utf-8'))
                 with open('./log/temp-log.txt', 'a+') as file:
-                    single_line: str = ''
                     while True:
                         msg = sock.recv(self.BUFFER_SIZE).decode('utf-8')
                         if msg and re.search('(CONSOLE|CLIENT)', msg):
                             print(msg)
                         elif msg:
-                            if re.search('\[[\W\S\D]+\]', msg):
-                                single_line += msg
-                                file.write(''.join(single_line))
-                                single_line = ''
-                            else:
-                                single_line += msg
+                            file.write(msg)
+                            self.DATA.append(msg)
                         else:
                             return False
+
         except Exception as e:
-            print(self.verification_msg['failed'],
-                  f'\n\t\t -> {e}' if self.verbose else '')
+            print(self.verification_msg['failed'])
+            if self.verbose:
+                print(f'\n\t\t -> {e}' if self.verbose else '')
             return True
 
 

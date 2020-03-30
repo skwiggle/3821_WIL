@@ -33,17 +33,95 @@ from kivy.clock import Clock
 import re
 from datetime import datetime as DT
 import time
+import socket as s
 import asyncio
 import threading
 
 
-class DebugPanel(RecycleView):
-    def __init__(self, **kwargs):
-        super(DebugPanel, self).__init__(**kwargs)
-        self.data = []
+class DebugPanel(RecycleView, Client):
 
-    def append(self, element: str):
-        self.data.append({'text': str(element)})
+    def log_data(self):
+        '''
+        filter and append data sent from super class DATA variable over to
+        global data variable. This function is called everytime DATA is
+        updated whenever a log file is read from the terminal and sent over.
+        '''
+        self.data = map(lambda x: {'text': str(x)},
+                        filter(lambda y: not re.search('(--LOG)+', y),
+                               self.DATA))
+
+    def watch_log_update(self):
+        '''
+        A thread will run this function in the background every second.
+        Compare local data value to client DATA variable. If results are
+        different and/or aren't empty, copy to local variable and then
+        debug screen should automatically update.
+        '''
+        original = self.DATA
+        while True:
+            if self.data and (self.data[-1] != original[-1]):
+                self.log_data()
+            time.sleep(1)
+
+    def __init__(self, **kwargs):
+        super(DebugPanel, self).__init__(**kwargs)                  # initialise client super class
+        self.data = []                                              # initialise global data variable
+        self.log_data()                                             # update global data variable
+        watch_conn = threading.Thread(target=self.update)           # create thread as data observer
+        watch_log = threading.Thread(target=self.watch_log_update)  # create thread as socket observer
+        watch_conn.start()
+        watch_log.start()
+
+    def alt_update(self) -> None:
+        self.DATA.append(self.get_connection)
+        print(self.DATA)
+
+    @property
+    def get_connection(self) -> str:
+        '''
+        A non-continuosly property version of the update method that
+        returns a message.
+        '''
+        try:
+            with s.socket(s.AF_INET, s.SOCK_STREAM) as sock:
+                sock.connect((self.HOST, self.PORT))
+                sock.send(bytes(self.verification_msg['success'], 'utf-8'))
+                recv = sock.recv(self.BUFFER_SIZE).decode('utf-8')
+                return recv
+        except Exception as e:
+            return self.verification_msg['failed']
+
+    def update(self) -> bool:
+        """
+        Continously waits for incoming log info requests or
+        server updates from main server
+        :param host: client hostname (default localhost)
+        :param port: connection port number (default 5555)
+        :param timeout: duration until timeout (default 1 hour)
+        """
+        try:
+            with s.socket(s.AF_INET, s.SOCK_STREAM) as sock:
+                sock.settimeout(3600)
+                sock.connect((self.HOST, self.PORT))
+                sock.send(bytes(self.verification_msg['success'], 'utf-8'))
+                with open('../transfer/log/temp-log.txt', 'a+') as file:
+                    while True:
+                        msg = sock.recv(self.BUFFER_SIZE).decode('utf-8')
+                        if msg and re.search('(CONSOLE|CLIENT)', msg):
+                            self.data.append({'text': str(msg)})
+                            self.DATA.append(msg)
+                        elif msg:
+                            file.write(msg)
+                            self.DATA.append(msg)
+                        else:
+                            return False
+
+        except Exception as e:
+            self.data.append({'text': str(self.verification_msg['failed'])})
+            self.DATA.append(self.verification_msg['failed'])
+            if self.verbose:
+                print(f'\n\t\t -> {e}' if self.verbose else '')
+            return True
 
 
 class DataCell(MDLabel):
@@ -58,23 +136,12 @@ class MainApp(MDApp):
     status = StringProperty('')
     command = StringProperty('')
 
-    def on_start(self):
-        self.setup()
-
-    def setup(self):
-        try:
-            self.status = Client(False).get_connection
-            Clock.schedule_once(self.root.ids['debug_panel'].append(self.status))
-        except Exception as e:
-            self.status = f'a problem occurred, please reload the app\n-> {e}'
-
     def clear_content(self):
-        self.root.ids['debug_panel'].data = []
+        self.root.ids['debug_panel'].DATA = ['']
 
     def send_command(self):
         command = self.root.ids['cmd_input'].text
         client = Client(ignore_setup=True, command=command)
-
 
 if __name__ == '__main__':
     MainApp().run()
