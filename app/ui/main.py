@@ -82,9 +82,10 @@ class DebugPanel(RecycleView, Client):
         '''
         try:
             with s.socket(s.AF_INET, s.SOCK_STREAM) as sock:
-                sock.setblocking(0)
+                sock.settimeout(2)
                 sock.connect((self.HOST, self.PORT))
-                sock.send(bytes(self.update_msg['cmd_success'] % command, 'utf-8'))
+                sock.send(bytes(str(command), 'utf-8'))
+                return self.update_msg['cmd_success'] % command
         except Exception as e:
             return self.update_msg['cmd_failed']
 
@@ -103,7 +104,9 @@ class DebugPanel(RecycleView, Client):
                     return self.update_msg['failed']
                 sock.send(bytes(self.update_msg['success'], 'utf-8'))
                 recv = sock.recv(self.BUFFER_SIZE).decode('utf-8')
-                return recv
+                watch_conn = threading.Thread(target=self.update)
+                watch_conn.start()
+                return ''
         except Exception as e:
             return self.update_msg['established']
 
@@ -151,8 +154,8 @@ class DataCell(MDLabel):
 
 
 class MainApp(MDApp):
-    title = "What should we call the program"
-    icon = './icon/app/app_icon1024x1024.jpg'
+    title = "Terminal Genie"
+    icon = './icon/app/app_icon256x256.jpg'
     padding_def = NumericProperty(20)
     status = StringProperty('')
     command = StringProperty('')
@@ -171,7 +174,6 @@ class MainApp(MDApp):
             target=self.root.ids['debug_panel'].send_command,
             args=(command,))
         cmd_thread.start()
-        cmd_thread.join(3)
 
 if __name__ == '__main__':
     MainApp().run()
