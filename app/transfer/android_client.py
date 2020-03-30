@@ -45,9 +45,10 @@ class Client:
         if auto_connect:
             while True:
                 self.update(timeout)
-                time.sleep(600)
+                time.sleep(60)
 
-    def update(self, timeout=3600) -> bool:
+    def update(self, timeout=3600, host: str = 'localhost',
+               port: int = 5555) -> bool:
         """
         Continously waits for incoming log info requests or
         server updates from main server
@@ -58,7 +59,7 @@ class Client:
         try:
             with s.socket(s.AF_INET, s.SOCK_STREAM) as sock:
                 sock.settimeout(timeout)
-                sock.connect((self.HOST, self.PORT))
+                sock.connect((host, port))
                 sock.send(bytes(self.update_msg['success'], 'utf-8'))
                 with open('./log/temp-log.txt', 'a+') as file:
                     while True:
@@ -70,11 +71,8 @@ class Client:
                             self.DATA.append(msg)
                         else:
                             return False
-
         except Exception as e:
-            print(self.update_msg['failed'])
-            if self.verbose:
-                print(f'\n\t\t -> {e}' if self.verbose else '')
+            print(self.update_msg['failed'], f'\n\t\t -> {e}' if self.verbose else '')
             return True
 
 
