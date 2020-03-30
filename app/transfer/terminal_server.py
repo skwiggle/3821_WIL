@@ -88,7 +88,6 @@ class Server(FileSystemEventHandler):
             self.log_location = self.debug_info(get_observer_str=True)[0]
             observer.schedule(self, self.log_location, recursive=True)
             observer.start()
-            self.request_log = False
         except Exception as e:
             print(self.update_msg['log_not_found'], f'\n\t\t -> {e}' if self.verbose else '')
         while True:
@@ -109,10 +108,6 @@ class Server(FileSystemEventHandler):
                             while True:
                                 reply = self.client.recv(self.BUFFERSIZE)
                                 print(reply.decode('utf-8'))
-                                if self.request_log:
-                                    for line in self.debug_info():
-                                        print(line)
-                                    self.request_log = False
                                 if not reply:
                                     break
                     except Exception as e:
@@ -129,7 +124,6 @@ class Server(FileSystemEventHandler):
         try:
             for line in log:
                 self.client.send(bytes(line, 'utf-8'))
-            self.client.send(b'--EOF')
         except Exception as e:
             print(self.update_msg['log_failed'],
                   f'\n\t\t -> {e}' if self.verbose else '')

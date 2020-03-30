@@ -24,9 +24,12 @@ class Client:
     verbose: bool = False
     current_time = lambda: \
         DT.now().strftime("%I:%M%p")
-    verification_msg: dict = {
-        'success': f'CONSOLE [{current_time()}]: {os.getlogin()} is now connected to server',
-        'failed': f'CONSOLE [{current_time()}]: connection failed, check that the server is running'
+    update_msg: dict = {
+        'success': f'CONSOLE {current_time()}: {os.getlogin()} is now connected to server',
+        'failed': f'CLIENT {current_time()}: connection failed, check that the server is running',
+        'established': f'CLIENT {current_time()}: a connection has already been established',
+        'cmd_success': f'CLIENT {current_time()}: %s',
+        'cmd_failed': f'CLIENT {current_time()}: command "%s" failed to send'
     }
     DATA: [set] = [f"--LOG-{DT.today().strftime('%x')}"]
 
@@ -56,7 +59,7 @@ class Client:
             with s.socket(s.AF_INET, s.SOCK_STREAM) as sock:
                 sock.settimeout(timeout)
                 sock.connect((self.HOST, self.PORT))
-                sock.send(bytes(self.verification_msg['success'], 'utf-8'))
+                sock.send(bytes(self.update_msg['success'], 'utf-8'))
                 with open('./log/temp-log.txt', 'a+') as file:
                     while True:
                         msg = sock.recv(self.BUFFER_SIZE).decode('utf-8')
@@ -69,7 +72,7 @@ class Client:
                             return False
 
         except Exception as e:
-            print(self.verification_msg['failed'])
+            print(self.update_msg['failed'])
             if self.verbose:
                 print(f'\n\t\t -> {e}' if self.verbose else '')
             return True

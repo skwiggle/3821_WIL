@@ -54,18 +54,18 @@ Widget:
             id: debug_panel
         StackLayout:
             id: debug_taskbar
-            size_hint: (1, 0.05)
+            size_hint: (1, 0.08)
             MDIconButton:
                 id: reconnect
                 icon: 'wifi'
                 height: 20
                 pos_hint: {'right': 1}
-                on_press: app.root.ids['debug_panel'].alt_update()
+                on_press: app.alt_update()
                 disabled: False
         BoxLayout:
             id: cmd_panel
             orientation: 'vertical'
-            size_hint: (1, 0.4)
+            size_hint: (1, 0.1)
             spacing: 10
             MDTextField:
                 id: cmd_input

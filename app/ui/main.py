@@ -61,7 +61,7 @@ class DebugPanel(RecycleView, Client):
         while True:
             if self.data and (self.data[-1] != original[-1]):
                 self.log_data()
-            time.sleep(1)
+                time.sleep(1)
 
     def __init__(self, **kwargs):
         super(DebugPanel, self).__init__(**kwargs)                  # initialise client super class
@@ -74,7 +74,19 @@ class DebugPanel(RecycleView, Client):
 
     def alt_update(self) -> None:
         self.DATA.append(self.get_connection)
-        print(self.DATA)
+
+    def send_command(self, command) -> str:
+        '''
+        A non-continuosly property version of the update method that
+        returns a message.
+        '''
+        try:
+            with s.socket(s.AF_INET, s.SOCK_STREAM) as sock:
+                sock.setblocking(0)
+                sock.connect((self.HOST, self.PORT))
+                sock.send(bytes(self.update_msg['cmd_success'] % command, 'utf-8'))
+        except Exception as e:
+            return self.update_msg['cmd_failed']
 
     @property
     def get_connection(self) -> str:
@@ -84,41 +96,51 @@ class DebugPanel(RecycleView, Client):
         '''
         try:
             with s.socket(s.AF_INET, s.SOCK_STREAM) as sock:
-                sock.connect((self.HOST, self.PORT))
-                sock.send(bytes(self.verification_msg['success'], 'utf-8'))
+                sock.settimeout(2)
+                try:
+                    sock.connect((self.HOST, self.PORT))
+                except Exception as e:
+                    return self.update_msg['failed']
+                sock.send(bytes(self.update_msg['success'], 'utf-8'))
                 recv = sock.recv(self.BUFFER_SIZE).decode('utf-8')
                 return recv
         except Exception as e:
-            return self.verification_msg['failed']
+            return self.update_msg['established']
 
-    def update(self) -> bool:
+    def update(self, command: str = '') -> bool:
         """
         Continously waits for incoming log info requests or
         server updates from main server
         :param host: client hostname (default localhost)
         :param port: connection port number (default 5555)
         :param timeout: duration until timeout (default 1 hour)
+        :param command: string command passed by application
         """
         try:
             with s.socket(s.AF_INET, s.SOCK_STREAM) as sock:
                 sock.settimeout(3600)
                 sock.connect((self.HOST, self.PORT))
-                sock.send(bytes(self.verification_msg['success'], 'utf-8'))
+                if command != '':
+                    sock.send(bytes(command, 'utf-8'))
+                    return True
+                sock.send(bytes(self.update_msg['success'], 'utf-8'))
                 with open('../transfer/log/temp-log.txt', 'a+') as file:
                     while True:
+                        print('yes')
                         msg = sock.recv(self.BUFFER_SIZE).decode('utf-8')
                         if msg and re.search('(CONSOLE|CLIENT)', msg):
                             self.data.append({'text': str(msg)})
                             self.DATA.append(msg)
                         elif msg:
                             file.write(msg)
+                            self.data.append({'text': str(msg)})
                             self.DATA.append(msg)
                         else:
                             return False
 
         except Exception as e:
-            self.data.append({'text': str(self.verification_msg['failed'])})
-            self.DATA.append(self.verification_msg['failed'])
+            self.data.append({'text': str(self.update_msg['failed'])})
+            self.DATA.append(self.update_msg['failed'])
             if self.verbose:
                 print(f'\n\t\t -> {e}' if self.verbose else '')
             return True
@@ -136,12 +158,22 @@ class MainApp(MDApp):
     status = StringProperty('')
     command = StringProperty('')
 
+    def alt_update(self):
+        thr = threading.Thread(
+            target=self.root.ids['debug_panel'].alt_update)
+        print(threading.enumerate())
+        thr.start()
+
     def clear_content(self):
         self.root.ids['debug_panel'].DATA = ['']
 
     def send_command(self):
         command = self.root.ids['cmd_input'].text
-        client = Client(ignore_setup=True, command=command)
+        cmd_thread = threading.Thread(
+            target=self.root.ids['debug_panel'].send_command,
+            args=(command,))
+        cmd_thread.start()
+        cmd_thread.join(3)
 
 if __name__ == '__main__':
     MainApp().run()
