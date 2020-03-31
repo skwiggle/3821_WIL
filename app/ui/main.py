@@ -195,7 +195,6 @@ class DebugPanel(RecycleView, Client):
                             self.data.append({'text': str(msg)})
                             self.DATA.append(msg)
                         else:
-                            #file.write(f'--LOG[{DT.now().strftime("%H")}]')
                             return False
         except Exception as e:
             self.data.append({'text': str(self.update_msg['failed'])})

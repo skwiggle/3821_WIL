@@ -9,6 +9,7 @@ class MyTestCase(unittest.TestCase):
     def test_client(self):
         client = Client()
         self.assertIsInstance(client.DATA[0], str)
+        self.assertTrue(client.command_lookup('get log --today'), 'get log --today')
 
 if __name__ == '__main__':
     unittest.main()
