@@ -72,13 +72,11 @@ class Server(FileSystemEventHandler):
             try:
                 start_time = time.time()
                 print('log file was updated, sending log to client...')
-                with self.client:
-                    self.client.send(b'--START')
-                    for line in file:
-                        current_time = time.time()
-                        self.client.send(bytes(line, 'utf-8'))
-                        sys.stdout.write(f'time elapsed: {current_time - start_time}\r')
-                        sys.stdout.flush()
+                for line in file:
+                    current_time = time.time()
+                    self.client.send(bytes(line, 'utf-8'))
+                    sys.stdout.write(f'time elapsed: {current_time - start_time}\r')
+                    sys.stdout.flush()
                 print(self.update_msg['log_success'])
             except Exception as e:
                 print(self.update_msg['log_failed'], f'\n\t\t -> {e}' if self.verbose else '')
