@@ -28,10 +28,12 @@ class MyTestCase(unittest.TestCase):
     def test_update_msg_cmd_failed(self):
         self.assertEqual(self.client.update_msg['cmd_failed'], f'CLIENT {DT.now().strftime("%I:%M%p")}: command "%s" failed to send')
 
-    def command1_lookup(self):
+    def test_command_lookup(self):
         client = Client()
-        self.assertTrue(client.command_lookup('get log --today'), 'get log --today')
-        self.assertEqual(client.command_lookup('get log --tod'), 'no log files exist')
+        self.assertEqual(client.command_lookup('get log --today'), 'no log files exist')
+        self.assertEqual(client.command_lookup('get log --01-01-2000'), 'no log file exists on that date')
+        self.assertEqual(client.command_lookup('hello'), 'hello')
+
 
 
 if __name__ == '__main__':
