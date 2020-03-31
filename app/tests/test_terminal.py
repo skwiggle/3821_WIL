@@ -32,8 +32,11 @@ class MyTestCase(unittest.TestCase):
         client = Client()
         self.assertEqual(client.command_lookup('get log --today'), 'no log files exist')
         self.assertEqual(client.command_lookup('get log --01-01-2000'), 'no log file exists on that date')
-        self.assertEqual(client.command_lookup('hello'), 'hello')
+        self.assertEqual(client.command_lookup('get log'), 'get log')
 
+        self.assertEqual(client.command_lookup('clear logs'), 'logs could not be deleted, directory may be empty')
+        self.assertEqual(client.command_lookup('clear log --today'), 'log could not be removed because it does not exist')
+        self.assertEqual(client.command_lookup('clear log --00-01-2000'),'log could not be removed because it does not exist')
 
 
 if __name__ == '__main__':
