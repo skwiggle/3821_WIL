@@ -68,7 +68,13 @@ class Server(FileSystemEventHandler):
         if unity log file is modified aka. contents are overwritten, open and
         copy the contents and then send it to the application
         """
-        with open(event.src_path, 'r') as file:
+        self.send_data(event.src_path)
+
+    def send_data(self, path: str):
+        """
+        send data from log file to client
+        """
+        with open(path, 'r') as file:
             try:
                 start_time = time.time()
                 print('log file was updated, sending log to client...')
@@ -140,6 +146,8 @@ class Server(FileSystemEventHandler):
                             while True:
                                 reply = self.cmd_client.recv(self.BUFFERSIZE)
                                 print(reply.decode('utf-8'))
+                                if reply.lower().decode('utf-8').strip()[-7:] == 'get log':
+                                    self.send_data(f'{self.debug_info(get_observer_str=True)[0]}Editor.log')
                     except Exception as e:
                         print(self.update_msg['client_msg_failed'] % (s.gethostbyaddr(addr[0])[0]),
                               f'\n\t\t -> {e}' if self.verbose else '')

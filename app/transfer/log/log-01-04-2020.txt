@@ -89,4 +89,58 @@ Failed to connect to local IPC Name not known
 
  COMMAND LINE ARGUMENTS:
 C:\Program Files\Unity\Hub\Editor\2019.3.5f1\Editor\Unity.exe
+Exiting without the bug reporter. Application will terminate with return code 0[LicensingClient] ERROR Failed to connect to local IPC
+[Licensing::Module] Failed to connect to channel: LicenseClient-bruce
+[Licensing::Module] Successfully launched the LicensingClient
+[Licensing::Module] Successfully connected to LicensingClient on channel: LicenseClient-bruce
+[Licensing::Module] Successfully launched and connected to LicensingClient
+Entitlement-based licensing initiated
+[LicensingClient] Licenses Updated successfully in LicensingClient
+
+LICENSE SYSTEM [2020331 22:3:39] Next license update check is after 2020-04-01T03:16:33
+
+Built from '2019.3/staging' branch; Version is '2019.3.5f1 (d691e07d38ef) revision 14062048'; Using compiler version '191627012'
+OS: 'Windows 10  (10.0.0) 64bit' Language: 'en' Physical Memory: 8083 MB
+[Licensing::Module] Serial number assigned to: "F4-PASH-NECV-6BT6-WC8F-XXXX"\nBatchMode: 0, IsHumanControllingUs: 1, StartBugReporterOnCrash: 1, Is64bit: 1, IsPro: 0
+[Package Manager] Server::Start -- Port 63207 was selected
+Failed to connect to local IPC Name not known
+
+ COMMAND LINE ARGUMENTS:
+C:\Program Files\Unity\Hub\Editor\2019.3.5f1\Editor\Unity.exe
+Exiting without the bug reporter. Application will terminate with return code 0[LicensingClient] ERROR Failed to connect to local IPC
+[Licensing::Module] Failed to connect to channel: LicenseClient-bruce
+[Licensing::Module] Successfully launched the LicensingClient
+[Licensing::Module] Successfully connected to LicensingClient on channel: LicenseClient-bruce
+[Licensing::Module] Successfully launched and connected to LicensingClient
+Entitlement-based licensing initiated
+[LicensingClient] Licenses Updated successfully in LicensingClient
+
+LICENSE SYSTEM [2020331 22:3:39] Next license update check is after 2020-04-01T03:16:33
+
+Built from '2019.3/staging' branch; Version is '2019.3.5f1 (d691e07d38ef) revision 14062048'; Using compiler version '191627012'
+OS: 'Windows 10  (10.0.0) 64bit' Language: 'en' Physical Memory: 8083 MB
+[Licensing::Module] Serial number assigned to: "F4-PASH-NECV-6BT6-WC8F-XXXX"\nBatchMode: 0, IsHumanControllingUs: 1, StartBugReporterOnCrash: 1, Is64bit: 1, IsPro: 0
+[Package Manager] Server::Start -- Port 63207 was selected
+Failed to connect to local IPC Name not known
+
+ COMMAND LINE ARGUMENTS:
+C:\Program Files\Unity\Hub\Editor\2019.3.5f1\Editor\Unity.exe
+Exiting without the bug reporter. Application will terminate with return code 0[LicensingClient] ERROR Failed to connect to local IPC
+[Licensing::Module] Failed to connect to channel: LicenseClient-bruce
+[Licensing::Module] Successfully launched the LicensingClient
+[Licensing::Module] Successfully connected to LicensingClient on channel: LicenseClient-bruce
+[Licensing::Module] Successfully launched and connected to LicensingClient
+Entitlement-based licensing initiated
+[LicensingClient] Licenses Updated successfully in LicensingClient
+
+LICENSE SYSTEM [2020331 22:3:39] Next license update check is after 2020-04-01T03:16:33
+
+Built from '2019.3/staging' branch; Version is '2019.3.5f1 (d691e07d38ef) revision 14062048'; Using compiler version '191627012'
+OS: 'Windows 10  (10.0.0) 64bit' Language: 'en' Physical Memory: 8083 MB
+[Licensing::Module] Serial number assigned to: "F4-PASH-NECV-6BT6-WC8F-XXXX"\nBatchMode: 0, IsHumanControllingUs: 1, StartBugReporterOnCrash: 1, Is64bit: 1, IsPro: 0
+[Package Manager] Server::Start -- Port 63207 was selected
+Failed to connect to local IPC Name not known
+
+ COMMAND LINE ARGUMENTS:
+C:\Program Files\Unity\Hub\Editor\2019.3.5f1\Editor\Unity.exe
 Exiting without the bug reporter. Application will terminate with return code 0
