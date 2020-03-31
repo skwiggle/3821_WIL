@@ -8,7 +8,7 @@
 import os
 import re
 import socket as s
-import time
+import threading
 from datetime import datetime as DT
 
 
@@ -43,24 +43,28 @@ class Client:
         self.PORT = port
         self.verbose = verbose
         if auto_connect:
-            while True:
-                self.update(timeout)
-                time.sleep(60)
+            update_thr = threading.Thread(target=self.update, args=(timeout, host, 5555))
+            command_thr = threading.Thread(target=self.update, args=(timeout, host, 5554, False))
+            update_thr.start()
+            command_thr.start()
 
     def update(self, timeout=3600, host: str = 'localhost',
-               port: int = 5555) -> bool:
+               port: int = 5555, verify: bool = True) -> bool:
         """
-        Continously waits for incoming log info requests or
-        server updates from main server
+        Continuously waits for incoming log info requests or
+        server updates from main server, used for both channels;
+        log handler and command line handler
         :param host: client hostname (default localhost)
         :param port: connection port number (default 5555)
         :param timeout: duration until timeout (default 1 hour)
+        :param verify: should the socket send a verification message (true/false)
         """
         try:
             with s.socket(s.AF_INET, s.SOCK_STREAM) as sock:
                 sock.settimeout(timeout)
                 sock.connect((host, port))
-                sock.send(bytes(self.update_msg['success'], 'utf-8'))
+                if verify:
+                    sock.send(bytes(self.update_msg['success'], 'utf-8'))
                 with open('./log/temp-log.txt', 'a+') as file:
                     while True:
                         msg = sock.recv(self.BUFFER_SIZE).decode('utf-8')
@@ -77,4 +81,4 @@ class Client:
 
 
 if __name__ == '__main__':
-    client = Client(auto_connect=True, verbose=True)
+    client = Client(auto_connect=True, verbose=False)
