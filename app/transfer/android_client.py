@@ -6,6 +6,7 @@
 # -   sends messages back to terminal
 
 import os
+import re
 import threading
 from datetime import datetime as DT
 
@@ -29,7 +30,7 @@ class Client:
         'cmd_success': f'CLIENT {current_time()}: %s',
         'cmd_failed': f'CLIENT {current_time()}: command "%s" failed to send'
     }
-    DATA: [set] = ['type ? for a list of commands\n']
+    DATA: [set] = ['type ? to see list of commands\n']
 
     def __init__(self, auto_connect: bool = False, host: str = 'localhost',
                  port: int = 5555, verbose: bool = False, timeout: int = 3600):
@@ -49,8 +50,63 @@ class Client:
     def update(self, timeout=3600, host: str = 'localhost',
                port: int = 5555, verify: bool = True) -> bool: ...
 
-    def command_lookup(self, command: str) -> str: ...
-
+    def command_lookup(self, command: str, parameters: [str] = ['']) -> str:
+        """
+        compare command against list of console commands
+        """
+        command_list = [
+            '\n?: get list of commands',
+            'get log: request current log from unity'
+            'get log --today: get all logs from today',
+            'get log --00-01-2000: get all logs from specific day on day-month-year',
+            'clear logs: delete all temporary logs',
+            'clear log --today: clear all logs from today'
+            'clear log --00-01-2000: clear log of specific day',
+            '\n'
+        ]
+        command = command.lower()
+        if command[0] == '?':
+            for line in command_list:
+                self.DATA.append(line)
+        if re.search('get logs', command):
+            return command
+        if re.search('get log --today', command):
+            try:
+                with open(f'./log/log-{DT.now().strftime("%d-%m-%Y")}.txt', 'r+') as file:
+                    for line in file:
+                        self.DATA.append(line)
+                return command
+            except:
+                return 'no log files exist'
+        if re.search('get log --([\d]{2,2}-[\d]{2,2}-[\d]{4,4})', command):
+            try:
+                with open(f'./log-{parameters[0][2:]}.txt', 'r') as file:
+                    for line in file:
+                        self.DATA.append(line)
+                return command
+            except:
+                return 'no log file exists on that date'
+        if re.search('clear logs', command):
+            try:
+                for file in os.listdir('./log/'):
+                    os.remove(f'.log/{file}')
+                return command
+            except:
+                return 'logs could not be deleted, directory may be empty'
+        if re.search('clear log --today', command):
+            try:
+                os.remove(f'./log/log-{DT.now().strftime("%d-%m-%Y")}.txt')
+                return command
+            except:
+                return 'log could not be removed because it does not exist'
+        if re.search('clear log --([\d]{2,2}-[\d]{2,2}-[\d]{4,4})', command):
+            try:
+                os.remove(f'./log/log-{parameters[0][2:]}.txt')
+                return command
+            except:
+                return 'log could not be removed because it does not exist'
+        else:
+            return command
 
 if __name__ == '__main__':
     client = Client(auto_connect=True, verbose=False)
