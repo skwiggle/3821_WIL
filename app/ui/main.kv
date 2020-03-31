@@ -6,6 +6,11 @@
 #: import MDIconButton kivymd.uix.button.MDIconButton
 #: import MDTextField kivymd.uix.textfield.MDTextField
 #: import MDSpinner kivymd.uix.spinner.MDSpinner
+#: import hex kivy.utils.get_color_from_hex
+
+
+
+
 <RefreshBtn>:
     icon: './icon/refresh/refresh_icon_64x64'
     height: 20
@@ -22,7 +27,7 @@
     viewclass: 'DataCell'
     canvas.before:
         Color:
-            rgba: (0.09, 0.13, 0.13, 1)
+            rgba: (0.09, 0.13, 0.13, 1)  # log screen background color
         Rectangle:
             size: root.size
             pos: root.pos
@@ -40,7 +45,7 @@ Widget:
     size: Window.size
     canvas:
         Color:
-            rgba: (0.57, 0.87, 0.87, 1)
+            rgba: (0, 0, 0.502, 0.6)  # background color main
         Rectangle:
             size: Window.size
             pos: (0, 0)
@@ -70,26 +75,31 @@ Widget:
             MDTextField:
                 id: cmd_input
                 size_hint_y: None
+
                 height: 60
                 font_size: '20sp'
-                specific_text_color: [1, 0, 1, 1]
+                md_bg_color: hex('#E80076')
+                specific_text_color: hex('#000000')
         GridLayout:
             id: bottom_panel
             cols: 2
             size_hint: (1, 0.1)
             MDRaisedButton:
-                id: send_btn
-                height: 50
-                text: 'send'
-                pos_hint: {'right': 1}
-                md_bg_color: (0.2, 0.6, 1, 1)
-                specific_text_color: [1, 1, 1, 0.87]
-                on_press: app.send_command()
-            MDRaisedButton:
                 id: clear_btn
                 height: 50
                 text: 'clear'
                 pos_hint: {'right': 1}
-                md_bg_color: (0.2, 0.6, 1, 1)
-                specific_text_color: (1, 1, 1, 0.87)
+                md_bg_color: hex('#E80076')
+                specific_text_color: hex('#EBE9E9')
                 on_press: app.clear_content()
+            MDRaisedButton:
+                id: send_btn
+                height: 50
+                text: 'send'
+                pos_hint: {'right': 1}
+                md_bg_color: hex('#42BBCE')
+                specific_text_color: hex('#EBE9E9')
+                on_press: app.send_command()
+
+
+
