@@ -32,7 +32,7 @@ class MyTestCase(unittest.TestCase):
     x = DebugPanel()
     def command1_lookup(self):
         self.assertEqual(self.x.command_lookup().command_list[0], "a")
-
+        self.assertTrue(client.command_lookup('get log --today'), 'get log --today')
 
 
 if __name__ == '__main__':
