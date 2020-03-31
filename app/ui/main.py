@@ -6,6 +6,7 @@
 #  -    receive/send user commands
 #  -    manually connect to client
 #  -    read from temporary log files
+import os
 
 import kivy
 kivy.require('1.11.1')
@@ -73,12 +74,31 @@ class DebugPanel(RecycleView, Client):
             self.DATA.append(result)
 
     def command_lookup(self, command: str, parameters) -> str:
+        """
+        compare command against list of console commands
+        """
+        command_list = [
+            '\n?: get list of commands',
+            'get log: request current log from unity'
+            'get log --today: get all logs from today',
+            'get log --00-01-2000: get all logs from specific day on day-month-year',
+            'clear logs: delete all temporary logs',
+            'clear log --today: clear all logs from today'
+            'clear log --00-01-2000: clear log of specific day',
+            '\n'
+        ]
         command = command.lower()
-        if command == 'get log --today':
+        if command[0] == '?':
+            for line in command_list:
+                self.DATA.append(line)
+        if re.search('get logs', command):
+            return command
+        if re.search('get log --today', command):
             try:
                 with open(f'../transfer/log/log-{DT.now().strftime("%d-%m-%Y")}.txt', 'r+') as file:
                     for line in file:
                         self.DATA.append(line)
+                return command
             except:
                 return 'no log files exist'
         if re.search('get log --([\d]{2,2}-[\d]{2,2}-[\d]{4,4})', command):
@@ -86,10 +106,32 @@ class DebugPanel(RecycleView, Client):
                 with open(f'../transfer/log/log-{parameters[0][2:]}.txt', 'r') as file:
                     for line in file:
                         self.DATA.append(line)
+                return command
             except:
                 return 'no log file exists on that date'
+        if re.search('clear logs', command):
+            try:
+                for file in os.listdir('../transfer/log/'):
+                    os.remove(f'../transfer/log/{file}')
+                return command
+            except:
+                return 'logs could not be deleted, directory may be empty'
+        if re.search('clear log --today', command):
+            try:
+                os.remove(f'../transfer/log/log-{DT.now().strftime("%d-%m-%Y")}.txt')
+                return command
+            except:
+                return 'log could not be removed because it does not exist'
+        if re.search('clear log --([\d]{2,2}-[\d]{2,2}-[\d]{4,4})', command):
+            try:
+                os.remove(f'../transfer/log/log-{parameters[0][2:]}.txt')
+                return command
+            except:
+                return 'log could not be removed because it does not exist'
         else:
-            return 'unknown command'
+            return 'unknown command, type ? to see list of commands'
+
+
 
     def send_command(self, port: int, command: str) -> str:
         '''
