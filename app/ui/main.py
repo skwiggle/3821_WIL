@@ -195,7 +195,6 @@ class DebugPanel(RecycleView, Client):
                             self.data.append({'text': str(msg)})
                             self.DATA.append(msg)
                         else:
-                            #file.write(f'--LOG[{DT.now().strftime("%H")}]')
                             return False
         except Exception as e:
             self.data.append({'text': str(self.update_msg['failed'])})
@@ -233,7 +232,7 @@ class MainApp(MDApp):
 
     def clear_content(self):
         # Tell debug panel to clear data
-        self.root.ids['debug_panel'].DATA = ['type ? for a list of commands\n']
+        self.root.ids['debug_panel'].DATA = ['type ? to see list of commands\n']
 
     def send_command(self):
         # Send command to debug panel
