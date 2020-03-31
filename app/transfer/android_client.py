@@ -29,7 +29,7 @@ class Client:
         'cmd_success': f'CLIENT {current_time()}: %s',
         'cmd_failed': f'CLIENT {current_time()}: command "%s" failed to send'
     }
-    DATA: [set] = ['app started...']
+    DATA: [set] = ['type ? for a list of commands\n']
 
     def __init__(self, auto_connect: bool = False, host: str = 'localhost',
                  port: int = 5555, verbose: bool = False, timeout: int = 3600):

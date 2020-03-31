@@ -129,9 +129,7 @@ class DebugPanel(RecycleView, Client):
             except:
                 return 'log could not be removed because it does not exist'
         else:
-            return 'unknown command, type ? to see list of commands'
-
-
+            return command
 
     def send_command(self, port: int, command: str) -> str:
         '''
@@ -235,7 +233,7 @@ class MainApp(MDApp):
 
     def clear_content(self):
         # Tell debug panel to clear data
-        self.root.ids['debug_panel'].DATA = ['']
+        self.root.ids['debug_panel'].DATA = ['type ? for a list of commands\n']
 
     def send_command(self):
         # Send command to debug panel
