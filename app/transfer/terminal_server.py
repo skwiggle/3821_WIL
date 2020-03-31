@@ -29,15 +29,15 @@ class Server(FileSystemEventHandler):
     -   receives messages from application
     -   sends messages to application
     """
-    client = None                       # active debugging client object
-    cmd_client = None                   # active command line client object
-    request_log: bool = False           # send log over to application true/false
-    HOST, PORT = 'localhost', 5555      # default hostname and port number
-    BUFFERSIZE: int = 2048              # message size limit
-    verbose: bool = False               # display exception error true/false
-    log_location: str = ''              # location of log file
+    client = None  # active debugging client object
+    cmd_client = None  # active command line client object
+    request_log: bool = False  # send log over to application true/false
+    HOST, PORT = 'localhost', 5555  # default hostname and port number
+    BUFFERSIZE: int = 2048  # message size limit
+    verbose: bool = False  # display exception error true/false
+    log_location: str = ''  # location of log file
     current_time = lambda: \
-        DT.now().strftime("%I:%M%p")    # returns the current time
+        DT.now().strftime("%I:%M%p")  # returns the current time
 
     # list of all custom error messages
     update_msg: dict = {
@@ -73,6 +73,7 @@ class Server(FileSystemEventHandler):
                 start_time = time.time()
                 print('log file was updated, sending log to client...')
                 with self.client:
+                    self.client.send(b'--START')
                     for line in file:
                         current_time = time.time()
                         self.client.send(bytes(line, 'utf-8'))
@@ -109,7 +110,7 @@ class Server(FileSystemEventHandler):
                         with self.client:
                             self.client.settimeout(600)
                             self.client.send(bytes(str(self.update_msg['client_log_success']) %
-                                                 (s.gethostbyaddr(addr[0])[0], self.HOST), 'utf-8'))
+                                                   (s.gethostbyaddr(addr[0])[0], self.HOST), 'utf-8'))
                             while True:
                                 reply = self.client.recv(self.BUFFERSIZE)
                                 print(reply.decode('utf-8'))
@@ -137,7 +138,7 @@ class Server(FileSystemEventHandler):
                         self.cmd_client, addr = sock.accept()
                         with self.cmd_client:
                             self.cmd_client.send(bytes(str(self.update_msg['client_cmd_success']) %
-                                                 (s.gethostbyaddr(addr[0])[0], self.HOST), 'utf-8'))
+                                                       (s.gethostbyaddr(addr[0])[0], self.HOST), 'utf-8'))
                             while True:
                                 reply = self.cmd_client.recv(self.BUFFERSIZE)
                                 print(reply.decode('utf-8'))

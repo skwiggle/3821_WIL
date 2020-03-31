@@ -26,6 +26,7 @@ from kivymd.uix.label import MDLabel
 import re
 import time
 import socket as s
+from datetime import datetime as DT
 import threading
 
 
@@ -38,6 +39,11 @@ class DebugPanel(RecycleView, Client):
         watch_log = threading.Thread(target=self.watch_log_update)  # create thread as data observer
         watch_log.start()
         update_thr.start()
+        try:
+            with open(f'../transfer/log/log-%s.txt' % DT.now().strftime("%d-%m-%Y"), 'x') as file:
+                file.write('\n')
+        except:
+            pass
 
     def watch_log_update(self):
         '''
@@ -49,9 +55,7 @@ class DebugPanel(RecycleView, Client):
         original = self.DATA
         while True:
             if self.data and (self.data[-1] != original[-1]):
-                self.data = map(lambda x: {'text': str(x)},
-                                filter(lambda y: not re.search('(--LOG)+', y),
-                                       self.DATA))
+                self.data = map(lambda x: {'text': str(x)}, self.DATA)
                 time.sleep(0.25)
 
     def alt_update(self, command: str = None) -> None:
@@ -63,8 +67,29 @@ class DebugPanel(RecycleView, Client):
         if command is None:
             self.DATA.append(self.get_connection)
         else:
+            parameters = re.findall('--[\S]+[\s]?', command)
+            command = self.command_lookup(command, parameters)
             result = self.send_command(5554, command)
             self.DATA.append(result)
+
+    def command_lookup(self, command: str, parameters) -> str:
+        command = command.lower()
+        if command == 'get log --today':
+            try:
+                with open(f'../transfer/log/log-{DT.now().strftime("%d-%m-%Y")}.txt', 'r+') as file:
+                    for line in file:
+                        self.DATA.append(line)
+            except:
+                return 'no log files exist'
+        if re.search('get log --([\d]{2,2}-[\d]{2,2}-[\d]{4,4})', command):
+            try:
+                with open(f'../transfer/log/log-{parameters[0][2:]}.txt', 'r') as file:
+                    for line in file:
+                        self.DATA.append(line)
+            except:
+                return 'no log file exists on that date'
+        else:
+            return 'unknown command'
 
     def send_command(self, port: int, command: str) -> str:
         '''
@@ -119,7 +144,7 @@ class DebugPanel(RecycleView, Client):
                 sock.connect((host, port))
                 if verify:
                     sock.send(bytes(self.update_msg['success'], 'utf-8'))
-                with open('../transfer/log/temp-log.txt', 'a+') as file:
+                with open(f'../transfer/log/log-{DT.now().strftime("%d-%m-%Y")}.txt', 'a+') as file:
                     while True:
                         msg = sock.recv(self.BUFFER_SIZE).decode('utf-8')
                         if msg and re.search('(CONSOLE|CLIENT)', msg):
@@ -130,6 +155,7 @@ class DebugPanel(RecycleView, Client):
                             self.data.append({'text': str(msg)})
                             self.DATA.append(msg)
                         else:
+                            #file.write(f'--LOG[{DT.now().strftime("%H")}]')
                             return False
         except Exception as e:
             self.data.append({'text': str(self.update_msg['failed'])})

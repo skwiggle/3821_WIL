@@ -29,7 +29,7 @@ class Client:
         'cmd_success': f'CLIENT {current_time()}: %s',
         'cmd_failed': f'CLIENT {current_time()}: command "%s" failed to send'
     }
-    DATA: [set] = [f"--LOG-{DT.today().strftime('%x')}"]
+    DATA: [set] = ['app started...']
 
     def __init__(self, auto_connect: bool = False, host: str = 'localhost',
                  port: int = 5555, verbose: bool = False, timeout: int = 3600):
@@ -48,6 +48,8 @@ class Client:
 
     def update(self, timeout=3600, host: str = 'localhost',
                port: int = 5555, verify: bool = True) -> bool: ...
+
+    def command_lookup(self, command: str) -> str: ...
 
 
 if __name__ == '__main__':
