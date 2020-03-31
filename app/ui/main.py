@@ -6,16 +6,12 @@
 #  -    receive/send user commands
 #  -    manually connect to client
 #  -    read from temporary log files
-import socket
+import os
 
 import kivy
-from kivy.lang import Builder
-
 kivy.require('1.11.1')
 
-# kivy configuration
 from kivy.config import Config
-
 Config.set('graphics', 'width', '480')
 Config.set('graphics', 'height', '720')
 Config.set('graphics', 'minimum_width', '480')
@@ -26,36 +22,29 @@ Config.set('widgets', 'scroll_moves', '10')
 from app.transfer.android_client import Client
 from kivymd.app import MDApp
 from kivy.uix.recycleview import RecycleView
-from kivy.properties import NumericProperty, StringProperty, ListProperty
-from kivymd.uix.button import MDRaisedButton
+from kivy.properties import NumericProperty, StringProperty
 from kivymd.uix.label import MDLabel
-from kivy.clock import Clock
 import re
-from datetime import datetime as DT
 import time
 import socket as s
-import asyncio
+from datetime import datetime as DT
 import threading
 
 
 class DebugPanel(RecycleView, Client):
 
-    def log_data(self):
-        '''
-        filter and append data sent from super class DATA variable over to
-        global data variable. This function is called everytime DATA is
-        updated whenever a log file is read from the terminal and sent over.
-        '''
-        self.data = map(lambda x: {'text': str(x)},
-                        filter(lambda y: not re.search('(--LOG)+', y),
-                               self.DATA))
-
     def __init__(self, **kwargs):
         super(DebugPanel, self).__init__(**kwargs)  # initialise client super class
         self.data = []  # initialise global data variable
-        self.log_data()  # update global data variable
+        update_thr = threading.Thread(target=self.update)
         watch_log = threading.Thread(target=self.watch_log_update)  # create thread as data observer
         watch_log.start()
+        update_thr.start()
+        try:
+            with open(f'../transfer/log/log-%s.txt' % DT.now().strftime("%d-%m-%Y"), 'x') as file:
+                file.write('\n')
+        except:
+            pass
 
     def watch_log_update(self):
         '''
@@ -67,14 +56,82 @@ class DebugPanel(RecycleView, Client):
         original = self.DATA
         while True:
             if self.data and (self.data[-1] != original[-1]):
-                self.log_data()
-                time.sleep(1)
+                self.data = map(lambda x: {'text': str(x)}, self.DATA)
+                time.sleep(0.25)
 
     def alt_update(self, command: str = None) -> None:
+        """
+        Alternate update request, request a continuous log handler socket connection
+        to terminal if the current socket ended, else, do nothing.
+        OR: Send a command to terminal host
+        """
         if command is None:
             self.DATA.append(self.get_connection)
         else:
-            self.DATA.append(self.send_command(5554, command))
+            parameters = re.findall('--[\S]+[\s]?', command)
+            command = self.command_lookup(command, parameters)
+            result = self.send_command(5554, command)
+            self.DATA.append(result)
+
+    def command_lookup(self, command: str, parameters) -> str:
+        """
+        compare command against list of console commands
+        """
+        command_list = [
+            '\n?: get list of commands',
+            'get log: request current log from unity'
+            'get log --today: get all logs from today',
+            'get log --00-01-2000: get all logs from specific day on day-month-year',
+            'clear logs: delete all temporary logs',
+            'clear log --today: clear all logs from today'
+            'clear log --00-01-2000: clear log of specific day',
+            '\n'
+        ]
+        command = command.lower()
+        if command[0] == '?':
+            for line in command_list:
+                self.DATA.append(line)
+        if re.search('get logs', command):
+            return command
+        if re.search('get log --today', command):
+            try:
+                with open(f'../transfer/log/log-{DT.now().strftime("%d-%m-%Y")}.txt', 'r+') as file:
+                    for line in file:
+                        self.DATA.append(line)
+                return command
+            except:
+                return 'no log files exist'
+        if re.search('get log --([\d]{2,2}-[\d]{2,2}-[\d]{4,4})', command):
+            try:
+                with open(f'../transfer/log/log-{parameters[0][2:]}.txt', 'r') as file:
+                    for line in file:
+                        self.DATA.append(line)
+                return command
+            except:
+                return 'no log file exists on that date'
+        if re.search('clear logs', command):
+            try:
+                for file in os.listdir('../transfer/log/'):
+                    os.remove(f'../transfer/log/{file}')
+                return command
+            except:
+                return 'logs could not be deleted, directory may be empty'
+        if re.search('clear log --today', command):
+            try:
+                os.remove(f'../transfer/log/log-{DT.now().strftime("%d-%m-%Y")}.txt')
+                return command
+            except:
+                return 'log could not be removed because it does not exist'
+        if re.search('clear log --([\d]{2,2}-[\d]{2,2}-[\d]{4,4})', command):
+            try:
+                os.remove(f'../transfer/log/log-{parameters[0][2:]}.txt')
+                return command
+            except:
+                return 'log could not be removed because it does not exist'
+        else:
+            return 'unknown command, type ? to see list of commands'
+
+
 
     def send_command(self, port: int, command: str) -> str:
         '''
@@ -86,6 +143,7 @@ class DebugPanel(RecycleView, Client):
                 sock.settimeout(2)
                 sock.connect((self.HOST, port))
                 sock.send(bytes(self.update_msg['cmd_success'] % command, 'utf-8'))
+                time.sleep(0.25)
                 return self.update_msg['cmd_success'] % command
         except:
             return self.update_msg['cmd_failed'] % command
@@ -128,7 +186,7 @@ class DebugPanel(RecycleView, Client):
                 sock.connect((host, port))
                 if verify:
                     sock.send(bytes(self.update_msg['success'], 'utf-8'))
-                with open('../transfer/log/temp-log.txt', 'a+') as file:
+                with open(f'../transfer/log/log-{DT.now().strftime("%d-%m-%Y")}.txt', 'a+') as file:
                     while True:
                         msg = sock.recv(self.BUFFER_SIZE).decode('utf-8')
                         if msg and re.search('(CONSOLE|CLIENT)', msg):
@@ -139,20 +197,30 @@ class DebugPanel(RecycleView, Client):
                             self.data.append({'text': str(msg)})
                             self.DATA.append(msg)
                         else:
+                            #file.write(f'--LOG[{DT.now().strftime("%H")}]')
                             return False
         except Exception as e:
             self.data.append({'text': str(self.update_msg['failed'])})
             self.DATA.append(self.update_msg['failed'])
-            print(self.update_msg['failed'], f'\n\t\t -> {e}' if self.verbose else '')
             return True
 
 
 class DataCell(MDLabel):
+    """Cellular data in console data"""
     def __init__(self, **kwargs):
         super(DataCell, self).__init__(**kwargs)
 
 
 class MainApp(MDApp):
+    """
+    Main Application Window
+    - sets app configuration properties
+    - initialises all kivy elements onto canvas
+    - request a continuous/non-continuous socket attempt
+    - sends commands to debug panel to be processed
+    - request a clearing of console data
+    """
+
     title = "Terminal Genie"
     icon = './icon/app/app_icon256x256.jpg'
     padding_def = NumericProperty(20)
@@ -160,24 +228,21 @@ class MainApp(MDApp):
     command = StringProperty('')
 
     def alt_update(self):
+        # restart debugging socket
         thr = threading.Thread(
             target=self.root.ids['debug_panel'].alt_update)
         thr.start()
 
     def clear_content(self):
+        # Tell debug panel to clear data
         self.root.ids['debug_panel'].DATA = ['']
 
     def send_command(self):
-        self.root.ids['send_btn'].disabled = True
+        # Send command to debug panel
         command = self.root.ids['cmd_input'].text
-        cmd_thread = threading.Thread(
-            target=self.root.ids['debug_panel'].alt_update,
-            args=(command,))
-        cmd_thread.start()
-        cmd_thread.join()
-        self.root.ids['send_btn'].disabled = False
-
+        self.root.ids['debug_panel'].alt_update(command)
 
 
 if __name__ == '__main__':
+    # run app
     MainApp().run()

@@ -6,16 +6,15 @@
 # -   reads log file and sends data to application
 # -   receives messages from application
 # -   sends messages to application
-import threading
 
 import os
 import re
 import sys
-import watchdog
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from datetime import datetime as DT
 import socket as s
+import threading
 import time
 
 
@@ -30,15 +29,15 @@ class Server(FileSystemEventHandler):
     -   receives messages from application
     -   sends messages to application
     """
-    client = None                       # active debugging client object
-    cmd_client = None                   # active command line client object
-    request_log: bool = False           # send log over to application true/false
-    HOST, PORT = 'localhost', 5555      # default hostname and port number
-    BUFFERSIZE: int = 2048              # message size limit
-    verbose: bool = False               # display exception error true/false
-    log_location: str = ''              # location of log file
+    client = None  # active debugging client object
+    cmd_client = None  # active command line client object
+    request_log: bool = False  # send log over to application true/false
+    HOST, PORT = 'localhost', 5555  # default hostname and port number
+    BUFFERSIZE: int = 2048  # message size limit
+    verbose: bool = False  # display exception error true/false
+    log_location: str = ''  # location of log file
     current_time = lambda: \
-        DT.now().strftime("%I:%M%p")    # returns the current time
+        DT.now().strftime("%I:%M%p")  # returns the current time
 
     # list of all custom error messages
     update_msg: dict = {
@@ -59,11 +58,10 @@ class Server(FileSystemEventHandler):
         self.PORT = port
         self.verbose = verbose
         if auto_connect:
-            command_thr = threading.Thread(target=self.cmd_handler_update,
-                                           args=(5554,))
             update_thr = threading.Thread(target=self.log_handler_update)
-            command_thr.start()
             update_thr.start()
+            while 1:
+                self.cmd_handler_update(5554)
 
     def on_modified(self, event):
         """
@@ -75,6 +73,7 @@ class Server(FileSystemEventHandler):
                 start_time = time.time()
                 print('log file was updated, sending log to client...')
                 with self.client:
+                    self.client.send(b'--START')
                     for line in file:
                         current_time = time.time()
                         self.client.send(bytes(line, 'utf-8'))
@@ -111,7 +110,7 @@ class Server(FileSystemEventHandler):
                         with self.client:
                             self.client.settimeout(600)
                             self.client.send(bytes(str(self.update_msg['client_log_success']) %
-                                                 (s.gethostbyaddr(addr[0])[0], self.HOST), 'utf-8'))
+                                                   (s.gethostbyaddr(addr[0])[0], self.HOST), 'utf-8'))
                             while True:
                                 reply = self.client.recv(self.BUFFERSIZE)
                                 print(reply.decode('utf-8'))
@@ -134,23 +133,19 @@ class Server(FileSystemEventHandler):
                         sock.bind((self.HOST, port))
                         sock.listen()
                     except:
-                        print(self.update_msg['instance'])
-                        exit(-1)
+                        pass
                     try:
                         self.cmd_client, addr = sock.accept()
                         with self.cmd_client:
-                            self.cmd_client.settimeout(600)
                             self.cmd_client.send(bytes(str(self.update_msg['client_cmd_success']) %
-                                                 (s.gethostbyaddr(addr[0])[0], self.HOST), 'utf-8'))
+                                                       (s.gethostbyaddr(addr[0])[0], self.HOST), 'utf-8'))
                             while True:
                                 reply = self.cmd_client.recv(self.BUFFERSIZE)
                                 print(reply.decode('utf-8'))
-                                if not reply:
-                                    break
                     except Exception as e:
                         print(self.update_msg['client_msg_failed'] % (s.gethostbyaddr(addr[0])[0]),
                               f'\n\t\t -> {e}' if self.verbose else '')
-            except Exception as e:
+            except:
                 pass
 
     @staticmethod
