@@ -30,7 +30,8 @@ class Server(FileSystemEventHandler):
     -   receives messages from application
     -   sends messages to application
     """
-    client = None                       # active client object
+    client = None                       # active debugging client object
+    cmd_client = None                   # active command line client object
     request_log: bool = False           # send log over to application true/false
     HOST, PORT = 'localhost', 5555      # default hostname and port number
     BUFFERSIZE: int = 2048              # message size limit
@@ -41,9 +42,10 @@ class Server(FileSystemEventHandler):
 
     # list of all custom error messages
     update_msg: dict = {
-        'client_success': f'CLIENT {current_time()}: you are now connected to %s (%s)',
+        'client_cmd_success': f'CLIENT {current_time()}: command line client is now connected to %s (%s)',
+        'client_log_success': f'CLIENT {current_time()}: debugging client is now connected to %s (%s)',
         'client_failed': f'CONSOLE {current_time()}: client failed to connect',
-        'client_left': f'CONSOLE {current_time()}: client (%s) disconnected from server',
+        'client_left': f'CONSOLE {current_time()}: (%s) %s client disconnected',
         'client_msg_failed': f'CONSOLE {current_time()}: failed to get message from client',
         'log_not_found': f'CONSOLE {current_time}: no log file found at \'%s\'',
         'log_success': f'CONSOLE {current_time()}: log finished sending',
@@ -59,8 +61,8 @@ class Server(FileSystemEventHandler):
         if auto_connect:
             command_thr = threading.Thread(target=self.cmd_handler_update,
                                            args=(5554,))
+            update_thr = threading.Thread(target=self.log_handler_update)
             command_thr.start()
-            update_thr = threading.Thread(target=self.update())
             update_thr.start()
 
     def on_modified(self, event):
@@ -72,22 +74,21 @@ class Server(FileSystemEventHandler):
             try:
                 start_time = time.time()
                 print('log file was updated, sending log to client...')
-                for line in file:
-                    current_time = time.time()
-                    self.client.send(bytes(line, 'utf-8'))
-                    sys.stdout.write(f'time elapsed: {current_time - start_time}\r')
-                    sys.stdout.flush()
+                with self.client:
+                    for line in file:
+                        current_time = time.time()
+                        self.client.send(bytes(line, 'utf-8'))
+                        sys.stdout.write(f'time elapsed: {current_time - start_time}\r')
+                        sys.stdout.flush()
                 print(self.update_msg['log_success'])
             except Exception as e:
                 print(self.update_msg['log_failed'], f'\n\t\t -> {e}' if self.verbose else '')
 
-    def update(self) -> None:
+    def log_handler_update(self, port: int = 5555) -> None:
         """
         Continuously waits for incoming messages or a 'LOG'
         request from client(s)
         :param port: connection port number (default 5555)
-        :param host: hostname (default localhost)
-        :param request_log: boolean for if the debug log should be sent to host
         """
         try:
             observer = Observer()
@@ -100,7 +101,7 @@ class Server(FileSystemEventHandler):
             try:
                 with s.socket(s.AF_INET, s.SOCK_STREAM) as sock:
                     try:
-                        sock.bind((self.HOST, self.PORT))
+                        sock.bind((self.HOST, port))
                         sock.listen()
                     except:
                         print(self.update_msg['instance'])
@@ -109,8 +110,8 @@ class Server(FileSystemEventHandler):
                         self.client, addr = sock.accept()
                         with self.client:
                             self.client.settimeout(600)
-                            self.client.send(bytes(str(self.update_msg['client_success']) %
-                                                   (s.gethostbyaddr(addr[0])[0], self.HOST), 'utf-8'))
+                            self.client.send(bytes(str(self.update_msg['client_log_success']) %
+                                                 (s.gethostbyaddr(addr[0])[0], self.HOST), 'utf-8'))
                             while True:
                                 reply = self.client.recv(self.BUFFERSIZE)
                                 print(reply.decode('utf-8'))
@@ -122,8 +123,7 @@ class Server(FileSystemEventHandler):
             except Exception as e:
                 observer.stop()
                 observer.join()
-                self.client.close()
-                print(self.update_msg['client_left'] % s.gethostbyaddr(addr[0])[0],
+                print(self.update_msg['client_left'] % (s.gethostbyaddr(addr[0])[0], 'debugging'),
                       f'\n\t\t -> {e}' if self.verbose else '')
 
     def cmd_handler_update(self, port: int = 5554) -> None:
@@ -134,29 +134,24 @@ class Server(FileSystemEventHandler):
                         sock.bind((self.HOST, port))
                         sock.listen()
                     except:
+                        print(self.update_msg['instance'])
                         exit(-1)
                     try:
-                        client, addr = sock.accept()
-                        with client:
-                            client.settimeout(2)
+                        self.cmd_client, addr = sock.accept()
+                        with self.cmd_client:
+                            self.cmd_client.settimeout(600)
+                            self.cmd_client.send(bytes(str(self.update_msg['client_cmd_success']) %
+                                                 (s.gethostbyaddr(addr[0])[0], self.HOST), 'utf-8'))
                             while True:
-                                reply = client.recv(2048)
+                                reply = self.cmd_client.recv(self.BUFFERSIZE)
                                 print(reply.decode('utf-8'))
-                                print('command output')
                                 if not reply:
                                     break
-                    except:
-                        continue
-            except:
-                continue
-
-    def send_log(self, log: [str]):
-        try:
-            for line in log:
-                self.client.send(bytes(line, 'utf-8'))
-        except Exception as e:
-            print(self.update_msg['log_failed'],
-                  f'\n\t\t -> {e}' if self.verbose else '')
+                    except Exception as e:
+                        print(self.update_msg['client_msg_failed'] % (s.gethostbyaddr(addr[0])[0]),
+                              f'\n\t\t -> {e}' if self.verbose else '')
+            except Exception as e:
+                pass
 
     @staticmethod
     def debug_info(url="", get_observer_str=False) -> [str]:
@@ -199,4 +194,4 @@ class Server(FileSystemEventHandler):
 
 
 if __name__ == '__main__':
-    server = Server(auto_connect=True, verbose=True)
+    server = Server(auto_connect=True, verbose=False)

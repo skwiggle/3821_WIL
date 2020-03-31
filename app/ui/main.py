@@ -50,6 +50,13 @@ class DebugPanel(RecycleView, Client):
                         filter(lambda y: not re.search('(--LOG)+', y),
                                self.DATA))
 
+    def __init__(self, **kwargs):
+        super(DebugPanel, self).__init__(**kwargs)  # initialise client super class
+        self.data = []  # initialise global data variable
+        self.log_data()  # update global data variable
+        watch_log = threading.Thread(target=self.watch_log_update)  # create thread as data observer
+        watch_log.start()
+
     def watch_log_update(self):
         '''
         A thread will run this function in the background every second.
@@ -63,19 +70,13 @@ class DebugPanel(RecycleView, Client):
                 self.log_data()
                 time.sleep(1)
 
-    def __init__(self, **kwargs):
-        super(DebugPanel, self).__init__(**kwargs)                  # initialise client super class
-        self.data = []                                              # initialise global data variable
-        self.log_data()                                             # update global data variable
-        watch_conn = threading.Thread(target=self.update)           # create thread as data observer
-        watch_log = threading.Thread(target=self.watch_log_update)  # create thread as socket observer
-        watch_conn.start()
-        watch_log.start()
+    def alt_update(self, command: str = None) -> None:
+        if command is None:
+            self.DATA.append(self.get_connection)
+        else:
+            self.DATA.append(self.send_command(5554, command))
 
-    def alt_update(self) -> None:
-        self.DATA.append(self.get_connection)
-
-    def send_command(self, command) -> str:
+    def send_command(self, port: int, command: str) -> str:
         '''
         A non-continuosly property version of the update method that
         returns a message.
@@ -83,11 +84,11 @@ class DebugPanel(RecycleView, Client):
         try:
             with s.socket(s.AF_INET, s.SOCK_STREAM) as sock:
                 sock.settimeout(2)
-                sock.connect((self.HOST, self.PORT))
-                sock.send(bytes(str(command), 'utf-8'))
+                sock.connect((self.HOST, port))
+                sock.send(bytes(self.update_msg['cmd_success'] % command, 'utf-8'))
                 return self.update_msg['cmd_success'] % command
-        except Exception as e:
-            return self.update_msg['cmd_failed']
+        except:
+            return self.update_msg['cmd_failed'] % command
 
     @property
     def get_connection(self) -> str:
@@ -104,29 +105,29 @@ class DebugPanel(RecycleView, Client):
                     return self.update_msg['failed']
                 sock.send(bytes(self.update_msg['success'], 'utf-8'))
                 recv = sock.recv(self.BUFFER_SIZE).decode('utf-8')
-                watch_conn = threading.Thread(target=self.update)
-                watch_conn.start()
+                log_handler = threading.Thread(target=self.update)
+                log_handler.start()
                 return ''
         except Exception as e:
             return self.update_msg['established']
 
-    def update(self, command: str = '') -> bool:
+    def update(self, timeout: int = 3600, host: str = 'localhost',
+               port: int = 5555, verify: bool = True) -> bool:
         """
-        Continously waits for incoming log info requests or
-        server updates from main server
+        Continuously waits for incoming log info requests or
+        server updates from main server, used for both channels;
+        log handler and command line handler
         :param host: client hostname (default localhost)
         :param port: connection port number (default 5555)
         :param timeout: duration until timeout (default 1 hour)
-        :param command: string command passed by application
+        :param verify: should the socket send a verification message (true/false)
         """
         try:
             with s.socket(s.AF_INET, s.SOCK_STREAM) as sock:
-                sock.settimeout(3600)
-                sock.connect((self.HOST, self.PORT))
-                if command != '':
-                    sock.send(bytes(command, 'utf-8'))
-                    return True
-                sock.send(bytes(self.update_msg['success'], 'utf-8'))
+                sock.settimeout(timeout)
+                sock.connect((host, port))
+                if verify:
+                    sock.send(bytes(self.update_msg['success'], 'utf-8'))
                 with open('../transfer/log/temp-log.txt', 'a+') as file:
                     while True:
                         msg = sock.recv(self.BUFFER_SIZE).decode('utf-8')
@@ -139,12 +140,10 @@ class DebugPanel(RecycleView, Client):
                             self.DATA.append(msg)
                         else:
                             return False
-
         except Exception as e:
             self.data.append({'text': str(self.update_msg['failed'])})
             self.DATA.append(self.update_msg['failed'])
-            if self.verbose:
-                print(f'\n\t\t -> {e}' if self.verbose else '')
+            print(self.update_msg['failed'], f'\n\t\t -> {e}' if self.verbose else '')
             return True
 
 
@@ -169,11 +168,16 @@ class MainApp(MDApp):
         self.root.ids['debug_panel'].DATA = ['']
 
     def send_command(self):
+        self.root.ids['send_btn'].disabled = True
         command = self.root.ids['cmd_input'].text
         cmd_thread = threading.Thread(
-            target=self.root.ids['debug_panel'].send_command,
+            target=self.root.ids['debug_panel'].alt_update,
             args=(command,))
         cmd_thread.start()
+        cmd_thread.join()
+        self.root.ids['send_btn'].disabled = False
+
+
 
 if __name__ == '__main__':
     MainApp().run()
