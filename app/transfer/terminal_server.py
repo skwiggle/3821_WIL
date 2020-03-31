@@ -6,16 +6,15 @@
 # -   reads log file and sends data to application
 # -   receives messages from application
 # -   sends messages to application
-import threading
 
 import os
 import re
 import sys
-import watchdog
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from datetime import datetime as DT
 import socket as s
+import threading
 import time
 
 
@@ -59,11 +58,10 @@ class Server(FileSystemEventHandler):
         self.PORT = port
         self.verbose = verbose
         if auto_connect:
-            command_thr = threading.Thread(target=self.cmd_handler_update,
-                                           args=(5554,))
             update_thr = threading.Thread(target=self.log_handler_update)
-            command_thr.start()
             update_thr.start()
+            while 1:
+                self.cmd_handler_update(5554)
 
     def on_modified(self, event):
         """
@@ -134,23 +132,19 @@ class Server(FileSystemEventHandler):
                         sock.bind((self.HOST, port))
                         sock.listen()
                     except:
-                        print(self.update_msg['instance'])
-                        exit(-1)
+                        pass
                     try:
                         self.cmd_client, addr = sock.accept()
                         with self.cmd_client:
-                            self.cmd_client.settimeout(600)
                             self.cmd_client.send(bytes(str(self.update_msg['client_cmd_success']) %
                                                  (s.gethostbyaddr(addr[0])[0], self.HOST), 'utf-8'))
                             while True:
                                 reply = self.cmd_client.recv(self.BUFFERSIZE)
                                 print(reply.decode('utf-8'))
-                                if not reply:
-                                    break
                     except Exception as e:
                         print(self.update_msg['client_msg_failed'] % (s.gethostbyaddr(addr[0])[0]),
                               f'\n\t\t -> {e}' if self.verbose else '')
-            except Exception as e:
+            except:
                 pass
 
     @staticmethod
