@@ -68,7 +68,7 @@ class Client:
         if command[0] == '?':
             for line in command_list:
                 self.DATA.append(line)
-        if re.search('get logs', command):
+        if re.search('get log', command):
             return command
         if re.search('get log --today', command):
             try:
@@ -92,19 +92,19 @@ class Client:
                     os.remove(f'.log/{file}')
                 return command
             except:
-                return 'logs could not be deleted, directory may be empty'
+                return 'atleast one log is still being written to, please disconnect from the server first'
         if re.search('clear log --today', command):
             try:
                 os.remove(f'./log/log-{DT.now().strftime("%d-%m-%Y")}.txt')
-                return command
+                return 'today\'s log cleared successfully'
             except:
-                return 'log could not be removed because it does not exist'
+                return 'log still being written to, please disconnect from the server first'
         if re.search('clear log --([\d]{2,2}-[\d]{2,2}-[\d]{4,4})', command):
             try:
                 os.remove(f'./log/log-{parameters[0][2:]}.txt')
-                return command
+                return f'log on {parameters[0][2:]} cleared successfully'
             except:
-                return 'log could not be removed because it does not exist'
+                return 'log still being written to, please disconnect from the server first'
         else:
             return command
 
