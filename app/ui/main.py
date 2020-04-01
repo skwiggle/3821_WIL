@@ -79,11 +79,11 @@ class DebugPanel(RecycleView, Client):
         """
         command_list = [
             '\n?: get list of commands',
-            'get log: request current log from unity'
+            'get log: request current log from unity',
             'get log --today: get all logs from today',
             'get log --00-01-2000: get all logs from specific day on day-month-year',
             'clear logs: delete all temporary logs',
-            'clear log --today: clear all logs from today'
+            'clear log --today: clear all logs from today',
             'clear log --00-01-2000: clear log of specific day',
             '\n'
         ]
@@ -91,43 +91,43 @@ class DebugPanel(RecycleView, Client):
         if command[0] == '?':
             for line in command_list:
                 self.DATA.append(line)
-        if re.search('get logs', command):
-            return command
-        if re.search('get log --today', command):
+        elif re.search('get log --today', command):
             try:
                 with open(f'../transfer/log/log-{DT.now().strftime("%d-%m-%Y")}.txt', 'r+') as file:
                     for line in file:
                         self.DATA.append(line)
-                return command
+                return 'today\'s log was read successfully'
             except:
                 return 'no log files exist'
-        if re.search('get log --([\d]{2,2}-[\d]{2,2}-[\d]{4,4})', command):
+        elif re.search('get log --([\d]{2,2}-[\d]{2,2}-[\d]{4,4})', command):
             try:
-                with open(f'../transfer/log/log-{parameters[0][2:]}.txt', 'r') as file:
+                with open(f'../transfer/log-{parameters[0][2:]}.txt', 'r') as file:
                     for line in file:
                         self.DATA.append(line)
-                return command
+                return f'log was read successfully'
             except:
                 return 'no log file exists on that date'
+        elif re.search('get log', command):
+            return command
         if re.search('clear logs', command):
             try:
                 for file in os.listdir('../transfer/log/'):
                     os.remove(f'../transfer/log/{file}')
-                return command
+                return 'all logs cleared'
             except:
-                return 'logs could not be deleted, directory may be empty'
+                return 'atleast one log is still being written to, please disconnect from the server first'
         if re.search('clear log --today', command):
             try:
                 os.remove(f'../transfer/log/log-{DT.now().strftime("%d-%m-%Y")}.txt')
-                return command
+                return 'today\'s log cleared successfully'
             except:
-                return 'log could not be removed because it does not exist'
+                return 'log still being written to, please disconnect from the server first'
         if re.search('clear log --([\d]{2,2}-[\d]{2,2}-[\d]{4,4})', command):
             try:
                 os.remove(f'../transfer/log/log-{parameters[0][2:]}.txt')
-                return command
+                return f'log on {parameters[0][2:]} cleared successfully'
             except:
-                return 'log could not be removed because it does not exist'
+                return 'log still being written to, please disconnect from the server first'
         else:
             return command
 
