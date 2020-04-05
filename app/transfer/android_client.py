@@ -10,7 +10,6 @@ import re
 import threading
 from datetime import datetime as DT
 
-
 class Client:
     """
     Main client class in charge of connecting to and handling incoming/outgoing messages
@@ -107,6 +106,7 @@ class Client:
                 return 'log still being written to, please disconnect from the server first'
         else:
             return command
+
 
 if __name__ == '__main__':
     client = Client(auto_connect=True, verbose=False)
