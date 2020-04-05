@@ -1,4 +1,5 @@
 import socket
+from threading import Thread
 from datetime import datetime as dt
 
 
@@ -16,34 +17,36 @@ class Client:
         'msg_failed': f'{_timestamp()}: message failed to send because no active connection was found'
     }
 
-    def _connection_handler(func: ()) -> ():
-        def _wrapper(self, msg: str, port: int):
-            self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self._sock.settimeout(2)
+    def _connection_handler(func) -> ():
+        def _wrapper(self, port: int, msg: str = None, sock: socket.socket = None):
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(2)
             try:
-                self._sock.connect((self._host, port))
+                sock.connect((self._host, port))
                 print(self._local_msg['connected'])
-                func(self, msg, port)
+                func(self, port, msg if msg else '', sock)
             except socket.timeout as error:
                 print(self._local_msg['attempt_failed'],
                       end=f'\n\t\t -> {error}\n' if self._verbose else '\n',
                       flush=True)
-            self._sock.close()
+            sock.close()
         return _wrapper
 
     @_connection_handler
-    def log_handler(self, msg: str, port: int):
+    def log_handler(self, port: int, msg: str = None, sock: socket.socket = None):
         while True:
             try:
-                msg = self._log_sock.recv(self._buffer).decode('utf-8')
+                msg = sock.recv(self._buffer).decode('utf-8')
                 print(msg)
+                if not msg:
+                    break
             except:
                 continue
 
     @_connection_handler
-    def send_msg(self, msg: str, port: int):
+    def send_msg(self, port: int, msg: str = None, sock: socket.socket = None):
         try:
-            self._cmd_sock.send(msg.encode('utf-8'))
+            sock.send(msg.encode('utf-8'))
         except AttributeError as error:
             print(self._local_msg['msg_failed'],
                   end=f'\n\t\t -> {error}\n' if self._verbose else '\n',
@@ -52,6 +55,11 @@ class Client:
 
 if __name__ == '__main__':
     c = Client()
+    t1 = Thread(target=c.log_handler, args=(5555,))
+    t2 = Thread(target=c.send_msg(5554, msg='hello'))
+    t1.start()
+    t2.start()
+
 
 
 

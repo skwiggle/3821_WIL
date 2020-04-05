@@ -1,4 +1,5 @@
 import os
+import time
 from sys import stderr, stdout, platform
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
@@ -31,15 +32,13 @@ class Server(FileSystemEventHandler):
         self._timeout = timeout
 
     def _connectionBootstrap(func) -> ():
-        def _wrapper(self, port: int, client: socket.socket = None):
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-                sock.settimeout(self._timeout)
-                sock.bind((self._host, port))
-                sock.listen()
+        def _wrapper(self, port: int, sock: socket.socket = None):
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.settimeout(self._timeout)
+                s.bind((self._host, port))
+                s.listen()
                 try:
-                    client, address = sock.accept()
-                    with client:
-                        func(self, port, client)
+                    func(self, port, s)
                 except socket.timeout as error:
                     print(self._local_msg['timeout'],
                           end=f'\n\t\t -> {error}\n' if self._verbose else '\n',
@@ -47,20 +46,16 @@ class Server(FileSystemEventHandler):
         return _wrapper
 
     @_connectionBootstrap
-    def cmd_handler(self, port: int, client: socket.socket = None) -> None:
-        self._cmd_handler_port_active = True
-        while self._cmd_handler_port_active:
+    def cmd_handler(self, port: int, sock: socket.socket = None):
+        while True:
             try:
-                msg = client.recv(self._buffer).decode('utf-8')
-                print(msg)
-                if msg == 'LOG':
-                    values = (line for line in open(self.log_path(), 'r'))
-                    while True:
-                        try:
-                            client.send(next(values).encode('utf-8'))
-                        except:
-                            print(self._local_msg['log_closed'], end='\n', flush=True)
-                            break
+                client, address = sock.accept()
+                with client:
+                    msg = client.recv(self._buffer).decode('utf-8')
+                    print(msg)
+                    if msg == 'LOG':
+                        self.send_log(5554, None)
+                    continue
             except WindowsError as error:
                 print(self._local_msg['connection_closed'],
                       end=f'\n\t\t -> {error}\n' if self._verbose else '\n',
@@ -70,8 +65,19 @@ class Server(FileSystemEventHandler):
         exit(0)
 
     @_connectionBootstrap
-    def send_log(self, port: int, client: socket.socket = None):
-        self._log_handler = True
+    def send_log(self, port: int, sock: socket.socket = None):
+        try:
+            client, address = sock.accept()
+            with client:
+                with open(self.log_path(), 'r') as file:
+                    for line in file:
+                        if line != '\n':
+                            client.send(line.encode('utf-8'))
+                    print('log finished')
+                    return 0
+        except:
+            print(self._local_msg['log_closed'], end='\n', flush=True)
+            self._log_handler = False
 
     @staticmethod
     def log_path() -> str:
@@ -86,3 +92,7 @@ class Server(FileSystemEventHandler):
 
 if __name__ == '__main__':
     s = Server(verbose=True)
+    thr1 = Thread(target=s.cmd_handler, args=(5554,))
+    thr2 = Thread(target=s.send_log, args=(5555,))
+    thr1.start()
+    thr2.start()
