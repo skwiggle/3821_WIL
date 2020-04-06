@@ -10,6 +10,7 @@ import re
 import threading
 from datetime import datetime as DT
 
+
 class Client:
     """
     Main client class in charge of connecting to and handling incoming/outgoing messages
@@ -33,10 +34,10 @@ class Client:
 
     def __init__(self, auto_connect: bool = False, host: str = 'localhost',
                  port: int = 5555, verbose: bool = False, timeout: int = 3600):
-        '''
+        """
         initialise host and port variables and then if auto_connect is enabled,
         connect via update()
-        '''
+        """
         self.HOST = host
         self.PORT = port
         self.verbose = verbose

@@ -1,35 +1,34 @@
+# -*- coding: utf-8 -*-
 import os
+import re
 import time
 from sys import stderr, stdout, platform
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
 import socket
 from threading import Thread
 from datetime import datetime as dt
 from typing import Iterable
 
 
-class Server(FileSystemEventHandler):
+class Server:
+    """
+    A server handler in charge or listening and sending information over sockets
+
+    the class consists of one/two way connection handling as well as allowing for
+    custom actions upon event change.
+    """
     _host: str = 'localhost'
     _buffer: int = 2048
-    _cmd_client: socket.socket = None
-    _cmd_handler_port_active: bool = False
-    _log_client: socket.socket = None
-    _log_handler: bool = False
+    _stream_active: bool = False
     _timestamp = lambda: dt.now().strftime("%I:%M%p")
-    _timeout: float = 2
+    _timeout: float = 3600
     _verbose: bool = False
-    _local_msg: dict = {
-        'started': f'{_timestamp()}: server is running',
-        'closed': f'{_timestamp()}: server closed',
-        'timeout': f'{_timestamp()}: server closed after an hour of inactivity',
-        'connection_closed': f'{_timestamp()}: client disconnected',
-        'log_closed': f'{_timestamp()}: log sent to client'
+    data: [str] = ['type ? for a list of commands']
+    local_msg: dict = {
+        'server_open': f'{_timestamp()}: established server',
+        'server_closed': f'{_timestamp()}: server closed',
+        'connection_closed': f'{_timestamp()}: failed to send message because no connection was found',
+        'timeout': f'{_timestamp()}: connection timed out'
     }
-
-    def __init__(self, verbose: bool = False, timeout: float = 60):
-        self._verbose = verbose
-        self._timeout = timeout
 
     def _connectionBootstrap(func) -> ():
         def _wrapper(self, port: int, sock: socket.socket = None):
@@ -40,59 +39,81 @@ class Server(FileSystemEventHandler):
                 try:
                     func(self, port, s)
                 except socket.timeout as error:
-                    print(self._local_msg['timeout'],
+                    print(self.local_msg['timeout'],
                           end=f'\n\t\t -> {error}\n' if self._verbose else '\n',
                           flush=True)
         return _wrapper
 
     @_connectionBootstrap
-    def cmd_handler(self, port: int, sock: socket.socket = None):
+    def two_way_handler(self, port: int, sock: socket.socket = None):
+        """
+        Constantly listen for incoming messages from other hosts.
+
+        Should be used to handle incoming log updates from the terminal
+        or incoming commands from the application. Also displays error info.
+
+        :param port: port number
+        :param sock: parent socket
+        """
         while True:
             try:
                 client, address = sock.accept()
                 with client:
+                    print(self.local_msg['server_open'])
                     msg = client.recv(self._buffer).decode('utf-8')
                     print(msg)
-                    if msg == 'LOG':
-                        self.send_log(5554, None)
+                    if msg:
+                        self.update_action(msg)
                     continue
             except WindowsError as error:
-                print(self._local_msg['connection_closed'],
+                print(self.local_msg['server_closed'],
                       end=f'\n\t\t -> {error}\n' if self._verbose else '\n',
                       flush=True)
                 break
-        print(self._local_msg['closed'])
+        print(self.local_msg['closed'])
         exit(0)
 
-    @_connectionBootstrap
-    def send_log(self, port: int, sock: socket.socket = None):
-        try:
-            client, address = sock.accept()
-            with client:
-                with open(self.log_path(), 'r') as file:
-                    for line in file:
-                        if line != '\n':
-                            client.send(line.encode('utf-8'))
-                    print('log finished')
-                    return 0
-        except:
-            print(self._local_msg['log_closed'], end='\n', flush=True)
-            self._log_handler = False
+    def one_way_handler(self, port: int, msg: str = None, package: [str] = None):
+        """
+        Sends a message or an array of messages to server host.
 
-    @staticmethod
-    def log_path() -> str:
-        if 'win' in platform:
-            return f'C:/Users/{os.getlogin()}/AppData/Local/Unity/Editor/Editor.log'
-        elif 'mac' in platform:
-            return '~/Library/Logs/Unity/Editor.log'
-        elif ('lin' or 'unix') in platform:
-            return '~/.config/unity3d/Editor.log'
-        return 'none'
+        Should be used to send commands to the terminal or send the current
+        Unity debug log information to the application. Also displays error info.
+
+        :param port: port number
+        :param msg: the message (defaults to none)
+        :param package: a list of messages (defaults to none)
+        """
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                sock.connect((self._host, port))
+                self._stream_active = True
+                if msg:
+                    sock.send(msg.encode('utf-8'))
+                if package:
+                    for line in package:
+                        sock.send(line.encode('utf-8'))
+                self._stream_active = False
+        except WindowsError as error:
+            print(self.local_msg['connection_closed'],
+                  end=f'\n\t\t -> {error}\n' if self._verbose else '\n',
+                  flush=True)
+            self._stream_active = False
+
+    def update_action(self, msg: str = None) -> None:
+        """
+        The custom action taken once a server receives a message
+
+        :param msg: the message received
+        """
+        ...
 
 
 if __name__ == '__main__':
-    s = Server(verbose=True)
-    thr1 = Thread(target=s.cmd_handler, args=(5554,))
-    thr2 = Thread(target=s.send_log, args=(5555,))
-    thr1.start()
-    thr2.start()
+    s = Server()
+    t1 = Thread(target=s.two_way_handler, args=(5555, 'log'))
+    t2 = Thread(target=s.one_way_handler, args=(5555, 'hello'))
+    t1.start()
+    t2.start()
+    t1.join()
+    t2.join()
