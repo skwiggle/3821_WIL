@@ -23,18 +23,39 @@ class CommandLookup:
                 directory[-1] = ''
             self._directory = directory
 
-    def lookup(self, command: str, data: [str]):
+    def lookup(self, command: str, data: [str]) -> [str]:
+        """
+        Compare the command against a list of valid commands and execute the command
+        and then append an error or success message to the data table.
+
+        :param command: command sent from user input
+        :param data: data displayed on the debug screen
+        """
         parameters = re.split('--', command.lower().replace(' ', ''))
+        if parameters[0] == '?':
+            for line in self.command_list:
+                data.append(line)
         if parameters[0] == 'getlog':
-            data = self.get_log() if parameters[0] == 'getlog' else data
-        elif parameters[0] == 'clearlog':
-            data = self.clear_log() if parameters[0] == 'clearlog' else data
+            for line in self.get_log(parameters):
+                data.append(line)
+        elif parameters[0] == 'clearlog' or parameters[0] == 'clearlogs':
+            for line in self.clear_log(parameters):
+                data.append(line)
         else:
             data.append('unknown command, type ? for a list of commands')
         print(data)
         return data
 
-    def get_log(self, parameters: [str], data: [str]) -> [str]:
+    def get_log(self, parameters: [str]) -> [str]:
+        """
+        Either retrieve a local temporary copy of a log file if it exists or
+        request a latest copy from the client terminal's pc. can specify either
+        the current day or a specific date.
+
+        :param parameters: the base command followed by parameters
+        :param data: data displayed on the debug screen
+        """
+        data: [str] = []
         if parameters[1] == 'today':
             file_path = f"{self._directory}/log-{dt.now().strftime('%d-%m-%Y')}.txt"
             if os.path.exists(file_path):
@@ -44,8 +65,8 @@ class CommandLookup:
             else:
                 with open(file_path, 'w'): pass
                 data.append("no previous logs from today, blank file created")
-        if re.search('[\d]+(/|-)[\d]+(/|-)[\d]+', parameters[1]):
-            re.sub('/', '-', parameters[1], 2)
+        if re.search('[\d]{2,2}(/|-)[\d]{2,2}(/|-)[\d]{4,4}', parameters[1]):
+            parameters[1] = re.sub('/', '-', parameters[1])
             file_path = f"{self._directory}/log-{parameters[1]}.txt"
             if os.path.exists(file_path):
                 with open(file_path, 'r+') as file:
@@ -54,9 +75,18 @@ class CommandLookup:
             else:
                 with open(file_path, 'w'): pass
                 data.append("no previous logs from that day, blank file created")
+        else:
+            data.append('incorrect date format')
         return data
 
-    def clear_log(self, parameters: [str], data: [str]):
+    def clear_log(self, parameters: [str]) -> [str]:
+        """
+        Delete a local temporary copy of a log file from the android phone
+
+        :param parameters: the base command followed by parameters
+        :param data: data displayed on the debug screen
+        """
+        data: [str] = []
         if parameters[0] == 'clearlog':
             if parameters[1] == 'today':
                 file_path = f"{self._directory}/log-{dt.now().strftime('%d-%m-%Y')}.txt"
@@ -65,17 +95,23 @@ class CommandLookup:
                     data.append(f'log file at {file_path} deleted')
                 else:
                     data.append(f'no log file found')
-            if re.search('[\d]+(/|-)[\d]+(/|-)[\d]+', parameters[1]):
+            if re.search('[\d]{2,2}(/|-)[\d]{2,2}(/|-)[\d]{4,4}', parameters[1]):
+                parameters[1] = re.sub('/', '-', parameters[1])
                 file_path = f"{self._directory}/log-{parameters[1]}.txt"
                 if os.path.exists(file_path):
                     os.remove(file_path)
                     data.append(f'log file at {file_path} deleted')
                 else:
                     data.append(f'no log file found')
+            else:
+                data.append('incorrect date format')
+        if parameters[0] == 'clearlogs':
+            for file in os.listdir(self._directory):
+                os.remove(f'{self._directory}/{file}')
         return data
 
 
 if __name__ == '__main__':
     c = CommandLookup('./log')
-    c.lookup('get bog', [''])
+    c.lookup('clear logs', [])
 
