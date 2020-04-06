@@ -18,6 +18,7 @@ class Server:
     """
     _host: str = 'localhost'
     _buffer: int = 2048
+    _temp_log_folder: str = './log/'
     _stream_active: bool = False
     _timestamp = lambda: dt.now().strftime("%I:%M%p")
     _timeout: float = 3600
@@ -27,8 +28,15 @@ class Server:
         'server_open': f'{_timestamp()}: established server',
         'server_closed': f'{_timestamp()}: server closed',
         'connection_closed': f'{_timestamp()}: failed to send message because no connection was found',
-        'timeout': f'{_timestamp()}: connection timed out'
+        'timeout': f'{_timestamp()}: connection timed out',
+        'stream_active': f'{_timestamp()}: please wait until previous message has sent'
     }
+
+    def __init__(self, temp_log_folder: str = './log/',
+                 timeout: float = 3600, verbose: bool = False):
+        self._temp_log_folder = temp_log_folder
+        self._timeout = timeout
+        self._verbose = verbose
 
     def _connectionBootstrap(func) -> ():
         def _wrapper(self, port: int, sock: socket.socket = None):
@@ -40,7 +48,7 @@ class Server:
                     func(self, port, s)
                 except socket.timeout as error:
                     print(self.local_msg['timeout'],
-                          end=f'\n\t\t -> {error}\n' if self._verbose else '\n',
+                          f'\n\t\t -> {error}\n' if self._verbose else '\n',
                           flush=True)
         return _wrapper
 
@@ -53,21 +61,34 @@ class Server:
         or incoming commands from the application. Also displays error info.
 
         :param port: port number
+        :param handler_name: name of handler, usually 'log' or 'cmd'
         :param sock: parent socket
         """
+        temp_msg: str = ''
         while True:
             try:
                 client, address = sock.accept()
                 with client:
-                    print(self.local_msg['server_open'])
+                    stdout.write(self.local_msg['server_open'])
+                    stdout.flush()
                     msg = client.recv(self._buffer).decode('utf-8')
                     print(msg)
+                    if msg:
+                        if msg == 'EOF':
+                            path = f'{self._temp_log_folder}log-{dt.now().strftime("%d-%m-%Y")}.txt'
+                            if os.path.exists(path):
+                                with open(path, 'a+') as file:
+                                    file.write(temp_msg)
+                            else:
+                                with open(path, 'w+') as file:
+                                    file.write(temp_msg)
+                        temp_msg += msg
                     if msg:
                         self.update_action(msg)
                     continue
             except WindowsError as error:
                 print(self.local_msg['server_closed'],
-                      end=f'\n\t\t -> {error}\n' if self._verbose else '\n',
+                      f'\n\t\t -> {error}\n' if self._verbose else '\n',
                       flush=True)
                 break
         print(self.local_msg['closed'])
@@ -95,16 +116,16 @@ class Server:
                         sock.send(line.encode('utf-8'))
                 self._stream_active = False
         except WindowsError as error:
-            print(self.local_msg['connection_closed'],
-                  end=f'\n\t\t -> {error}\n' if self._verbose else '\n',
-                  flush=True)
+            stdout(f"{self.local_msg['connection_closed']}\n",
+                   f"\n\t\t -> {error}\n' if self._verbose else '\n")
+            stdout.flush()
             self._stream_active = False
 
     def update_action(self, msg: str = None) -> None:
         """
         The custom action taken once a server receives a message
 
-        :param msg: the message received
+        :param msg: the message received (which may be any type)
         """
         ...
 
@@ -117,3 +138,5 @@ if __name__ == '__main__':
     t2.start()
     t1.join()
     t2.join()
+    while True:
+        continue
