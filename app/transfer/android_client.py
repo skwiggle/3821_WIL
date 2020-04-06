@@ -34,10 +34,10 @@ class Client:
 
     def __init__(self, auto_connect: bool = False, host: str = 'localhost',
                  port: int = 5555, verbose: bool = False, timeout: int = 3600):
-        '''
+        """
         initialise host and port variables and then if auto_connect is enabled,
         connect via update()
-        '''
+        """
         self.HOST = host
         self.PORT = port
         self.verbose = verbose
@@ -107,6 +107,7 @@ class Client:
                 return 'log still being written to, please disconnect from the server first'
         else:
             return command
+
 
 if __name__ == '__main__':
     client = Client(auto_connect=True, verbose=False)
