@@ -1,44 +1,68 @@
+from sys import platform, stderr
+import os
 import socket
 from datetime import datetime as dt
-from sys import stdout, platform, stderr
-import os
 from threading import Thread
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
-from app.transfer.server import Server
 
 
 class Terminal(FileSystemEventHandler):
     """
-    A server handler in charge or listening and sending information over sockets
-
-    the class consists of one/two way connection handling as well as allowing for
-    custom actions upon event change.
+    A server handler in charge or listening and sending information over sockets.
+    the class consists of one/two way connection handling as well as allowing for custom actions upon event change.
     """
     _host: str = 'localhost'
     _buffer: int = 2048
-    _temp_log_folder: str = './log/'
     _stream_active: bool = False
     _timestamp = lambda: dt.now().strftime("%I:%M%p")
     _timeout: float = 3600
     _verbose: bool = False
     local_msg: dict = {
         'server_open': f'{_timestamp()}: established server',
+        'server_connect_failed': f'{_timestamp()}: failed to connect to the client',
         'server_closed': f'{_timestamp()}: server closed',
         'connection_closed': f'{_timestamp()}: failed to send message because no connection was found',
         'timeout': f'{_timestamp()}: connection timed out',
-        'stream_active': f'{_timestamp()}: please wait until previous message has sent'
+        'stream_active': f'{_timestamp()}: please wait until previous message has sent',
+        'path_not_exist': f'{_timestamp()}: the path %s does not exist, please use an absolute path with file extension'
     }
+
+    @staticmethod
+    def log_path(observer: bool = False) -> str:
+        """
+        Returns the current log file location or the log's parent directory for the
+        watchdog observer to monitor for changes.
+
+        :param observer: should the function return the parent directory
+                         location instead? (True = yes)
+        """
+        if 'win' in platform:
+            return f"C:/Users/{os.getlogin()}/AppData/Local/Unity/Editor/{'' if observer else 'Editor.log'}"
+        elif 'mac' in platform:
+            return f"~/Library/Logs/Unity/{'' if observer else 'Editor.log'}"
+        elif ('lin' or 'unix') in platform:
+            return f"~/.config/unity3d/{'' if observer else 'Editor.log'}"
+        return 'none'
+
+    _path = property(log_path)
+
+    @_path.setter
+    def set_log_path(self, path: str):
+        if os.path.exists(path):
+            self.log_path = path
+        else:
+            print(self.local_msg['path_not_exist'] % f"'{path}'", flush=True)
 
     def __init__(self):
         observer = Observer()
-        observer.schedule(self, self._temp_log_folder, False)
+        observer.schedule(self, self.log_path(observer=True), False)
         observer.start()
         self.two_way_handler(5554)
         observer.stop()
 
     def on_modified(self, event):
-        with open(self.log_path(), 'r') as file:
+        with open(self.log_path, 'r') as file:
             self.one_way_handler(5554, package=[line for line in file])
 
     def _connectionBootstrap(func) -> ():
@@ -73,7 +97,6 @@ class Terminal(FileSystemEventHandler):
         or incoming commands from the application. Also displays error info.
 
         :param port: port number
-        :param handler_name: name of handler, usually 'log' or 'cmd'
         :param sock: parent socket
         """
         try:
@@ -87,7 +110,7 @@ class Terminal(FileSystemEventHandler):
                             with open(self.log_path(), 'r') as file:
                                 self.one_way_handler(5554, package=[line for line in file])
         except WindowsError as error:
-            print(self.local_msg['server_closed'],
+            print(self.local_msg['server_connect_failed'],
                   f'\n\t\t -> {error}\n' if self._verbose else '\n',
                   flush=True)
         print(self.local_msg['server_closed'])
@@ -114,32 +137,10 @@ class Terminal(FileSystemEventHandler):
                         sock.send(line.encode('utf-8'))
         except WindowsError as error:
             print(self.local_msg['connection_closed'],
-                  f"\n\t\t -> {error}\n' if self._verbose else '\n",
+                  f'\n\t\t -> {error}' if self._verbose else '\n',
                   flush=True)
         self._stream_active = False
-
-    @staticmethod
-    def log_path(observer: bool = False) -> str:
-        """
-        Returns the current log file location or the log's parent directory for the
-        watchdog observer to monitor for changes.
-
-        :param observer: should the function return the parent directory
-                         location instead? (True = yes)
-        """
-        if 'win' in platform:
-            return f"C:/Users/{os.getlogin()}/AppData/Local/Unity/Editor/{'' if observer else 'Editor.log'}"
-        elif 'mac' in platform:
-            return f"~/Library/Logs/Unity/{'' if observer else 'Editor.log'}"
-        elif ('lin' or 'unix') in platform:
-            return f"~/.config/unity3d/{'' if observer else 'Editor.log'}"
-        raise FileNotFoundError("log path does not exist")
 
 
 if __name__ == '__main__':
     t = Terminal()
-    t1 = Thread(target=t.two_way_handler, args=(5554,))
-    t2 = Thread(target=t.one_way_handler, args=(5554, None, [str(x) for x in range(100)]))
-    t1.start()
-    t2.start()
-    t1.join()

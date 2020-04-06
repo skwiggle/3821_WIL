@@ -1,4 +1,0 @@
-line of text
-line of text
-line of text
-end of log file
