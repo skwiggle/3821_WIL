@@ -18,7 +18,7 @@ class Server:
     """
     _host: str = 'localhost'
     _buffer: int = 2048
-    _temp_log_folder: str = './log/'
+    _temp_log_folder: str = '../transfer/log/'
     _stream_active: bool = False
     _timestamp = lambda: dt.now().strftime("%I:%M%p")
     _timeout: float = 3600
@@ -26,6 +26,7 @@ class Server:
     data: [str] = ['type ? for a list of commands']
     local_msg: dict = {
         'server_open': f'{_timestamp()}: established server',
+        'server_connect_failed': f'{_timestamp()}: failed to connect to the client',
         'server_closed': f'{_timestamp()}: server closed',
         'connection_closed': f'{_timestamp()}: failed to send message because no connection was found',
         'timeout': f'{_timestamp()}: connection timed out',
@@ -44,6 +45,7 @@ class Server:
                 s.settimeout(self._timeout)
                 s.bind((self._host, port))
                 s.listen()
+                print(self.local_msg['server_open'])
                 try:
                     func(self, port, s)
                 except socket.timeout as error:
@@ -65,12 +67,10 @@ class Server:
         :param sock: parent socket
         """
         temp_msg: str = ''
-        while True:
-            try:
-                client, address = sock.accept()
-                with client:
-                    stdout.write(self.local_msg['server_open'])
-                    stdout.flush()
+        try:
+            client, address = sock.accept()
+            with client:
+                while True:
                     msg = client.recv(self._buffer).decode('utf-8')
                     print(msg)
                     if msg:
@@ -86,13 +86,11 @@ class Server:
                     if msg:
                         self.update_action(msg)
                     continue
-            except WindowsError as error:
-                print(self.local_msg['server_closed'],
-                      f'\n\t\t -> {error}\n' if self._verbose else '\n',
-                      flush=True)
-                break
-        print(self.local_msg['closed'])
-        exit(0)
+        except WindowsError as error:
+            print(self.local_msg['server_connect_failed'],
+                  f'\n\t\t -> {error}\n' if self._verbose else '\n',
+                  flush=True)
+        print(self.local_msg['server_closed'])
 
     def one_way_handler(self, port: int, msg: str = None, package: [str] = None):
         """

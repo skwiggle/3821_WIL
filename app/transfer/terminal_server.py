@@ -18,7 +18,7 @@ import threading
 import time
 
 
-class Server(FileSystemEventHandler):
+class Terminal(FileSystemEventHandler):
     """
     Run from remote terminal on a local area network and connects
     to android application. Must be run on a machine with Unity

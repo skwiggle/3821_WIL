@@ -35,6 +35,49 @@ class DebugPanel(RecycleView, Client):
 
     def __init__(self, **kwargs):
         super(DebugPanel, self).__init__(**kwargs)  # initialise client super class
+
+
+class DataCell(MDLabel):
+    """Cellular data in console data"""
+    def __init__(self, **kwargs):
+        super(DataCell, self).__init__(**kwargs)
+
+
+class MainApp(MDApp):
+    """
+    Main Application Window
+    - sets app configuration properties
+    - initialises all kivy elements onto canvas
+    - request a continuous/non-continuous socket attempt
+    - sends commands to debug panel to be processed
+    - request a clearing of console data
+    """
+
+    title = "Terminal Genie"
+    icon = './icon/app/app_icon256x256.jpg'
+    padding_def = NumericProperty(20)
+    status = StringProperty('')
+    command = StringProperty('')
+
+    def alt_update(self):
+        # restart debugging socket
+        thr = threading.Thread(
+            target=self.root.ids['debug_panel'].alt_update)
+        thr.start()
+
+    def clear_content(self):
+        # Tell debug panel to clear data
+        self.root.ids['debug_panel'].DATA = ['type ? to see list of commands\n']
+
+    def send_command(self):
+        # Send command to debug panel
+        command = self.root.ids['cmd_input'].text
+        self.root.ids['debug_panel'].alt_update(command)
+'''
+class DebugPanel(RecycleView, Client):
+
+    def __init__(self, **kwargs):
+        super(DebugPanel, self).__init__(**kwargs)  # initialise client super class
         self.data = []  # initialise global data variable
         update_thr = threading.Thread(target=self.update)
         watch_log = threading.Thread(target=self.watch_log_update)  # create thread as data observer
@@ -47,12 +90,12 @@ class DebugPanel(RecycleView, Client):
             pass
 
     def watch_log_update(self):
-        '''
+        """
         A thread will run this function in the background every second.
         Compare local data value to client DATA variable. If results are
         different and/or aren't empty, copy to local variable and then
         debug screen should automatically update.
-        '''
+        """
         original = self.DATA
         while True:
             if self.data and (self.data[-1] != original[-1]):
@@ -132,10 +175,10 @@ class DebugPanel(RecycleView, Client):
             return command
 
     def send_command(self, port: int, command: str) -> str:
-        '''
+        """
         A non-continuosly property version of the update method that
         returns a message.
-        '''
+        """
         try:
             with s.socket(s.AF_INET, s.SOCK_STREAM) as sock:
                 sock.settimeout(2)
@@ -148,10 +191,10 @@ class DebugPanel(RecycleView, Client):
 
     @property
     def get_connection(self) -> str:
-        '''
+        """
         A non-continuosly property version of the update method that
         returns a message.
-        '''
+        """
         try:
             with s.socket(s.AF_INET, s.SOCK_STREAM) as sock:
                 sock.settimeout(2)
@@ -200,46 +243,8 @@ class DebugPanel(RecycleView, Client):
             self.data.append({'text': str(self.update_msg['failed'])})
             self.DATA.append(self.update_msg['failed'])
             return True
-
-
-class DataCell(MDLabel):
-    """Cellular data in console data"""
-    def __init__(self, **kwargs):
-        super(DataCell, self).__init__(**kwargs)
-
-
-class MainApp(MDApp):
-    """
-    Main Application Window
-    - sets app configuration properties
-    - initialises all kivy elements onto canvas
-    - request a continuous/non-continuous socket attempt
-    - sends commands to debug panel to be processed
-    - request a clearing of console data
-    """
-
-    title = "Terminal Genie"
-    icon = './icon/app/app_icon256x256.jpg'
-    padding_def = NumericProperty(20)
-    status = StringProperty('')
-    command = StringProperty('')
-
-    def alt_update(self):
-        # restart debugging socket
-        thr = threading.Thread(
-            target=self.root.ids['debug_panel'].alt_update)
-        thr.start()
-
-    def clear_content(self):
-        # Tell debug panel to clear data
-        self.root.ids['debug_panel'].DATA = ['type ? to see list of commands\n']
-
-    def send_command(self):
-        # Send command to debug panel
-        command = self.root.ids['cmd_input'].text
-        self.root.ids['debug_panel'].alt_update(command)
+'''
 
 
 if __name__ == '__main__':
-    # run app
     MainApp().run()
