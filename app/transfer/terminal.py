@@ -99,20 +99,22 @@ class Terminal(FileSystemEventHandler):
         :param port: port number
         :param sock: parent socket
         """
-        try:
-            client, address = sock.accept()
-            with client:
-                while True:
-                    reply = client.recv(self._buffer).decode('utf-8')
-                    if reply:
-                        print(reply)
-                        if reply == 'LOG':
-                            with open(self.log_path(), 'r') as file:
-                                self.one_way_handler(5554, package=[line for line in file])
-        except WindowsError as error:
-            print(self.local_msg['server_connect_failed'],
-                  f'\n\t\t -> {error}\n' if self._verbose else '\n',
-                  flush=True)
+        while True:
+            try:
+                client, address = sock.accept()
+                with client:
+                    while True:
+                        reply = client.recv(self._buffer).decode('utf-8')
+                        if reply:
+                            print(reply)
+                            if reply == 'LOG':
+                                with open(self.log_path(), 'r') as file:
+                                    self.one_way_handler(5554, package=[line for line in file])
+                            break
+            except WindowsError as error:
+                print(self.local_msg['server_connect_failed'],
+                      f'\n\t\t -> {error}\n' if self._verbose else '\n',
+                      flush=True)
         print(self.local_msg['server_closed'])
 
     def one_way_handler(self, port: int, msg: str = None, package: [str] = None):
@@ -135,6 +137,7 @@ class Terminal(FileSystemEventHandler):
                 if package:
                     for line in package:
                         sock.send(line.encode('utf-8'))
+                    sock.send('EOF'.encode('utf-8'))
         except WindowsError as error:
             print(self.local_msg['connection_closed'],
                   f'\n\t\t -> {error}' if self._verbose else '\n',

@@ -9,6 +9,10 @@
 import os
 
 import kivy
+from kivy.clock import Clock
+
+from app.transfer.command_lookup import CommandLookup
+
 kivy.require('1.11.1')
 
 from kivy.config import Config
@@ -19,7 +23,7 @@ Config.set('graphics', 'minimum_height', '720')
 Config.set('graphics', 'resizable', '1')
 Config.set('widgets', 'scroll_moves', '10')
 
-from app.transfer.android_client import Client
+from app.transfer.server import Server
 from kivymd.app import MDApp
 from kivy.uix.recycleview import RecycleView
 from kivy.properties import NumericProperty, StringProperty
@@ -31,16 +35,49 @@ from datetime import datetime as DT
 import threading
 
 
-class DebugPanel(RecycleView, Client):
+class DebugPanel(RecycleView):
+
+    _server: Server = None
+    _lookup: CommandLookup = None
+    temp_data: [set] = [{'text': 'type ? for a list of commands'}]
 
     def __init__(self, **kwargs):
         super(DebugPanel, self).__init__(**kwargs)  # initialise client super class
+        self._server = Server('../transfer/log', 5, True)
+        self._lookup = CommandLookup('../transfer/log')
+        update_thd = threading.Thread(target=self._server.two_way_handler, args=(5555,))
+        watch_data_thd = threading.Thread(target=self.watch_log_update, daemon=True)
+        update_thd.start()
+        watch_data_thd.start()
+
+    def refresh(self):
+        if self._server.server_active:
+            self.data.append({'text': 'connection already established'})
+        else:
+            update_thd = threading.Thread(target=self._server.two_way_handler, args=(5555,))
+            update_thd.start()
+
+    def watch_log_update(self):
+        """
+        A thread will run this function in the background every second.
+        Compare local data value to client DATA variable. If results are
+        different and/or aren't empty, copy to local variable and then
+        debug screen should automatically update.
+        """
+        while True:
+            while not self._server.DATA.empty():
+                self.temp_data.append({'text': self._server.DATA.get_nowait()})
+            self.data = self.temp_data
+            time.sleep(2)
+
+    def send_command(self, command: str):
+        self.data = self._lookup.lookup(command, self.data)
+        self.data.append({'text': self._server.one_way_handler(5554, command)})
 
 
 class DataCell(MDLabel):
     """Cellular data in console data"""
-    def __init__(self, **kwargs):
-        super(DataCell, self).__init__(**kwargs)
+    pass
 
 
 class MainApp(MDApp):
@@ -59,20 +96,18 @@ class MainApp(MDApp):
     status = StringProperty('')
     command = StringProperty('')
 
-    def alt_update(self):
-        # restart debugging socket
-        thr = threading.Thread(
-            target=self.root.ids['debug_panel'].alt_update)
-        thr.start()
+    def refresh(self):
+        self.root.ids['debug_panel'].refresh()
 
     def clear_content(self):
         # Tell debug panel to clear data
-        self.root.ids['debug_panel'].DATA = ['type ? to see list of commands\n']
+        self.root.ids['debug_panel'].data = [{'text': 'type ? to see list of commands\n'}]
+        self.send_command()
 
     def send_command(self):
         # Send command to debug panel
         command = self.root.ids['cmd_input'].text
-        self.root.ids['debug_panel'].alt_update(command)
+        self.root.ids['debug_panel'].send_command(command)
 '''
 class DebugPanel(RecycleView, Client):
 
