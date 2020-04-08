@@ -29,10 +29,7 @@ from kivymd.app import MDApp
 from kivy.uix.recycleview import RecycleView
 from kivy.properties import NumericProperty, StringProperty
 from kivymd.uix.label import MDLabel
-import re
 import time
-import socket as s
-from datetime import datetime as DT
 import threading
 
 
@@ -80,7 +77,7 @@ class DebugPanel(RecycleView, Server, CommandLookup):
         result to the debug panel
         """
         if self.test_connection(5554):
-            self.data = self.lookup(command, self.data)
+            self.temp_data = self.lookup(command, self.data)
             self.one_way_handler(5554, command)
 
 

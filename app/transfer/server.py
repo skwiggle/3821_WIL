@@ -39,10 +39,6 @@ class Server:
         self._temp_log_folder = temp_log_folder
         self._timeout = timeout
         self._verbose = verbose
-        t1 = Thread(target=self.two_way_handler, args=(5555,))
-        t2 = Thread(target=self.one_way_handler, args=(5555, None, ['[01:00PM]: another one', '[12:00PM]: why hello there']))
-        t1.start()
-        t2.start()
 
     def _connectionBootstrap(func) -> ():
         """
@@ -57,14 +53,14 @@ class Server:
                 s.settimeout(self._timeout)
                 s.bind((self._host, port))
                 s.listen()
-                print(self.local_msg['server_open'])
                 self.DATA.put(self.local_msg['server_open'])
+                print(self.local_msg['server_open'])
                 try:
                     func(self, port, s)
                 except socket.timeout as error:
                     self.DATA.put(self.local_msg['timeout'])
                     if self._verbose:
-                        self.DATA.put(f'\n\t\t -> {error}')
+                        self.DATA.put(f'---> {error}')
                     print(self.local_msg['timeout'],
                           end=f'\n\t\t -> {error}\n' if self._verbose else '\n',
                           flush=True)
@@ -89,27 +85,37 @@ class Server:
                     while True:
                         reply = client.recv(self._buffer).decode('utf-8')
                         if reply:
-                            print(reply)
                             if re.search('\[[\d]{2,2}:[\d]{2,2}(AM|PM)', reply):
-                                self.DATA.put(reply)
-                                temp_msg.put(f'{reply}\n')
-                            if reply == '--EOF':
-                                path = f'{self._temp_log_folder}/log-{dt.now().strftime("%d-%m-%Y")}.txt'
-                                if os.path.exists(path):
-                                    with open(path, 'a+') as file:
-                                        while not temp_msg.empty():
-                                            file.write(temp_msg.get())
+                                self.DATA.put(reply, block=True)
+                                temp_msg.put(f'{reply}\n', block=True)
+                            else:
+                                if reply == '--EOF':
+                                    path = f'{self._temp_log_folder}/log-{dt.now().strftime("%d-%m-%Y")}.txt'
+                                    if os.path.exists(path):
+                                        with open(path, 'a+') as file:
+                                            while not temp_msg.empty():
+                                                file.write(temp_msg.get(block=True))
+                                            for line in file:
+                                                self.DATA.put(line, block=True)
+                                    else:
+                                        with open(path, 'w+') as file:
+                                            while not temp_msg.empty():
+                                                file.write(temp_msg.get(block=True))
+                                            for line in file:
+                                                self.DATA.put(line, block=True)
                                 else:
-                                    with open(path, 'w+') as file:
-                                        while not temp_msg.empty():
-                                            file.write(temp_msg.get())
+                                    temp_msg.put(reply, block=True)
                             continue
                         break
             except WindowsError as error:
+                self.DATA.put(self.local_msg['server_connect_failed'], block=True)
+                if self._verbose:
+                    self.DATA.put(f"---> {error}", block=True)
                 print(self.local_msg['server_connect_failed'],
                       f'\n\t\t -> {error}\n' if self._verbose else '\n',
                       flush=True)
                 break
+        self.DATA.put(self.local_msg['server_connect_failed'], block=True)
         print(self.local_msg['server_closed'])
 
     def one_way_handler(self, port: int, msg: str = None, package: [str] = None):
@@ -129,15 +135,30 @@ class Server:
                 self._stream_active = True
                 if msg:
                     sock.send(msg.encode('utf-8'))
-                if package:
-                    for line in package:
-                        sock.send(line.encode('utf-8'))
-                    sock.send('--EOF'.encode('utf-8'))
         except WindowsError as error:
+            self.DATA.put(self.local_msg['connection_closed'], block=True)
+            if self._verbose:
+                self.DATA.put(f"---> {error}", block=True)
             print(self.local_msg['connection_closed'],
                   f'\n\t\t -> {error}' if self._verbose else '\n',
                   flush=True)
         self._stream_active = False
+
+    def test_connection(self, port: int) -> bool:
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                sock.setblocking(False)
+                sock.settimeout(1)
+                sock.connect((self._host, port))
+                return True
+        except (WindowsError, socket.timeout) as error:
+            self.DATA.put(self.local_msg['server_connect_failed'], block=True)
+            if self._verbose:
+                self.DATA.put(f"---> {error}", block=True)
+            print(self.local_msg['server_connect_failed'],
+                  f'\n\t\t -> {error}' if self._verbose else '\n',
+                  flush=True)
+        return False
 '''
     def _connectionBootstrap(func) -> ():
         def _wrapper(self, port: int, sock: socket.socket = None):

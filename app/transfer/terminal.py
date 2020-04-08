@@ -58,12 +58,7 @@ class Terminal(FileSystemEventHandler):
         observer = Observer()
         observer.schedule(self, self.log_path(observer=True), False)
         observer.start()
-        t1 = Thread(target=self.two_way_handler, args=(5554,))
-        t2 = Thread(target=self.one_way_handler, args=(5554, 'hello'))
-        t3 = Thread(target=self.one_way_handler, args=(5554, 'hello again'))
-        t1.start()
-        t2.start()
-        t3.start()
+        self.two_way_handler(5554)
         observer.stop()
 
     def on_modified(self, event):
@@ -104,6 +99,7 @@ class Terminal(FileSystemEventHandler):
         :param port: port number
         :param sock: parent socket
         """
+        commands = {'?', 'get log', 'clear log'}
         while True:
             try:
                 client, address = sock.accept()
@@ -111,10 +107,10 @@ class Terminal(FileSystemEventHandler):
                     while True:
                         reply = client.recv(self._buffer).decode('utf-8')
                         if reply:
-                            print(reply)
-                            if reply == 'LOG':
+                            if reply.lower().replace(' ', '') == 'getlog':
                                 with open(self.log_path(), 'r') as file:
-                                    self.one_way_handler(5554, package=[line for line in file])
+                                    self.one_way_handler(5555, package=[line for line in file])
+                            print(reply)
                             continue
                         break
             except WindowsError as error:

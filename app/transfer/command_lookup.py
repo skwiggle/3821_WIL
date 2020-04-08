@@ -23,7 +23,7 @@ class CommandLookup:
                 directory[-1] = ''
             self._directory = directory
 
-    def lookup(self, command: str, data: [str]) -> [str]:
+    def lookup(self, command: str, data: [set]) -> [set]:
         """
         Compare the command against a list of valid commands and execute the command
         and then append an error or success message to the data table.
@@ -31,19 +31,22 @@ class CommandLookup:
         :param command: command sent from user input
         :param data: data displayed on the debug screen
         """
-        parameters = re.split('--', command.lower().replace(' ', ''))
+        command = command.lower().replace(' ', '')
+        if command.lower().replace(' ', '') == 'getlog':
+            return data
+
+        parameters = re.split('--', command)
         if parameters[0] == '?':
             for line in self.command_list:
-                data.append(line)
+                data.append({'text': line})
         if parameters[0] == 'getlog':
             for line in self.get_log(parameters):
-                data.append(line)
+                data.append({'text': line})
         elif parameters[0] == 'clearlog' or parameters[0] == 'clearlogs':
             for line in self.clear_log(parameters):
-                data.append(line)
+                data.append({'text': line})
         else:
-            data.append('unknown command, type ? for a list of commands')
-        print(data)
+            data.append({'text': 'unknown command, type ? for a list of commands'})
         return data
 
     def get_log(self, parameters: [str]) -> [str]:
@@ -64,7 +67,7 @@ class CommandLookup:
                         data.append(line)
             else:
                 with open(file_path, 'w'): pass
-                data.append("no previous logs from today, blank file created")
+                data.append('no previous logs from today, blank file created')
         if re.search('[\d]{2,2}(/|-)[\d]{2,2}(/|-)[\d]{4,4}', parameters[1]):
             parameters[1] = re.sub('/', '-', parameters[1])
             file_path = f"{self._directory}/log-{parameters[1]}.txt"
@@ -74,7 +77,7 @@ class CommandLookup:
                         data.append(line)
             else:
                 with open(file_path, 'w'): pass
-                data.append("no previous logs from that day, blank file created")
+                data.append('no previous logs from that day, blank file created')
         else:
             data.append('incorrect date format')
         return data
