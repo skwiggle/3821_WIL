@@ -58,12 +58,17 @@ class Terminal(FileSystemEventHandler):
         observer = Observer()
         observer.schedule(self, self.log_path(observer=True), False)
         observer.start()
-        self.two_way_handler(5554)
+        t1 = Thread(target=self.two_way_handler, args=(5554,))
+        t2 = Thread(target=self.one_way_handler, args=(5554, 'hello'))
+        t3 = Thread(target=self.one_way_handler, args=(5554, 'hello again'))
+        t1.start()
+        t2.start()
+        t3.start()
         observer.stop()
 
     def on_modified(self, event):
         with open(self.log_path, 'r') as file:
-            self.one_way_handler(5554, package=[line for line in file])
+            self.one_way_handler(5555, package=[line for line in file])
 
     def _connectionBootstrap(func) -> ():
         """
@@ -110,11 +115,13 @@ class Terminal(FileSystemEventHandler):
                             if reply == 'LOG':
                                 with open(self.log_path(), 'r') as file:
                                     self.one_way_handler(5554, package=[line for line in file])
-                            break
+                            continue
+                        break
             except WindowsError as error:
                 print(self.local_msg['server_connect_failed'],
                       f'\n\t\t -> {error}\n' if self._verbose else '\n',
                       flush=True)
+                break
         print(self.local_msg['server_closed'])
 
     def one_way_handler(self, port: int, msg: str = None, package: [str] = None):
@@ -137,7 +144,7 @@ class Terminal(FileSystemEventHandler):
                 if package:
                     for line in package:
                         sock.send(line.encode('utf-8'))
-                    sock.send('EOF'.encode('utf-8'))
+                    sock.send('--EOF'.encode('utf-8'))
         except WindowsError as error:
             print(self.local_msg['connection_closed'],
                   f'\n\t\t -> {error}' if self._verbose else '\n',
