@@ -16,6 +16,7 @@ from app.transfer.command_lookup import CommandLookup
 kivy.require('1.11.1')
 
 from kivy.config import Config
+
 Config.set('graphics', 'width', '480')
 Config.set('graphics', 'height', '720')
 Config.set('graphics', 'minimum_width', '480')
@@ -35,6 +36,89 @@ from datetime import datetime as DT
 import threading
 
 
+class DebugPanel(RecycleView, Server, CommandLookup):
+    temp_data: [set] = [{'text': 'type ? for a list of commands'}]  # temporary data stored before updating
+
+    def __init__(self, **kwargs):
+        super(DebugPanel, self).__init__(**kwargs)  # initialise client super class
+        Server.__init__(self, '../transfer/log', 3600, True)  # initialise server
+        CommandLookup.__init__(self, '../transfer/log')  # initialise command lookup
+
+        update_thd = threading.Thread(target=self.two_way_handler, args=(5555,))  # monitor for server updates
+        watch_data_thd = threading.Thread(target=self.watch_log_update,
+                                          daemon=True)  # monitor for data changes until app closes
+        update_thd.start()
+        watch_data_thd.start()
+
+    def reconnect(self):
+        """
+        Checks that an update handler is active and lets the user know, or,
+        create a new connection to terminal
+        """
+        if self.server_active:
+            self.data.append({'text': 'connection already established'})
+        else:
+            update_thd = threading.Thread(target=self.two_way_handler, args=(5555,))
+            update_thd.start()
+
+    def watch_log_update(self):
+        """
+        A thread will run this function in the background every second.
+        Compare local data value to client DATA variable. If results are
+        different and/or aren't empty, copy to local variable and then
+        debug screen should automatically update.
+        """
+        while True:
+            while not self.DATA.empty():
+                self.temp_data.append({'text': self.DATA.get_nowait()})
+            self.data = self.temp_data
+            time.sleep(2)
+
+    def send_command(self, command: str):
+        """
+        Compare the command against existing commands and then print the
+        result to the debug panel
+        """
+        self.data = self.lookup(command, self.data)
+        self.data.append({'text': self.one_way_handler(5554, command)})
+
+
+class DataCell(MDLabel):
+    """Cellular data in console data"""
+    pass
+
+
+class MainApp(MDApp):
+    """
+    Main Application Window
+    - sets app configuration properties
+    - initialises all kivy elements onto canvas
+    - request a continuous/non-continuous socket attempt
+    - sends commands to debug panel to be processed
+    - request a clearing of console data
+    """
+
+    title = "Terminal Genie"
+    icon = './icon/app/app_icon256x256.jpg'
+    padding_def = NumericProperty(20)
+    status = StringProperty('')
+    command = StringProperty('')
+
+    def reconnect(self):
+        self.root.ids['debug_panel'].reconnect()
+
+    def clear_content(self):
+        # Tell debug panel to clear data
+        self.root.ids['debug_panel'].temp_data = [{'text': 'type ? to see list of commands\n'}]
+        self.root.ids['debug_panel'].data = []
+
+    def send_command(self):
+        # Send command to debug panel
+        command = self.root.ids['cmd_input'].text
+        self.root.ids['debug_panel'].send_command(command)
+
+
+'''
 class DebugPanel(RecycleView):
 
     _server: Server = None
@@ -43,7 +127,7 @@ class DebugPanel(RecycleView):
 
     def __init__(self, **kwargs):
         super(DebugPanel, self).__init__(**kwargs)  # initialise client super class
-        self._server = Server('../transfer/log', 5, True)
+        self._server = Server('../transfer/log', 3600, True)
         self._lookup = CommandLookup('../transfer/log')
         update_thd = threading.Thread(target=self._server.two_way_handler, args=(5555,))
         watch_data_thd = threading.Thread(target=self.watch_log_update, daemon=True)
@@ -108,6 +192,7 @@ class MainApp(MDApp):
         # Send command to debug panel
         command = self.root.ids['cmd_input'].text
         self.root.ids['debug_panel'].send_command(command)
+'''
 '''
 class DebugPanel(RecycleView, Client):
 
@@ -279,7 +364,6 @@ class DebugPanel(RecycleView, Client):
             self.DATA.append(self.update_msg['failed'])
             return True
 '''
-
 
 if __name__ == '__main__':
     MainApp().run()
