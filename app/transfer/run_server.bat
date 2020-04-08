@@ -1,5 +1,5 @@
 @echo off
-title Unity Terminal
+title Terminal Genie
 cd ./
-python -m terminal_server
+python -m terminal
 pause

@@ -9,12 +9,10 @@
 #: import hex kivy.utils.get_color_from_hex
 
 
-
-
 <RefreshBtn>:
     icon: './icon/refresh/refresh_icon_64x64'
     height: 20
-    on_press: app.setup()
+    on_press: app.refresh()
 
 <DataCell@MDLabel>:
     size_hint_y: None
@@ -65,7 +63,7 @@ Widget:
                 icon: 'wifi'
                 height: 20
                 pos_hint: {'right': 1}
-                on_press: app.alt_update()
+                on_press: app.reconnect()
                 disabled: False
         BoxLayout:
             id: cmd_panel
