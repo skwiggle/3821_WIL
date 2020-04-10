@@ -9,14 +9,11 @@
 import os
 
 import kivy
-from kivy.clock import Clock
-
-from app.transfer.command_lookup import CommandLookup
+from kivy.uix.widget import Widget
 
 kivy.require('1.11.1')
 
 from kivy.config import Config
-
 Config.set('graphics', 'width', '480')
 Config.set('graphics', 'height', '720')
 Config.set('graphics', 'minimum_width', '480')
@@ -25,10 +22,15 @@ Config.set('graphics', 'resizable', '1')
 Config.set('widgets', 'scroll_moves', '10')
 
 from app.transfer.server import Server
+from app.transfer.command_lookup import CommandLookup
 from kivymd.app import MDApp
+from kivy.core.window import Window
 from kivy.uix.recycleview import RecycleView
+from kivy.uix.image import Image
 from kivy.properties import NumericProperty, StringProperty
+from kivy.uix.textinput import TextInput
 from kivymd.uix.label import MDLabel
+from kivy.uix.button import ButtonBehavior, Button
 import time
 import threading
 
@@ -81,6 +83,24 @@ class DebugPanel(RecycleView, Server, CommandLookup):
             self.one_way_handler(5554, command)
 
 
+class ReconnectBtn(ButtonBehavior, Image):
+    """ Reconnect button functionality """
+    pass
+
+
+class ClearBtn(Button):
+    """ Reconnect button functionality """
+    pass
+
+
+class SendBtn(Button):
+    pass
+
+
+class Input(Widget):
+    pass
+
+
 class DataCell(MDLabel):
     """Cellular data in debug panel"""
     pass
@@ -107,6 +127,7 @@ class MainApp(MDApp):
 
     def clear_content(self):
         # Tell debug panel to clear data
+        self.root.ids['clear_btn'].source = './icon/buttons/clear_btn_pressed.png'
         self.root.ids['debug_panel'].temp_data = [{'text': 'type ? to see list of commands\n'}]
         self.root.ids['debug_panel'].data = []
 
