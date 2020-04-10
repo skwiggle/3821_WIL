@@ -2,17 +2,36 @@
 #: import MDApp kivymd.app.MDApp
 #: import ListProperty kivy.properties.ListProperty
 #: import MDLabel kivymd.uix.label.MDLabel
-#: import MDButton kivymd.uix.button.MDRaisedButton
+#: import MDRaisedButton kivymd.uix.button.MDRaisedButton
+#: import MDFlatButton kivymd.uix.button.MDFlatButton
 #: import MDIconButton kivymd.uix.button.MDIconButton
 #: import MDTextField kivymd.uix.textfield.MDTextField
 #: import MDSpinner kivymd.uix.spinner.MDSpinner
+#: import Svg kivy.graphics.svg.Svg
 #: import hex kivy.utils.get_color_from_hex
+#: import CoreImage kivy.uix.image.Image
 
+<ReconnectBtn>:
+    source: './icon/reconnect/reconnect_btn_256x256.png'
+    on_press: app.reconnect()
 
-<RefreshBtn>:
-    icon: './icon/refresh/refresh_icon_64x64'
-    height: 20
-    on_press: app.refresh()
+<DebugPanel@RecycleView>:
+    viewclass: 'DataCell'
+    canvas.before:
+        Color:
+            rgba: (0, 0, 0, 1)  # log screen background color
+        RoundedRectangle:
+            radius: [60, 60, 60, 60]
+            size: root.size
+            pos: root.pos
+    RecycleGridLayout:
+        cols: 1
+        padding: 25
+        default_size: None, dp(50)
+        default_size_hint: 1, None
+        size_hint_y: None
+        height: self.minimum_height
+        orientation: 'vertical'
 
 <DataCell@MDLabel>:
     size_hint_y: None
@@ -21,83 +40,108 @@
     theme_text_color: 'Custom'
     text_color: [0, 0.68, 0, 1]
 
-<DebugPanel@RecycleView>:
-    viewclass: 'DataCell'
+<ClearBtn>:
+    text: "[color=#FFFFFF][size=20sp]Clear[/size][/color]"
+    markup: True
+    background_color: 0, 0, 0, 0
+    size_hint_x: .7
+    height: Window.height*0.089
+    on_press: app.clear_content()
     canvas.before:
         Color:
-            rgba: (0.09, 0.13, 0.13, 1)  # log screen background color
-        Rectangle:
+            rgba: .91, 0, .46, 1
+        RoundedRectangle:
+            radius: [self.size[1]/2, self.size[1]/2, self.size[1]/2, self.size[1]/2]
+            size: self.size
+            pos: self.pos
+
+<SendBtn>:
+    text: "[color=#FFFFFF][size=20sp]Send[/size][/color]"
+    markup: True
+    background_color: 0, 0, 0, 0
+    size_hint_x: .7
+    height: Window.height*0.089
+    on_press: app.clear_content()
+    canvas.before:
+        Color:
+            rgba: .26, .73, .81, 1
+        RoundedRectangle:
+            radius: [self.size[1]/2, self.size[1]/2, self.size[1]/2, self.size[1]/2]
+            size: self.size
+            pos: self.pos
+
+<Input>:
+    canvas.before:
+        Color:
+            rgba: .17, .59, .8, 1
+        RoundedRectangle:
+            radius: [self.height/2, self.height/2, self.height/2, self.height/2]
             size: root.size
             pos: root.pos
-    RecycleGridLayout:
-        cols: 1
-        padding: 10
-        default_size: None, dp(40)
-        default_size_hint: 1, None
-        size_hint_y: None
-        height: self.minimum_height
-        orientation: 'vertical'
+    TextInput:
+        id: input
+        font_size: sp(20)
+        foreground_color: 1, 1, 1, 1
+        background_color: 0, 0, 0, 0
+        size: (root.width-40, root.height)
+        pos_hint: {'center_x': .5}
+        pos: (root.pos[0]+20, root.pos[1]-(root.height/2)+20)
+        multiline: False
+
 
 Widget:
     id: main_widget
     size: Window.size
-    canvas:
-        Color:
-            rgba: (0, 0, 0.502, 0.6)  # background color main
-        Rectangle:
-            size: Window.size
-            pos: (0, 0)
-    GridLayout:
-        id: main
+    Image:
+        allow_stretch: True
+        keep_ratio: False
+        source: './icon/background/background_full.png'
+        size: root.width, root.height
+        pos: root.pos
+    BoxLayout:
+        orientation: 'vertical'
         size: root.size
-        cols: 1
-        padding: app.padding_def
-        spacing: app.padding_def/2
+        padding: [20, 0, 20, 0]
+        Widget:
+            size_hint_y: .14
         DebugPanel:
             id: debug_panel
-        StackLayout:
-            id: debug_taskbar
-            size_hint: (1, 0.08)
-            MDIconButton:
-                id: reconnect
-                icon: 'wifi'
-                height: 20
-                pos_hint: {'right': 1}
-                on_press: app.reconnect()
-                disabled: False
+            size_hint_y: .445
         BoxLayout:
-            id: cmd_panel
-            orientation: 'vertical'
-            size_hint: (1, 0.1)
-            spacing: 10
-            MDTextField:
-                id: cmd_input
-                size_hint_y: None
-
-                height: 60
-                font_size: '20sp'
-                md_bg_color: hex('#E80076')
-                specific_text_color: hex('#000000')
-        GridLayout:
-            id: bottom_panel
             cols: 2
-            size_hint: (1, 0.1)
-            MDRaisedButton:
-                id: clear_btn
-                height: 50
-                text: 'clear'
-                pos_hint: {'right': 1}
-                md_bg_color: hex('#E80076')
-                specific_text_color: hex('#EBE9E9')
-                on_press: app.clear_content()
-            MDRaisedButton:
-                id: send_btn
-                height: 50
-                text: 'send'
-                pos_hint: {'right': 1}
-                md_bg_color: hex('#42BBCE')
-                specific_text_color: hex('#EBE9E9')
-                on_press: app.send_command()
+            size_hint_x: None
+            size_hint_y: .082
+            ReconnectBtn:
+                size_hint_y: .6
+                pos_hint: {'center_y': .5, 'x': 0}
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: .333
+            Input:
+                id: cmd_input
+                size_hint_y: .31
+            Widget:
+                size_hint_y: .16
+            GridLayout:
+                size_hint_y: .26
+                cols: 2
+                AnchorLayout:
+                    anchor_x: 'left'
+                    anchor_y: 'top'
+                    ClearBtn:
+                        id: clear_btn
+                        pos_hint: {'center_y': .5}
+                AnchorLayout:
+                    anchor_x: 'right'
+                    anchor_y: 'top'
+                    SendBtn:
+                        id: send_btn
+                        pos_hint: {'center_y': .5}
+            Widget:
+                size_hint_y: .27
+
+
+
 
 
 
