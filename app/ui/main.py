@@ -18,7 +18,7 @@ Config.set('graphics', 'height', '720')
 Config.set('graphics', 'minimum_width', '480')
 Config.set('graphics', 'minimum_height', '720')
 Config.set('graphics', 'resizable', '1')
-Config.set('widgets', 'scroll_moves', '10')
+Config.set('widgets', 'scroll_moves', '30')
 
 from app.transfer.server import Server
 from app.transfer.command_lookup import CommandLookup
@@ -78,6 +78,7 @@ class DebugPanel(RecycleView, Server, CommandLookup):
         """
         self.temp_data = self.lookup(command, self.data)
         self.one_way_handler(5554, command)
+        self.scroll_y = 0
 
 
 # classes representing UI elements that need to be displayed
