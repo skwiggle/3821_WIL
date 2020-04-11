@@ -65,16 +65,18 @@ class CommandLookup:
                 with open(f"{self._directory}/log-{dt.now().strftime('%d-%m-%Y')}.txt", 'r+') as file:
                     for line in file:
                         data.append(line)
+                data.append('\nend of file----\n')
             else:
                 with open(file_path, 'w'): pass
                 data.append('no previous logs from today, blank file created')
-        if re.search('[\d]{2,2}(/|-)[\d]{2,2}(/|-)[\d]{4,4}', parameters[1]):
+        elif re.match('[\d]{2,2}(/|-)[\d]{2,2}(/|-)[\d]{4,4}$', parameters[1]):
             parameters[1] = re.sub('/', '-', parameters[1])
             file_path = f"{self._directory}/log-{parameters[1]}.txt"
             if os.path.exists(file_path):
                 with open(file_path, 'r+') as file:
                     for line in file:
                         data.append(line)
+                    data.append('\nend of file----\n')
             else:
                 with open(file_path, 'w'): pass
                 data.append('no previous logs from that day, blank file created')
@@ -98,7 +100,7 @@ class CommandLookup:
                     data.append(f'log file at {file_path} deleted')
                 else:
                     data.append(f'no log file found')
-            if re.search('[\d]{2,2}(/|-)[\d]{2,2}(/|-)[\d]{4,4}', parameters[1]):
+            elif re.search('[\d]{2,2}(/|-)[\d]{2,2}(/|-)[\d]{4,4}$', parameters[1]):
                 parameters[1] = re.sub('/', '-', parameters[1])
                 file_path = f"{self._directory}/log-{parameters[1]}.txt"
                 if os.path.exists(file_path):
@@ -111,6 +113,7 @@ class CommandLookup:
         if parameters[0] == 'clearlogs':
             for file in os.listdir(self._directory):
                 os.remove(f'{self._directory}/{file}')
+            data.append('all log files deleted')
         return data
 
 

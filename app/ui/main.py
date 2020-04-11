@@ -54,8 +54,7 @@ class DebugPanel(RecycleView, Server, CommandLookup):
         Checks that an update handler is active and lets the user know, or,
         create a new connection to terminal
         """
-        if self.test_connection(5554):
-            self.data.append({'text': 'connection already established'})
+        if self.test_connection(5554): pass
         else:
             update_thd = threading.Thread(target=self.two_way_handler, args=(5555,))
             update_thd.start()
@@ -78,9 +77,8 @@ class DebugPanel(RecycleView, Server, CommandLookup):
         Compare the command against existing commands and then print the
         result to the debug panel
         """
-        if self.test_connection(5554):
-            self.temp_data = self.lookup(command, self.data)
-            self.one_way_handler(5554, command)
+        self.temp_data = self.lookup(command, self.data)
+        self.one_way_handler(5554, command)
 
 
 class ReconnectBtn(ButtonBehavior, Image):
@@ -123,18 +121,20 @@ class MainApp(MDApp):
     command = StringProperty('')
 
     def reconnect(self):
-        self.root.ids['debug_panel'].reconnect()
+        rec_thd = threading.Thread(target=self.root.ids['debug_panel'].reconnect)
+        rec_thd.start()
 
     def clear_content(self):
         # Tell debug panel to clear data
-        self.root.ids['clear_btn'].source = './icon/buttons/clear_btn_pressed.png'
         self.root.ids['debug_panel'].temp_data = [{'text': 'type ? to see list of commands\n'}]
         self.root.ids['debug_panel'].data = []
 
     def send_command(self):
         # Send command to debug panel
         command = self.root.ids['cmd_input'].text
-        self.root.ids['debug_panel'].send_command(command)
+        cmd_thd = threading.Thread(target=self.root.ids['debug_panel'].send_command,
+                                   args=(command,), name='send_command')
+        cmd_thd.start()
 
 
 if __name__ == '__main__':

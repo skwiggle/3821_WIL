@@ -113,8 +113,8 @@ class Terminal(FileSystemEventHandler):
                             print(reply)
                             continue
                         break
-            except WindowsError as error:
-                print(self.local_msg['server_connect_failed'],
+            except (socket.timeout, WindowsError) as error:
+                print(self.local_msg['timeout'],
                       f'\n\t\t -> {error}\n' if self._verbose else '\n',
                       flush=True)
                 break

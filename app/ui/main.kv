@@ -61,7 +61,7 @@
     background_color: 0, 0, 0, 0
     size_hint_x: .7
     height: Window.height*0.089
-    on_press: app.clear_content()
+    on_press: app.send_command()
     canvas.before:
         Color:
             rgba: .26, .73, .81, 1
@@ -78,15 +78,6 @@
             radius: [self.height/2, self.height/2, self.height/2, self.height/2]
             size: root.size
             pos: root.pos
-    TextInput:
-        id: input
-        font_size: sp(20)
-        foreground_color: 1, 1, 1, 1
-        background_color: 0, 0, 0, 0
-        size: (root.width-40, root.height)
-        pos_hint: {'center_x': .5}
-        pos: (root.pos[0]+20, root.pos[1]-(root.height/2)+20)
-        multiline: False
 
 
 Widget:
@@ -118,8 +109,17 @@ Widget:
             orientation: 'vertical'
             size_hint_y: .333
             Input:
-                id: cmd_input
+                id: input_box
                 size_hint_y: .31
+                TextInput:
+                    id: cmd_input
+                    font_size: sp(20)
+                    foreground_color: 1, 1, 1, 1
+                    background_color: 0, 0, 0, 0
+                    size: (input_box.width-40, input_box.height)
+                    pos_hint: {'center_x': .5}
+                    pos: (input_box.pos[0]+20, input_box.pos[1]-(input_box.height/2)+20)
+                    multiline: False
             Widget:
                 size_hint_y: .16
             GridLayout:
