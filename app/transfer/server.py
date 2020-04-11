@@ -50,19 +50,23 @@ class Server:
         :param func: handler function that should extend the wrapper
         """
         def _wrapper(self, port: int, sock: socket.socket = None):
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.settimeout(self._timeout)
-                s.bind((self._host, port))
-                s.listen()
-                try:
-                    func(self, port, s)
-                except socket.timeout as error:
-                    self.DATA.put(self.local_msg['timeout'])
-                    if self._verbose:
-                        self.DATA.put(f'---> {error}')
-                    print(self.local_msg['timeout'],
-                          end=f'\n\t\t -> {error}\n' if self._verbose else '\n',
-                          flush=True)
+            try:
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                    s.settimeout(self._timeout)
+                    s.bind((self._host, port))
+                    s.listen()
+                    try:
+                        func(self, port, s)
+                    except (socket.timeout, WindowsError) as error:
+                        self.DATA.put(self.local_msg['timeout'])
+                        if self._verbose:
+                            self.DATA.put(f'---> {error}')
+                        print(self.local_msg['timeout'],
+                              end=f'\n\t\t -> {error}\n' if self._verbose else '\n',
+                              flush=True)
+            except OSError as error:
+                if self._verbose:
+                    self.DATA.put(f'---> {error}')
         return _wrapper
 
     @_connectionBootstrap
@@ -95,9 +99,10 @@ class Server:
                                     if os.path.exists(path):
                                         with open(path, 'a+') as file:
                                             while not temp_msg.empty():
-                                                file.write(temp_msg.get(block=True))
-                                            for line in file:
+                                                line = temp_msg.get(block=True)
+                                                file.write(line)
                                                 self.DATA.put(line, block=True)
+                                                print(line)
                                     else:
                                         with open(path, 'w+') as file:
                                             while not temp_msg.empty():

@@ -1,8 +1,8 @@
+# -*- coding: utf-8 -*-
 from sys import platform, stderr
 import os
 import socket
 from datetime import datetime as dt
-from threading import Thread
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
@@ -10,7 +10,8 @@ from watchdog.events import FileSystemEventHandler
 class Terminal(FileSystemEventHandler):
     """
     A server handler in charge or listening and sending information over sockets.
-    the class consists of one/two way connection handling as well as allowing for custom actions upon event change.
+    the class consists of one/two way connection handling and checking for filesystem
+    changes for log files.
     """
     _host: str = 'localhost'
     _buffer: int = 2048
@@ -45,16 +46,12 @@ class Terminal(FileSystemEventHandler):
             return f"~/.config/unity3d/{'' if observer else 'Editor.log'}"
         return 'none'
 
-    _path = property(log_path)
-
-    @_path.setter
-    def set_log_path(self, path: str):
-        if os.path.exists(path):
-            self.log_path = path
-        else:
-            print(self.local_msg['path_not_exist'] % f"'{path}'", flush=True)
-
     def __init__(self):
+        """
+        Initialise the server class by creating an observer object to monitor
+        for unity debug log file changes and start main server. Observer and program
+        stop once server shuts down.
+        """
         observer = Observer()
         observer.schedule(self, self.log_path(observer=True), False)
         observer.start()
@@ -63,7 +60,7 @@ class Terminal(FileSystemEventHandler):
 
     def on_modified(self, event):
         with open(self.log_path, 'r') as file:
-            self.one_way_handler(5555, package=[line for line in file])
+            self.one_way_handler(5555, package=[line.replace('\t', '') for line in file])
 
     def _connectionBootstrap(func) -> ():
         """
@@ -99,7 +96,6 @@ class Terminal(FileSystemEventHandler):
         :param port: port number
         :param sock: parent socket
         """
-        commands = {'?', 'get log', 'clear log'}
         while True:
             try:
                 client, address = sock.accept()
@@ -109,7 +105,8 @@ class Terminal(FileSystemEventHandler):
                         if reply:
                             if reply.lower().replace(' ', '') == 'getlog':
                                 with open(self.log_path(), 'r') as file:
-                                    self.one_way_handler(5555, package=[line for line in file])
+                                    self.one_way_handler(5555, package=
+                                    [line.replace('\t', '') for line in file])
                             print(reply)
                             continue
                         break

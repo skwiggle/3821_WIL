@@ -31,11 +31,11 @@ class CommandLookup:
         :param command: command sent from user input
         :param data: data displayed on the debug screen
         """
-        command = command.lower().replace(' ', '')
-        if command.lower().replace(' ', '') == 'getlog':
+        command_fixed = command.lower().replace(' ', '')
+        if command_fixed == 'getlog':
             return data
 
-        parameters = re.split('--', command)
+        parameters = re.split('--', command_fixed)
         if parameters[0] == '?':
             for line in self.command_list:
                 data.append({'text': line})
@@ -46,7 +46,7 @@ class CommandLookup:
             for line in self.clear_log(parameters):
                 data.append({'text': line})
         else:
-            data.append({'text': 'unknown command, type ? for a list of commands'})
+            data.append({'text': f'{dt.now().strftime("%I:%M%p")}: \'{command}\''})
         return data
 
     def get_log(self, parameters: [str]) -> [str]:

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # The main GUI of the application that handles all user
 # events, connected to the client.
 # Purposes:
@@ -6,11 +7,9 @@
 #  -    receive/send user commands
 #  -    manually connect to client
 #  -    read from temporary log files
-import os
+#  -    delete temporary log files
 
 import kivy
-from kivy.uix.widget import Widget
-
 kivy.require('1.11.1')
 
 from kivy.config import Config
@@ -25,10 +24,10 @@ from app.transfer.server import Server
 from app.transfer.command_lookup import CommandLookup
 from kivymd.app import MDApp
 from kivy.core.window import Window
+from kivy.uix.widget import Widget
 from kivy.uix.recycleview import RecycleView
 from kivy.uix.image import Image
 from kivy.properties import NumericProperty, StringProperty
-from kivy.uix.textinput import TextInput
 from kivymd.uix.label import MDLabel
 from kivy.uix.button import ButtonBehavior, Button
 import time
@@ -81,27 +80,13 @@ class DebugPanel(RecycleView, Server, CommandLookup):
         self.one_way_handler(5554, command)
 
 
-class ReconnectBtn(ButtonBehavior, Image):
-    """ Reconnect button functionality """
-    pass
-
-
-class ClearBtn(Button):
-    """ Reconnect button functionality """
-    pass
-
-
-class SendBtn(Button):
-    pass
-
-
-class Input(Widget):
-    pass
-
-
-class DataCell(MDLabel):
-    """Cellular data in debug panel"""
-    pass
+# classes representing UI elements that need to be displayed
+# in main.py in order to work
+class ReconnectBtn(ButtonBehavior, Image): pass
+class ClearBtn(Button): pass
+class SendBtn(Button): pass
+class Input(Widget): pass
+class DataCell(MDLabel): pass
 
 
 class MainApp(MDApp):
@@ -115,7 +100,7 @@ class MainApp(MDApp):
     """
 
     title = "Terminal Genie"
-    icon = './icon/app/app_icon256x256.jpg'
+    icon = './icon/app/app_icon256x256.png'
     padding_def = NumericProperty(20)
     status = StringProperty('')
     command = StringProperty('')
