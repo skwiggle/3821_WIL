@@ -81,18 +81,20 @@ class Server:
         :param sock: parent socket
         """
         temp_msg: Queue = Queue()
+        self.DATA.put(self.local_msg['server_open'])
+        print(self.local_msg['server_open'])
         while True:
             try:
                 client, address = sock.accept()
-                self.DATA.put(self.local_msg['server_open'])
-                print(self.local_msg['server_open'])
                 with client:
                     while True:
                         reply = client.recv(self._buffer).decode('utf-8')
                         if reply:
                             if re.search('\[[\d]{2,2}:[\d]{2,2}(AM|PM)', reply):
                                 self.DATA.put(reply, block=True)
-                                temp_msg.put(f'{reply}\n', block=True)
+                                temp_msg.put(reply, block=True)
+                            elif reply[:4] == 'tg:>':
+                                self.DATA.put(f'{reply[4:]}', block=True)
                             else:
                                 if reply == '--EOF':
                                     path = f'{self._temp_log_folder}/log-{dt.now().strftime("%d-%m-%Y")}.txt'

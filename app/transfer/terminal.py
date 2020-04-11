@@ -24,6 +24,7 @@ class Terminal(FileSystemEventHandler):
         'server_connect_failed': f'{_timestamp()}: failed to connect to the client',
         'server_closed': f'{_timestamp()}: server closed',
         'connection_closed': f'{_timestamp()}: failed to send message because no connection was found',
+        'stream_complete': f'{_timestamp()}: log file sent to client',
         'timeout': f'{_timestamp()}: connection timed out',
         'stream_active': f'{_timestamp()}: please wait until previous message has sent',
         'path_not_exist': f'{_timestamp()}: the path %s does not exist, please use an absolute path with file extension'
@@ -59,8 +60,13 @@ class Terminal(FileSystemEventHandler):
         observer.stop()
 
     def on_modified(self, event):
-        with open(self.log_path, 'r') as file:
-            self.one_way_handler(5555, package=[line.replace('\t', '') for line in file])
+        log_path = self.log_path()
+        if os.stat(log_path).st_size == 0:
+            self.one_way_handler(5555, msg='tg:>unity log file empty')
+        else:
+            with open(log_path, 'r') as file:
+                self.one_way_handler(5555, package=[line.replace('\t', '') for line in file])
+            print(self.local_msg['stream_complete'], flush=True)
 
     def _connectionBootstrap(func) -> ():
         """
@@ -104,9 +110,15 @@ class Terminal(FileSystemEventHandler):
                         reply = client.recv(self._buffer).decode('utf-8')
                         if reply:
                             if reply.lower().replace(' ', '') == 'getlog':
-                                with open(self.log_path(), 'r') as file:
+                                log_path = self.log_path()
+                                if os.stat(log_path).st_size == 0:
+                                    self.one_way_handler(5555, msg='tg:>unity log file empty')
+                                    continue
+                                with open(log_path, 'r') as file:
                                     self.one_way_handler(5555, package=
                                     [line.replace('\t', '') for line in file])
+                                with open(log_path, 'w'): pass
+                                print(self.local_msg['stream_complete'], flush=True)
                             print(reply)
                             continue
                         break

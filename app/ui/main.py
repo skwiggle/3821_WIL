@@ -99,8 +99,6 @@ class Content(TextInput):
             self.pos = (self.parent.pos[0]+20, self.parent.pos[1]*3.5)
             self._focused = True
 class DataCell(MDLabel): pass
-
-
 class MainApp(MDApp):
     """
     Main Application Window
