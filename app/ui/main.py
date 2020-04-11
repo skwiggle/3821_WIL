@@ -10,6 +10,8 @@
 #  -    delete temporary log files
 
 import kivy
+from kivy.uix.textinput import TextInput
+
 kivy.require('1.11.1')
 
 from kivy.config import Config
@@ -87,6 +89,15 @@ class ReconnectBtn(ButtonBehavior, Image): pass
 class ClearBtn(Button): pass
 class SendBtn(Button): pass
 class Input(Widget): pass
+class Content(TextInput):
+    _focused: bool = False
+    def _on_textinput_focused(self, instance, value, *largs):
+        if self._focused:
+            self.pos = (self.parent.pos[0]+20, self.parent.pos[1]-(self.parent.height/2)+20)
+            self._focused = False
+        else:
+            self.pos = (self.parent.pos[0]+20, self.parent.pos[1]*3.5)
+            self._focused = True
 class DataCell(MDLabel): pass
 
 
@@ -121,6 +132,9 @@ class MainApp(MDApp):
         cmd_thd = threading.Thread(target=self.root.ids['debug_panel'].send_command,
                                    args=(command,), name='send_command')
         cmd_thd.start()
+
+    def test(self):
+        print('yes')
 
 
 if __name__ == '__main__':

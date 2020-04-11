@@ -79,6 +79,11 @@
             size: root.size
             pos: root.pos
 
+<Content@TextInput>:
+    font_size: sp(20)
+    foreground_color: 1, 1, 1, 1
+    background_color: 0, 0, 0, 0
+    multiline: False
 
 Widget:
     id: main_widget
@@ -111,15 +116,11 @@ Widget:
             Input:
                 id: input_box
                 size_hint_y: .31
-                TextInput:
+                Content:
                     id: cmd_input
-                    font_size: sp(20)
-                    foreground_color: 1, 1, 1, 1
-                    background_color: 0, 0, 0, 0
                     size: (input_box.width-40, input_box.height)
                     pos_hint: {'center_x': .5}
                     pos: (input_box.pos[0]+20, input_box.pos[1]-(input_box.height/2)+20)
-                    multiline: False
             Widget:
                 size_hint_y: .16
             GridLayout:
