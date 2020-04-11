@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # The main GUI of the application that handles all user
 # events, connected to the client.
 # Purposes:
@@ -6,10 +7,10 @@
 #  -    receive/send user commands
 #  -    manually connect to client
 #  -    read from temporary log files
-import os
+#  -    delete temporary log files
 
 import kivy
-from kivy.uix.widget import Widget
+from kivy.uix.textinput import TextInput
 
 kivy.require('1.11.1')
 
@@ -19,16 +20,16 @@ Config.set('graphics', 'height', '720')
 Config.set('graphics', 'minimum_width', '480')
 Config.set('graphics', 'minimum_height', '720')
 Config.set('graphics', 'resizable', '1')
-Config.set('widgets', 'scroll_moves', '10')
+Config.set('widgets', 'scroll_moves', '30')
 
 from app.transfer.server import Server
 from app.transfer.command_lookup import CommandLookup
 from kivymd.app import MDApp
 from kivy.core.window import Window
+from kivy.uix.widget import Widget
 from kivy.uix.recycleview import RecycleView
 from kivy.uix.image import Image
 from kivy.properties import NumericProperty, StringProperty
-from kivy.uix.textinput import TextInput
 from kivymd.uix.label import MDLabel
 from kivy.uix.button import ButtonBehavior, Button
 import time
@@ -54,8 +55,7 @@ class DebugPanel(RecycleView, Server, CommandLookup):
         Checks that an update handler is active and lets the user know, or,
         create a new connection to terminal
         """
-        if self.test_connection(5554):
-            self.data.append({'text': 'connection already established'})
+        if self.test_connection(5554): pass
         else:
             update_thd = threading.Thread(target=self.two_way_handler, args=(5555,))
             update_thd.start()
@@ -78,32 +78,27 @@ class DebugPanel(RecycleView, Server, CommandLookup):
         Compare the command against existing commands and then print the
         result to the debug panel
         """
-        if self.test_connection(5554):
-            self.temp_data = self.lookup(command, self.data)
-            self.one_way_handler(5554, command)
+        self.temp_data = self.lookup(command, self.data)
+        self.one_way_handler(5554, command)
+        self.scroll_y = 0
 
 
-class ReconnectBtn(ButtonBehavior, Image):
-    """ Reconnect button functionality """
-    pass
-
-
-class ClearBtn(Button):
-    """ Reconnect button functionality """
-    pass
-
-
-class SendBtn(Button):
-    pass
-
-
-class Input(Widget):
-    pass
-
-
-class DataCell(MDLabel):
-    """Cellular data in debug panel"""
-    pass
+# classes representing UI elements that need to be displayed
+# in main.py in order to work
+class ReconnectBtn(ButtonBehavior, Image): pass
+class ClearBtn(Button): pass
+class SendBtn(Button): pass
+class Input(Widget): pass
+class Content(TextInput):
+    _focused: bool = False
+    def _on_textinput_focused(self, instance, value, *largs):
+        if self._focused:
+            self.pos = (self.parent.pos[0]+20, self.parent.pos[1]-(self.parent.height/2)+20)
+            self._focused = False
+        else:
+            self.pos = (self.parent.pos[0]+20, self.parent.pos[1]*3.5)
+            self._focused = True
+class DataCell(MDLabel): pass
 
 
 class MainApp(MDApp):
@@ -117,24 +112,29 @@ class MainApp(MDApp):
     """
 
     title = "Terminal Genie"
-    icon = './icon/app/app_icon256x256.jpg'
+    icon = './icon/app/app_icon256x256.png'
     padding_def = NumericProperty(20)
     status = StringProperty('')
     command = StringProperty('')
 
     def reconnect(self):
-        self.root.ids['debug_panel'].reconnect()
+        rec_thd = threading.Thread(target=self.root.ids['debug_panel'].reconnect)
+        rec_thd.start()
 
     def clear_content(self):
         # Tell debug panel to clear data
-        self.root.ids['clear_btn'].source = './icon/buttons/clear_btn_pressed.png'
         self.root.ids['debug_panel'].temp_data = [{'text': 'type ? to see list of commands\n'}]
         self.root.ids['debug_panel'].data = []
 
     def send_command(self):
         # Send command to debug panel
         command = self.root.ids['cmd_input'].text
-        self.root.ids['debug_panel'].send_command(command)
+        cmd_thd = threading.Thread(target=self.root.ids['debug_panel'].send_command,
+                                   args=(command,), name='send_command')
+        cmd_thd.start()
+
+    def test(self):
+        print('yes')
 
 
 if __name__ == '__main__':
