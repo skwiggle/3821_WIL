@@ -16,6 +16,24 @@
     source: './icon/reconnect/reconnect_btn_256x256.png'
     on_press: app.reconnect()
 
+<DebugPanelFocused@RecycleView>:
+    viewclass: 'DataCell'
+    canvas.before:
+        Color:
+            rgba: (0, 0, 0, 1)  # log screen background color
+        RoundedRectangle:
+            radius: [60, 60, 60, 60]
+            size: root.size
+            pos: root.pos
+    RecycleGridLayout:
+        orientation: 'vertical'
+        cols: 1
+        padding: 25
+        default_size: None, dp(50)
+        default_size_hint: 1, None
+        size_hint_y: None
+        height: self.minimum_height
+
 <DebugPanel@RecycleView>:
     viewclass: 'DataCell'
     canvas.before:
@@ -155,6 +173,7 @@
 
 <InputFocusedScreen@Screen>:
     name: 'input_focused'
+    on_enter: self.ids['debug_panel_focused'].data = app.debug_data
     canvas.before:
         Rectangle:
             source: './icon/background/background_partial.png'
@@ -165,8 +184,8 @@
         orientation: 'vertical'
         size_hint: 1, 1
         padding: [20, 20, 20, 20]
-        DebugPanel:
-            id: debug_panel
+        DebugPanelFocused:
+            id: debug_panel_focused
             size_hint_y: .38
         Widget:
             size_hint_y: .03

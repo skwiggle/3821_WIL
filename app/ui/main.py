@@ -40,6 +40,7 @@ import time
 import threading
 
 
+class DebugPanelFocused(RecycleView): pass
 class DebugPanel(RecycleView, Server, CommandLookup):
     temp_data: [set] = [{'text': 'type ? for a list of commands'}]  # temporary data stored before updating
 
@@ -124,6 +125,7 @@ class MainApp(MDApp):
     command = StringProperty('')
     is_focused: bool = False
     cmd_text: str = ''
+    debug_data: [set] = [{}]
 
     def reconnect(self):
         rec_thd = threading.Thread(target=self.root.get_screen('main').ids['debug_panel'].reconnect)
@@ -147,6 +149,7 @@ class MainApp(MDApp):
             self.root.current = 'main'
             self.is_focused = False
         else:
+            self.debug_data = self.root.get_screen('main').ids['debug_panel'].data
             self.root.current = 'input_focused'
             self.is_focused = True
 
