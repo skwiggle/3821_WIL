@@ -123,6 +123,7 @@ class MainApp(MDApp):
     status = StringProperty('')
     command = StringProperty('')
     is_focused: bool = False
+    cmd_text: str = ''
 
     def reconnect(self):
         rec_thd = threading.Thread(target=self.root.get_screen('main').ids['debug_panel'].reconnect)
@@ -142,6 +143,7 @@ class MainApp(MDApp):
 
     def on_input_focus(self):
         if self.is_focused:
+            self.cmd_text = self.root.get_screen('input_focused').ids['cmd_input_focused'].text
             self.root.current = 'main'
             self.is_focused = False
         else:

@@ -89,6 +89,7 @@
 
 <MainScreen@Screen>:
     name: 'main'
+    on_enter: self.ids['cmd_input'].text = app.cmd_text
     Widget:
         id: main_widget
         size: Window.size
