@@ -11,6 +11,7 @@
 #: import hex kivy.utils.get_color_from_hex
 #: import CoreImage kivy.uix.image.Image
 
+
 <ReconnectBtn>:
     source: './icon/reconnect/reconnect_btn_256x256.png'
     on_press: app.reconnect()
@@ -25,13 +26,13 @@
             size: root.size
             pos: root.pos
     RecycleGridLayout:
+        orientation: 'vertical'
         cols: 1
         padding: 25
         default_size: None, dp(50)
         default_size_hint: 1, None
         size_hint_y: None
         height: self.minimum_height
-        orientation: 'vertical'
 
 <DataCell@MDLabel>:
     size_hint_y: None
@@ -84,63 +85,111 @@
     foreground_color: 1, 1, 1, 1
     background_color: 0, 0, 0, 0
     multiline: False
+    on_focus: app.on_input_focus()
 
-Widget:
-    id: main_widget
-    size: Window.size
-    Image:
-        allow_stretch: True
-        keep_ratio: False
-        source: './icon/background/background_full.png'
-        size: root.width, root.height
-        pos: root.pos
+<MainScreen@Screen>:
+    name: 'main'
+    Widget:
+        id: main_widget
+        size: Window.size
+        Image:
+            id: background
+            allow_stretch: True
+            keep_ratio: False
+            source: './icon/background/background_full.png'
+            size: root.width, root.height
+            pos: root.pos
+        BoxLayout:
+            id: body
+            orientation: 'vertical'
+            size: root.size
+            padding: [20, 0, 20, 0]
+            Widget:
+                id: spacer
+                size_hint_y: .14
+            DebugPanel:
+                id: debug_panel
+                size_hint_y: .445
+            BoxLayout:
+                id: reconnect_layout
+                cols: 2
+                size_hint_x: None
+                size_hint_y: .082
+                ReconnectBtn:
+                    id: reconnect_btn
+                    size_hint_y: .6
+                    pos_hint: {'center_y': .5, 'x': 0}
+            BoxLayout:
+                id: input_layout
+                orientation: 'vertical'
+                size_hint_y: .333
+                Input:
+                    id: input_box
+                    size_hint_y: .31
+                    Content:
+                        id: cmd_input
+                        size: (input_box.width-40, input_box.height)
+                        pos_hint: {'center_x': .5}
+                        pos: (input_box.pos[0]+20, input_box.pos[1]-(input_box.height/2)+20)
+                Widget:
+                    size_hint_y: .16
+                GridLayout:
+                    id: button_layout
+                    cols: 2
+                    size_hint_y: .26
+                    AnchorLayout:
+                        anchor_x: 'left'
+                        anchor_y: 'top'
+                        ClearBtn:
+                            id: clear_btn
+                            pos_hint: {'center_y': .5}
+                    AnchorLayout:
+                        anchor_x: 'right'
+                        anchor_y: 'top'
+                        SendBtn:
+                            id: send_btn
+                            pos_hint: {'center_y': .5}
+                Widget:
+                    size_hint_y: .27
+
+<InputFocusedScreen@Screen>:
+    name: 'input_focused'
+    canvas.before:
+        Rectangle:
+            source: './icon/background/background_partial.png'
+            size: Window.size
+            pos: (0, 0)
     BoxLayout:
+        id: body
         orientation: 'vertical'
-        size: root.size
-        padding: [20, 0, 20, 0]
-        Widget:
-            size_hint_y: .14
+        size_hint: 1, 1
+        padding: [20, 20, 20, 20]
         DebugPanel:
             id: debug_panel
-            size_hint_y: .445
+            size_hint_y: .38
+        Widget:
+            size_hint_y: .03
         BoxLayout:
-            cols: 2
-            size_hint_x: None
-            size_hint_y: .082
-            ReconnectBtn:
-                size_hint_y: .6
-                pos_hint: {'center_y': .5, 'x': 0}
-        BoxLayout:
+            id: input_layout
             orientation: 'vertical'
-            size_hint_y: .333
+            size_hint_y: .12
             Input:
                 id: input_box
-                size_hint_y: .31
+                size_hint_y: 1
                 Content:
-                    id: cmd_input
+                    id: cmd_input_focused
                     size: (input_box.width-40, input_box.height)
                     pos_hint: {'center_x': .5}
                     pos: (input_box.pos[0]+20, input_box.pos[1]-(input_box.height/2)+20)
-            Widget:
-                size_hint_y: .16
-            GridLayout:
-                size_hint_y: .26
-                cols: 2
-                AnchorLayout:
-                    anchor_x: 'left'
-                    anchor_y: 'top'
-                    ClearBtn:
-                        id: clear_btn
-                        pos_hint: {'center_y': .5}
-                AnchorLayout:
-                    anchor_x: 'right'
-                    anchor_y: 'top'
-                    SendBtn:
-                        id: send_btn
-                        pos_hint: {'center_y': .5}
-            Widget:
-                size_hint_y: .27
+        Widget:
+            id: bottom_half
+            size_hint: 1, .45
 
+<AppManager@ScreenManager>:
+    MainScreen:
+    InputFocusedScreen:
+
+AppManager:
 
 
 

@@ -66,7 +66,7 @@ class Terminal(FileSystemEventHandler):
         else:
             with open(log_path, 'r') as file:
                 self.one_way_handler(5555, package=[line.replace('\t', '') for line in file])
-            print(self.local_msg['stream_complete'], flush=True)
+            with open(log_path, 'w'): pass
 
     def _connectionBootstrap(func) -> ():
         """
