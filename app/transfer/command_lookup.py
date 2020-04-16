@@ -37,7 +37,6 @@ class CommandLookup:
         _timestamp = lambda: dt.now().strftime("%I:%M%p")   # current time
         # command without capitalisation, whitespace and special characters except '?', '/' and '-'
         command_fixed = re.sub('[^\?\-\/a-zA-Z0-9]+', '', command.lower().replace(' ', ''))
-        print(command_fixed)
         # return if the command is simply 'get log'
         if command_fixed == 'getlog':
             return data
@@ -50,7 +49,6 @@ class CommandLookup:
         elif parameters[0] == 'getlog':
             for line in self.get_log(parameters):
                 data.append(line)
-            print(data)
         elif parameters[0] == 'clearlog' or parameters[0] == 'clearlogs':
             for line in self.clear_log(parameters):
                 data.append(line)
@@ -136,4 +134,3 @@ class CommandLookup:
 
 if __name__ == '__main__':
     c = CommandLookup('./log')
-    print(c.lookup('clear log --today', []))

@@ -40,6 +40,8 @@ import time
 import threading
 
 
+# classes representing UI elements that need to be displayed
+# in main.py in order to work
 class DebugPanelFocused(RecycleView): pass
 class DebugPanel(RecycleView, Server, CommandLookup):
     temp_data: [set] = [{'text': 'type ? for a list of commands'}]  # temporary data stored before updating
@@ -89,8 +91,6 @@ class DebugPanel(RecycleView, Server, CommandLookup):
         self.scroll_y = 0
 
 
-# classes representing UI elements that need to be displayed
-# in main.py in order to work
 class AppManager(ScreenManager):
     def __init__(self, **kwargs):
         super(AppManager, self).__init__(**kwargs)

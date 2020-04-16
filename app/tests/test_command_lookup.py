@@ -1,9 +1,7 @@
-import os
-import re
-import sys
 import unittest
 from datetime import datetime as dt
 from app.transfer.command_lookup import CommandLookup
+import os
 
 
 class TestCommandLookup(unittest.TestCase):
@@ -40,11 +38,11 @@ class TestCommandLookup(unittest.TestCase):
         self.assertEqual(self.cmd_lo.lookup('get log --today', []),
                          [{'text': f'\n{_timestamp}: end of file----\n'}])
 
-        # test retrieval with with specific dates and creates file
+        # test retrieval with specific dates and creates file
         self.assertEqual(self.cmd_lo.lookup('get log --01-01-2020', []),
                          [{'text': f'{_timestamp}: no previous logs from that day, blank file created'}])
 
-        # test retrieval with with specific dates after file creation
+        # test retrieval with specific dates after file creation
         self.assertEqual(self.cmd_lo.lookup('get log --01-01-2020', []),
                          [{'text': f'\n{_timestamp}: end of file----\n'}])
 
@@ -84,7 +82,7 @@ class TestCommandLookupClear(unittest.TestCase):
         self.assertEqual(self.cmd_lo.lookup('clear log --01-01-2020', []),
             [{'text': f'{_timestamp}: no log file found at ../transfer/log/log-01-01-2020.txt'}])
 
-        # test file deletion with speific date using '/' instead of '-' in date string
+        # test file deletion with specific date using '/' instead of '-' in date string
         with open('../transfer/log/log-01-01-2020.txt', 'w+'): pass
         self.assertEqual(self.cmd_lo.lookup('clear log --01/01/2020', []),
             [{'text': f'{_timestamp}: log file at ../transfer/log/log-01-01-2020.txt deleted'}])

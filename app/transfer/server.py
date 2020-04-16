@@ -126,7 +126,7 @@ class Server:
         self.DATA.put(self.local_msg['server_connect_failed'], block=True)
         print(self.local_msg['server_closed'])
 
-    def one_way_handler(self, port: int, msg: str = None, package: [str] = None):
+    def one_way_handler(self, port: int, msg: str = None, package: [str] = None) -> bool:
         """
         Sends a message or an array of messages to server host.
 
@@ -143,6 +143,13 @@ class Server:
                 self._stream_active = True
                 if msg:
                     sock.send(msg.encode('utf-8'))
+                    self._stream_active = False
+                    return True
+                if package:
+                    for line in package:
+                        sock.send(line.encode('utf-8'))
+                    self._stream_active = False
+                    return True
         except WindowsError as error:
             self.DATA.put(self.local_msg['connection_closed'], block=True)
             if self._verbose:
@@ -150,7 +157,7 @@ class Server:
             print(self.local_msg['connection_closed'],
                   f'\n\t\t -> {error}' if self._verbose else '\n',
                   flush=True)
-        self._stream_active = False
+        return False
 
     def test_connection(self, port: int) -> bool:
         try:

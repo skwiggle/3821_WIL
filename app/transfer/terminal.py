@@ -16,18 +16,19 @@ class Terminal(FileSystemEventHandler):
     _host: str = 'localhost'
     _buffer: int = 2048
     _stream_active: bool = False
-    _timestamp = lambda: dt.now().strftime("%I:%M%p")
+    _timestamp = lambda msg: f'{dt.now().strftime("%I:%M%p")}: {msg}'
     _timeout: float = 3600
     _verbose: bool = False
     local_msg: dict = {
-        'server_open': f'{_timestamp()}: established server',
-        'server_connect_failed': f'{_timestamp()}: failed to connect to the client',
-        'server_closed': f'{_timestamp()}: server closed',
-        'connection_closed': f'{_timestamp()}: failed to send message because no connection was found',
-        'stream_complete': f'{_timestamp()}: log file sent to client',
-        'timeout': f'{_timestamp()}: connection timed out',
-        'stream_active': f'{_timestamp()}: please wait until previous message has sent',
-        'path_not_exist': f'{_timestamp()}: the path %s does not exist, please use an absolute path with file extension'
+        'server_open': _timestamp('established server'),
+        'server_connect_failed': _timestamp('failed to connect to the client'),
+        'server_closed': _timestamp('server closed'),
+        'connection_closed': _timestamp('failed to send message because no connection was found'),
+        'timeout': _timestamp('connection timed out'),
+        'stream_active': _timestamp('please wait until previous message has sent'),
+        'stream_complete': _timestamp('log file sent to client'),
+        'path_not_exist': _timestamp('the path %s does not exist, please use an absolute path with file extension'),
+        'unity_log_empty': _timestamp('tg:>unity log file empty')
     }
 
     @staticmethod
@@ -47,17 +48,18 @@ class Terminal(FileSystemEventHandler):
             return f"~/.config/unity3d/{'' if observer else 'Editor.log'}"
         return 'none'
 
-    def __init__(self):
+    def __init__(self, unittest: bool = False):
         """
         Initialise the server class by creating an observer object to monitor
         for unity debug log file changes and start main server. Observer and program
         stop once server shuts down.
         """
-        observer = Observer()
-        observer.schedule(self, self.log_path(observer=True), False)
-        observer.start()
-        self.two_way_handler(5554)
-        observer.stop()
+        if not unittest:
+            observer = Observer()
+            observer.schedule(self, self.log_path(observer=True), False)
+            observer.start()
+            self.two_way_handler(5554)
+            observer.stop()
 
     def on_modified(self, event):
         log_path = self.log_path()
@@ -112,11 +114,12 @@ class Terminal(FileSystemEventHandler):
                             if reply.lower().replace(' ', '') == 'getlog':
                                 log_path = self.log_path()
                                 if os.stat(log_path).st_size == 0:
-                                    self.one_way_handler(5555, msg='tg:>unity log file empty')
+                                    self.one_way_handler(5555, msg=self.local_msg['unity_log_empty'])
                                     continue
                                 with open(log_path, 'r') as file:
                                     self.one_way_handler(5555, package=
-                                    [line.replace('\t', '') for line in file])
+                                    [line for line in file])
+                                    self.one_way_handler(5555, msg='--EOF')
                                 with open(log_path, 'w'): pass
                                 print(self.local_msg['stream_complete'], flush=True)
                             print(reply)
@@ -129,7 +132,7 @@ class Terminal(FileSystemEventHandler):
                 break
         print(self.local_msg['server_closed'])
 
-    def one_way_handler(self, port: int, msg: str = None, package: [str] = None):
+    def one_way_handler(self, port: int, msg: str = None, package: [str] = None) -> bool:
         """
         Sends a message or an array of messages to server host.
 
@@ -146,15 +149,19 @@ class Terminal(FileSystemEventHandler):
                 self._stream_active = True
                 if msg:
                     sock.send(msg.encode('utf-8'))
+                    self._stream_active = False
+                    return True
                 if package:
                     for line in package:
                         sock.send(line.encode('utf-8'))
                     sock.send('--EOF'.encode('utf-8'))
+                    self._stream_active = False
+                    return True
         except WindowsError as error:
             print(self.local_msg['connection_closed'],
                   f'\n\t\t -> {error}' if self._verbose else '\n',
                   flush=True)
-        self._stream_active = False
+        return False
 
 
 if __name__ == '__main__':
