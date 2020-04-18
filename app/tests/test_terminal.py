@@ -1,42 +1,41 @@
-from datetime import datetime
-from datetime import datetime as DT
 import unittest
-from app.transfer.terminal_server import Server
-from app.transfer.android_client import Client
-from app.ui.main import DebugPanel
+from threading import Thread
+
+from app.transfer.server import Server
+from app.transfer.terminal import Terminal
 import os
 
 
-class MyTestCase(unittest.TestCase):
-    client = Client()
+class TestTerminal(unittest.TestCase):
 
-    def test_client(self):
-        self.assertIsInstance(self.client.DATA[0], str)
+    s = Server()
+    t = Terminal(unittest=True)
+    thr1 = Thread(target=t.two_way_handler, args=(5554,), daemon=True)
+    thr2 = Thread(target=s.two_way_handler, args=(5555,), daemon=True)
+    thr1.start()
+    thr2.start()
 
-    def test_update_msg_success(self):
-        self.assertEqual(self.client.update_msg['success'], f'CONSOLE {DT.now().strftime("%I:%M%p")}: {os.getlogin()} is now connected to server' )
+    def test_one_way_handler(self):
+        """ Test sending bytes over socket to server """
 
-    def test_update_msg_failure(self):
-        self.assertEqual(self.client.update_msg['failed'], f'CLIENT {DT.now().strftime("%I:%M%p")}: connection failed, check that the server is running')
+        # test sending a single message
+        self.assertTrue(self.s.one_way_handler(5555, msg='test'))
 
-    def test_update_msg_established(self):
-        self.assertEqual(self.client.update_msg['established'], f'CLIENT {DT.now().strftime("%I:%M%p")}: a connection has already been established')
+        # test sending multiple messages
+        self.assertTrue(self.s.one_way_handler(5555, package=['1', '2', '3']))
 
-    def test_update_msg_cmd_success(self):
-        self.assertEqual(self.client.update_msg['cmd_success'], f'CLIENT {DT.now().strftime("%I:%M%p")}: %s')
+        # test returning if message empty
+        self.assertFalse(self.s.one_way_handler(5555))
 
-    def test_update_msg_cmd_failed(self):
-        self.assertEqual(self.client.update_msg['cmd_failed'], f'CLIENT {DT.now().strftime("%I:%M%p")}: command "%s" failed to send')
+    def test_log_path(self):
+        """ Test log path of unity log file/log file directory """
 
-    def test_command_lookup(self):
-        client = Client()
-        self.assertEqual(client.command_lookup('get log --today'), 'no log files exist')
-        self.assertEqual(client.command_lookup('get log --01-01-2000'), 'no log file exists on that date')
-        self.assertEqual(client.command_lookup('get log'), 'get log')
+        # test that log_path returns the Editor.log file path
+        self.assertEqual(self.t.log_path(), f"C:/Users/{os.getlogin()}/AppData/Local/Unity/Editor/Editor.log")
 
-        self.assertEqual(client.command_lookup('clear logs'), 'logs could not be deleted, directory may be empty')
-        self.assertEqual(client.command_lookup('clear log --today'), 'log could not be removed because it does not exist')
-        self.assertEqual(client.command_lookup('clear log --00-01-2000'),'log could not be removed because it does not exist')
+        # test that log_path with 'observer' being true returns the Editor.log directory path
+        self.assertEqual(self.t.log_path(True), f"C:/Users/{os.getlogin()}/AppData/Local/Unity/Editor/")
+
 
 
 if __name__ == '__main__':

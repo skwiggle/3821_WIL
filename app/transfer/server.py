@@ -21,18 +21,19 @@ class Server:
     _temp_log_folder: str = './log'
     server_active: bool = False
     _stream_active: bool = False
-    _timestamp = lambda: dt.now().strftime("%I:%M%p")
+    _timestamp = lambda msg: f'{dt.now().strftime("%I:%M%p")}: {msg}'
     _timeout: float = 3600
     _verbose: bool = False
     DATA: Queue = Queue()
     local_msg: dict = {
-        'server_open': f'{_timestamp()}: established server',
-        'server_connect_failed': f'{_timestamp()}: failed to connect to the server',
-        'server_closed': f'{_timestamp()}: server closed',
-        'connection_established': f'{_timestamp()}: connection established',
-        'connection_closed': f'{_timestamp()}: failed to send message because no connection was found',
-        'timeout': f'{_timestamp()}: connection timed out',
-        'stream_active': f'{_timestamp()}: please wait until previous message has sent'
+        'server_open': _timestamp('established server'),
+        'server_connect_failed': _timestamp('failed to connect to the server'),
+        'server_closed': _timestamp('server closed'),
+        'connection_established': _timestamp('connection established'),
+        'connection_closed': _timestamp('failed to send message because no connection was found'),
+        'timeout': _timestamp('connection timed out'),
+        'stream_active': _timestamp('please wait until previous message has sent'),
+        'unity_log_empty': _timestamp('unity log file empty')
     }
 
     def __init__(self, temp_log_folder: str = './log',
@@ -81,18 +82,21 @@ class Server:
         :param sock: parent socket
         """
         temp_msg: Queue = Queue()
+        self.DATA.put(self.local_msg['server_open'])
+        print(self.local_msg['server_open'])
         while True:
             try:
                 client, address = sock.accept()
-                self.DATA.put(self.local_msg['server_open'])
-                print(self.local_msg['server_open'])
                 with client:
                     while True:
                         reply = client.recv(self._buffer).decode('utf-8')
                         if reply:
-                            if re.search('\[[\d]{2,2}:[\d]{2,2}(AM|PM)', reply):
+                            if re.search('[\d]{2,2}:[\d]{2,2}(AM|PM)', reply):
+                                print(reply)
                                 self.DATA.put(reply, block=True)
-                                temp_msg.put(f'{reply}\n', block=True)
+                                temp_msg.put(reply, block=True)
+                            elif reply == 'tg:>':
+                                self.DATA.put(self.local_msg['unity_log_empty'], block=True)
                             else:
                                 if reply == '--EOF':
                                     path = f'{self._temp_log_folder}/log-{dt.now().strftime("%d-%m-%Y")}.txt'
@@ -124,7 +128,7 @@ class Server:
         self.DATA.put(self.local_msg['server_connect_failed'], block=True)
         print(self.local_msg['server_closed'])
 
-    def one_way_handler(self, port: int, msg: str = None, package: [str] = None):
+    def one_way_handler(self, port: int, msg: str = None, package: [str] = None) -> bool:
         """
         Sends a message or an array of messages to server host.
 
@@ -136,11 +140,21 @@ class Server:
         :param package: a list of messages (defaults to none)
         """
         try:
+            # exit function if not msg/package was given
+            if not (msg or package):
+                return False
+
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                 sock.connect((self._host, port))
                 self._stream_active = True
                 if msg:
                     sock.send(msg.encode('utf-8'))
+                    self._stream_active = False
+                if package:
+                    for line in package:
+                        sock.send(line.encode('utf-8'))
+                    self._stream_active = False
+            return True
         except WindowsError as error:
             self.DATA.put(self.local_msg['connection_closed'], block=True)
             if self._verbose:
@@ -148,7 +162,7 @@ class Server:
             print(self.local_msg['connection_closed'],
                   f'\n\t\t -> {error}' if self._verbose else '\n',
                   flush=True)
-        self._stream_active = False
+        return False
 
     def test_connection(self, port: int) -> bool:
         try:
@@ -171,3 +185,8 @@ class Server:
 
 if __name__ == '__main__':
     s = Server()
+    t1 = Thread(target=s.two_way_handler, args=(1111,))
+    t1.start()
+    while True:
+        s.one_way_handler(1111, '_')
+        time.sleep(1)
