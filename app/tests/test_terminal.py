@@ -16,7 +16,7 @@ class TestTerminal(unittest.TestCase):
     thr2.start()
 
     def test_one_way_handler(self):
-        """ Test sending bytes over socket to terminal """
+        """ Test sending bytes over socket to server """
 
         # test sending a single message
         self.assertTrue(self.s.one_way_handler(5555, msg='test'))
@@ -28,7 +28,7 @@ class TestTerminal(unittest.TestCase):
         self.assertFalse(self.s.one_way_handler(5555))
 
     def test_log_path(self):
-        """ Test log path of unity log file or directory """
+        """ Test log path of unity log file/log file directory """
 
         # test that log_path returns the Editor.log file path
         self.assertEqual(self.t.log_path(), f"C:/Users/{os.getlogin()}/AppData/Local/Unity/Editor/Editor.log")

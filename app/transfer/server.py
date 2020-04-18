@@ -140,17 +140,21 @@ class Server:
         :param package: a list of messages (defaults to none)
         """
         try:
+            # exit function if not msg/package was given
+            if not (msg or package):
+                return False
+
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                 sock.connect((self._host, port))
                 self._stream_active = True
                 if msg:
                     sock.send(msg.encode('utf-8'))
                     self._stream_active = False
-                    return True
                 if package:
                     for line in package:
                         sock.send(line.encode('utf-8'))
                     self._stream_active = False
+            return True
         except WindowsError as error:
             self.DATA.put(self.local_msg['connection_closed'], block=True)
             if self._verbose:
@@ -158,8 +162,7 @@ class Server:
             print(self.local_msg['connection_closed'],
                   f'\n\t\t -> {error}' if self._verbose else '\n',
                   flush=True)
-            return False
-        return True
+        return False
 
     def test_connection(self, port: int) -> bool:
         try:

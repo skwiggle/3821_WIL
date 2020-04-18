@@ -1,28 +1,36 @@
 # -*- coding: utf-8 -*-
 import re
-import shutil
 import time
 from sys import platform, stderr
 import os
 import socket
 from datetime import datetime as dt
 from threading import Thread
-
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
 
 class Timer(Thread):
+    """
+    Custom timer that starts and counts down from an (interval) once
+    a unity log file has been updated, the counter resets if updated again.
 
+    The class itself does not handle observer and socket objects, it is used
+    as only a timer extending a thread object meaning it can only be ran once.
+    However, resetting the timer does not complete the thread just as the timer
+    reset cannot be ran after the thread has finished.
+    """
     def __init__(self, interval):
         Thread.__init__(self)
         self.max_num, self.current_num = interval, interval
         self.active = False
 
     def reset(self):
+        """ Reset the timer """
         self.current_num = self.max_num
 
     def run(self) -> None:
+        """ continue to countdown to 0 """
         self.active = True
         while self.current_num != 0:
             print(self.current_num)

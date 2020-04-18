@@ -18,7 +18,7 @@ class TestCommandLookup(unittest.TestCase):
         self.assertEqual(self.cmd_lo.lookup('get log', []), [])
 
         # test that all characters except numbers and letters are removed
-        self.assertEqual(self.cmd_lo.lookup('gET*(&^$\   LoG', []), [])
+        self.assertEqual(self.cmd_lo.lookup('gET   LoG', []), [])
 
         # test that non-letter/number characters except '?' work
         self.assertEqual(self.cmd_lo.lookup('?', []),
@@ -36,7 +36,7 @@ class TestCommandLookup(unittest.TestCase):
 
         # test that it returns an end of file message now that it has been created
         self.assertEqual(self.cmd_lo.lookup('get log --today', []),
-                         [{'text': f'\n{_timestamp}: end of file----\n'}])
+                         [{'text': f'{_timestamp}: end of file----\n'}])
 
         # test retrieval with specific dates and creates file
         self.assertEqual(self.cmd_lo.lookup('get log --01-01-2020', []),
@@ -44,11 +44,11 @@ class TestCommandLookup(unittest.TestCase):
 
         # test retrieval with specific dates after file creation
         self.assertEqual(self.cmd_lo.lookup('get log --01-01-2020', []),
-                         [{'text': f'\n{_timestamp}: end of file----\n'}])
+                         [{'text': f'{_timestamp}: end of file----\n'}])
 
         # test that '-' and '/' optionally both work
         self.assertEqual(self.cmd_lo.lookup('get log --01/01/2020', []),
-                         [{'text': f'\n{_timestamp}: end of file----\n'}])
+                         [{'text': f'{_timestamp}: end of file----\n'}])
 
 class TestCommandLookupClear(unittest.TestCase):
     """
