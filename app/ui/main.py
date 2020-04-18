@@ -9,16 +9,14 @@
 #  -    read from temporary log files
 #  -    delete temporary log files
 
-import kivy
-from kivy.clock import Clock
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.screenmanager import Screen, ScreenManager, NoTransition
-from kivy.uix.textinput import TextInput
+__title__ = 'Terminal Genie'
+__version__ = '1.0.0'
+__author__ = 'Elliot Charters, Sadeed Ahmad, Max Harvey, Samrat Kunwar, Nguyen Huy Hoang'
 
+import kivy
 kivy.require('1.11.1')
 
 from kivy.config import Config
-
 Config.set('graphics', 'width', '480')
 Config.set('graphics', 'height', '720')
 Config.set('graphics', 'minimum_width', '480')
@@ -26,18 +24,22 @@ Config.set('graphics', 'minimum_height', '720')
 Config.set('graphics', 'resizable', '1')
 Config.set('widgets', 'scroll_moves', '100')
 
-from app.transfer.server import Server
-from app.transfer.command_lookup import CommandLookup
-from kivymd.app import MDApp
-from kivy.core.window import Window
-from kivy.uix.widget import Widget
-from kivy.uix.recycleview import RecycleView
-from kivy.uix.image import Image
-from kivy.properties import NumericProperty, StringProperty
-from kivymd.uix.label import MDLabel
-from kivy.uix.button import ButtonBehavior, Button
 import time
 import threading
+from kivymd.app import MDApp
+from kivy.clock import Clock
+from kivy.uix.image import Image
+from kivy.uix.widget import Widget
+from kivy.core.window import Window
+from kivymd.uix.label import MDLabel
+from app.transfer.server import Server
+from kivy.uix.textinput import TextInput
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.recycleview import RecycleView
+from kivy.uix.button import ButtonBehavior, Button
+from app.transfer.command_lookup import CommandLookup
+from kivy.properties import NumericProperty, StringProperty
+from kivy.uix.screenmanager import Screen, ScreenManager, NoTransition
 
 
 # classes representing UI elements that need to be displayed
@@ -87,7 +89,7 @@ class DebugPanel(RecycleView, Server, CommandLookup):
         result to the debug panel
         """
         self.temp_data = self.lookup(command, self.data)
-        self.one_way_handler(5554, command)
+        self.one_way_handler(5554, f'kc:>{command}' if self.check(command) else f'uc:>{command}')
         self.scroll_y = 0
 
 
@@ -111,11 +113,12 @@ class DataCell(MDLabel): pass
 class MainApp(MDApp):
     """
     Main Application Window
-    - sets app configuration properties
-    - initialises all kivy elements onto canvas
-    - request a continuous/non-continuous socket attempt
-    - sends commands to debug panel to be processed
-    - request a clearing of console data
+    Purpose:
+        - sets app configuration properties
+        - initialises all kivy elements onto canvas
+        - request a continuous/non-continuous socket attempt
+        - sends commands to debug panel to be processed
+        - request a clearing of console data
     """
 
     title = "Terminal Genie"

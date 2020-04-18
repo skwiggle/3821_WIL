@@ -21,18 +21,19 @@ class Server:
     _temp_log_folder: str = './log'
     server_active: bool = False
     _stream_active: bool = False
-    _timestamp = lambda: dt.now().strftime("%I:%M%p")
+    _timestamp = lambda msg: f'{dt.now().strftime("%I:%M%p")}: {msg}'
     _timeout: float = 3600
     _verbose: bool = False
     DATA: Queue = Queue()
     local_msg: dict = {
-        'server_open': f'{_timestamp()}: established server',
-        'server_connect_failed': f'{_timestamp()}: failed to connect to the server',
-        'server_closed': f'{_timestamp()}: server closed',
-        'connection_established': f'{_timestamp()}: connection established',
-        'connection_closed': f'{_timestamp()}: failed to send message because no connection was found',
-        'timeout': f'{_timestamp()}: connection timed out',
-        'stream_active': f'{_timestamp()}: please wait until previous message has sent'
+        'server_open': _timestamp('established server'),
+        'server_connect_failed': _timestamp('failed to connect to the server'),
+        'server_closed': _timestamp('server closed'),
+        'connection_established': _timestamp('connection established'),
+        'connection_closed': _timestamp('failed to send message because no connection was found'),
+        'timeout': _timestamp('connection timed out'),
+        'stream_active': _timestamp('please wait until previous message has sent'),
+        'unity_log_empty': _timestamp('unity log file empty')
     }
 
     def __init__(self, temp_log_folder: str = './log',
@@ -90,11 +91,12 @@ class Server:
                     while True:
                         reply = client.recv(self._buffer).decode('utf-8')
                         if reply:
-                            if re.search('\[[\d]{2,2}:[\d]{2,2}(AM|PM)', reply):
+                            if re.search('[\d]{2,2}:[\d]{2,2}(AM|PM)', reply):
+                                print(reply)
                                 self.DATA.put(reply, block=True)
                                 temp_msg.put(reply, block=True)
-                            elif reply[:4] == 'tg:>':
-                                self.DATA.put(f'{reply[4:]}', block=True)
+                            elif reply == 'tg:>':
+                                self.DATA.put(self.local_msg['unity_log_empty'], block=True)
                             else:
                                 if reply == '--EOF':
                                     path = f'{self._temp_log_folder}/log-{dt.now().strftime("%d-%m-%Y")}.txt'
@@ -149,7 +151,6 @@ class Server:
                     for line in package:
                         sock.send(line.encode('utf-8'))
                     self._stream_active = False
-                    return True
         except WindowsError as error:
             self.DATA.put(self.local_msg['connection_closed'], block=True)
             if self._verbose:
@@ -157,7 +158,8 @@ class Server:
             print(self.local_msg['connection_closed'],
                   f'\n\t\t -> {error}' if self._verbose else '\n',
                   flush=True)
-        return False
+            return False
+        return True
 
     def test_connection(self, port: int) -> bool:
         try:
@@ -180,3 +182,8 @@ class Server:
 
 if __name__ == '__main__':
     s = Server()
+    t1 = Thread(target=s.two_way_handler, args=(1111,))
+    t1.start()
+    while True:
+        s.one_way_handler(1111, '_')
+        time.sleep(1)

@@ -1,10 +1,34 @@
 # -*- coding: utf-8 -*-
+import re
+import shutil
+import time
 from sys import platform, stderr
 import os
 import socket
 from datetime import datetime as dt
+from threading import Thread
+
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
+
+
+class Timer(Thread):
+
+    def __init__(self, interval):
+        Thread.__init__(self)
+        self.max_num, self.current_num = interval, interval
+        self.active = False
+
+    def reset(self):
+        self.current_num = self.max_num
+
+    def run(self) -> None:
+        self.active = True
+        while self.current_num != 0:
+            print(self.current_num)
+            time.sleep(1)
+            self.current_num -= 1
+        self.active = False
 
 
 class Terminal(FileSystemEventHandler):
@@ -19,16 +43,17 @@ class Terminal(FileSystemEventHandler):
     _timestamp = lambda msg: f'{dt.now().strftime("%I:%M%p")}: {msg}'
     _timeout: float = 3600
     _verbose: bool = False
+    _stream_delay: Timer = Timer(3)
     local_msg: dict = {
         'server_open': _timestamp('established server'),
         'server_connect_failed': _timestamp('failed to connect to the client'),
         'server_closed': _timestamp('server closed'),
         'connection_closed': _timestamp('failed to send message because no connection was found'),
         'timeout': _timestamp('connection timed out'),
-        'stream_active': _timestamp('please wait until previous message has sent'),
+        'stream_active': _timestamp("log file was updated while being sent, either wait for another update or "
+                                    "retrieve manually using \'get log\'"),
         'stream_complete': _timestamp('log file sent to client'),
         'path_not_exist': _timestamp('the path %s does not exist, please use an absolute path with file extension'),
-        'unity_log_empty': _timestamp('tg:>unity log file empty')
     }
 
     @staticmethod
@@ -62,13 +87,24 @@ class Terminal(FileSystemEventHandler):
             observer.stop()
 
     def on_modified(self, event):
-        log_path = self.log_path()
-        if os.stat(log_path).st_size == 0:
-            self.one_way_handler(5555, msg='tg:>unity log file empty')
-        else:
-            with open(log_path, 'r') as file:
-                self.one_way_handler(5555, package=[line.replace('\t', '') for line in file])
-            with open(log_path, 'w'): pass
+        if self._stream_delay.active and self._stream_active:
+            self._stream_delay.reset()
+        if not self._stream_delay.active and self._stream_active:
+            self._stream_delay = Timer(3)
+            self._stream_delay.start()
+            self._stream_delay()
+        elif not self._stream_delay.active and not self._stream_active:
+            if os.stat(event.src_path).st_size == 0:
+                print(self.local_msg['stream_complete'], flush=True)
+                self.one_way_handler(5555, f'tg:>')
+            else:
+                with open(event.src_path, 'r') as file:
+                    self.one_way_handler(5555, package=
+                        [line for line in file])
+                    self.one_way_handler(5555, msg='--EOF')
+                with open(event.src_path, 'w'): pass
+        elif self._stream_delay.active and not self._stream_active:
+            pass
 
     def _connectionBootstrap(func) -> ():
         """
@@ -111,18 +147,22 @@ class Terminal(FileSystemEventHandler):
                     while True:
                         reply = client.recv(self._buffer).decode('utf-8')
                         if reply:
-                            if reply.lower().replace(' ', '') == 'getlog':
-                                log_path = self.log_path()
-                                if os.stat(log_path).st_size == 0:
-                                    self.one_way_handler(5555, msg=self.local_msg['unity_log_empty'])
-                                    continue
-                                with open(log_path, 'r') as file:
-                                    self.one_way_handler(5555, package=
-                                    [line for line in file])
-                                    self.one_way_handler(5555, msg='--EOF')
-                                with open(log_path, 'w'): pass
-                                print(self.local_msg['stream_complete'], flush=True)
-                            print(reply)
+                            if reply[:4] == 'uc:>':
+                                print(reply[4:])
+                                self.one_way_handler(5555, 'tg:>unity log file empty')
+                                break
+                            elif reply[:4] == 'kc:>':
+                                if reply[4:] == 'get log':
+                                    log_path = self.log_path()
+                                    if os.stat(log_path).st_size == 0:
+                                        print(self.local_msg['stream_complete'], flush=True)
+                                        self.one_way_handler(5555, f'tg:>')
+                                        break
+                                    with open(log_path, 'r') as file:
+                                        self.one_way_handler(5555, package=
+                                        [line for line in file])
+                                        self.one_way_handler(5555, msg='--EOF')
+                                    with open(log_path, 'w'): pass
                             continue
                         break
             except (socket.timeout, WindowsError) as error:
