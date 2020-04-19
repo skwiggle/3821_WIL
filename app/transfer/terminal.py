@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 import re
-import time
-from sys import platform, stderr
 import os
-import socket
-from datetime import datetime as dt
-from threading import Thread
+from sys import platform, stderr
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
+from threading import Thread
+from datetime import datetime as dt
+import socket
+import time
 
 
 class Timer(Thread):
@@ -95,13 +95,28 @@ class Terminal(FileSystemEventHandler):
             observer.stop()
 
     def on_modified(self, event):
+        """
+        This function will run every time the unity log file is edited/modified in
+        any way including when unity decides to update it.
+
+        It will attempt to send the current log file before deleting the contents
+        of the local log file. A timed delay will prevent excessive updates at once
+        which would cause data loss and other issues to the log file.
+
+        :param event: event instance including file info and type of event
+        """
+        # if both timer and file are open, reset the timer
         if self._stream_delay.active and self._stream_active:
             self._stream_delay.reset()
-        if not self._stream_delay.active and self._stream_active:
+        # if no timer is running and the file is open, start a new timer
+        elif not self._stream_delay.active and self._stream_active:
             self._stream_delay = Timer(3)
             self._stream_delay.start()
             self._stream_delay()
+        # if neither timer nor file is open, send the log file to app
         elif not self._stream_delay.active and not self._stream_active:
+            # if log file is empty, send an error message, else,
+            # send each line of the log file
             if os.stat(event.src_path).st_size == 0:
                 print(self.local_msg['stream_complete'], flush=True)
                 self.one_way_handler(5555, f'tg:>')
@@ -111,8 +126,6 @@ class Terminal(FileSystemEventHandler):
                         [line for line in file])
                     self.one_way_handler(5555, msg='--EOF')
                 with open(event.src_path, 'w'): pass
-        elif self._stream_delay.active and not self._stream_active:
-            pass
 
     def _connectionBootstrap(func) -> ():
         """
@@ -150,15 +163,20 @@ class Terminal(FileSystemEventHandler):
         """
         while True:
             try:
+                # Continuously check for incoming clients waiting for request
                 client, address = sock.accept()
                 with client:
+                    # Continuously check for incoming messages
                     while True:
-                        reply = client.recv(self._buffer).decode('utf-8')
+                        reply = client.recv(self._buffer).decode('utf-8')   # received message
                         if reply:
+                            # print unknown command
                             if reply[:4] == 'uc:>':
                                 print(reply[4:])
                                 self.one_way_handler(5555, 'tg:>unity log file empty')
                                 break
+                            # do nothing if the command's known. If the command is
+                            # 'get log', send the log file to app
                             elif reply[:4] == 'kc:>':
                                 if reply[4:] == 'get log':
                                     log_path = self.log_path()
@@ -182,9 +200,9 @@ class Terminal(FileSystemEventHandler):
 
     def one_way_handler(self, port: int, msg: str = None, package: [str] = None) -> bool:
         """
-        Sends a message or an array of messages to server host.
+        Sends a message or an array of messages to application.
 
-        Should be used to send commands to the terminal or send the current
+        Should be used to receive commands from the app or send the current
         Unity debug log information to the application. Also displays error info.
 
         :param port: port number
@@ -195,10 +213,12 @@ class Terminal(FileSystemEventHandler):
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                 sock.connect((self._host, port))
                 self._stream_active = True
+                # send the message if message not blank
                 if msg:
                     sock.send(msg.encode('utf-8'))
                     self._stream_active = False
                     return True
+                # send a list of messages if package not blank
                 if package:
                     for line in package:
                         sock.send(line.encode('utf-8'))
