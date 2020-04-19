@@ -37,5 +37,6 @@ class TestTerminal(unittest.TestCase):
         self.assertEqual(self.t.log_path(True), f"C:/Users/{os.getlogin()}/AppData/Local/Unity/Editor/")
 
 
+
 if __name__ == '__main__':
     unittest.main()
