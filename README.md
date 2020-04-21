@@ -2,10 +2,10 @@
 A custom debugging program built for Android version 25.0 and higher to debug Unity projects.
 Comes with a remote terminal to run on windows/mac/linux.
 
-![Image](../3821_WIL/app/ui/screenshots/readme.png)
+![Image](./app/ui/screenshots/readme.png)
 
 ---
-#####App
+##### App
 The main application is run on android while the terminal is run from a computer. 
 The app will be used in conjunction with the terminal to check for Unity updates but also 
 comes with a list of commands to do operations manually. List of commands include:
@@ -21,7 +21,7 @@ comes with a list of commands to do operations manually. List of commands includ
 | __clear log --00-01-2000__ | *delete log from specific day*                           |
 
 ---
-#####Terminal
+##### Terminal
 The terminal can be run from windows/mac/linux and only prints out any commands sent via the main
 application. Commands that come with the terminal will be sent to the **terminal_log.txt** 
 file.
