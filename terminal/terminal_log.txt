@@ -1,1 +1,8 @@
-Tue Apr 21 11:56:00 2020: established server
+Tue Apr 21 22:26:16 2020: established server
+Tue Apr 21 22:26:16 2020: automatic unity log update, sending updated log files...
+Tue Apr 21 22:26:16 2020: automatic unity log update, sending updated log files...
+Tue Apr 21 22:26:16 2020: failed to send message because no connection was found 
+Tue Apr 21 22:26:16 2020: automatic unity log update, sending updated log files...
+Tue Apr 21 22:26:16 2020: log file sent to client
+Tue Apr 21 22:26:16 2020: failed to send message because no connection was found 
+		 -> [WinError 10061] No connection could be made because the target machine actively refused it
