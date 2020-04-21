@@ -61,7 +61,6 @@ class CommandLookup:
 
             # separate the command from it's parameters
             parameters = re.split('--', f'{fixed}--')
-            print(parameters)
             if parameters[0] == '?':
                 for line in self.command_list:
                     data.append({'text': line})

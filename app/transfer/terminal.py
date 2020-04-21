@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import re
 import os
 from sys import platform, stderr
 from watchdog.observers import Observer
@@ -8,6 +7,7 @@ from threading import Thread
 from datetime import datetime as dt
 import socket
 import time
+import re
 
 
 class Timer(Thread):
@@ -48,7 +48,7 @@ class Terminal(FileSystemEventHandler):
     _host: str = 'localhost'
     _buffer: int = 2048
     _stream_active: bool = False
-    _timestamp = lambda msg: f'{dt.now().strftime("%I:%M%p")}: {msg}'
+    _timestamp = lambda msg: f'{dt.now().strftime("%c")}: {msg}'
     _timeout: float = 3600
     _verbose: bool = False
     _stream_delay: Timer = Timer(3)
@@ -62,6 +62,7 @@ class Terminal(FileSystemEventHandler):
                                     "retrieve manually using \'get log\'"),
         'stream_complete': _timestamp('log file sent to client'),
         'path_not_exist': _timestamp('the path %s does not exist, please use an absolute path with file extension'),
+        'watchdog_update': _timestamp('automatic unity log update, sending updated log files...')
     }
 
     @staticmethod
@@ -81,12 +82,13 @@ class Terminal(FileSystemEventHandler):
             return f"~/.config/unity3d/{'' if observer else 'Editor.log'}"
         return 'none'
 
-    def __init__(self, unittest: bool = False):
+    def __init__(self, verbose: bool = True, unittest: bool = False):
         """
         Initialise the server class by creating an observer object to monitor
         for unity debug log file changes and start main server. Observer and program
         stop once server shuts down.
         """
+        self._verbose = verbose
         if not unittest:
             observer = Observer()
             observer.schedule(self, self.log_path(observer=True), False)
@@ -105,6 +107,9 @@ class Terminal(FileSystemEventHandler):
 
         :param event: event instance including file info and type of event
         """
+        with open('terminal_log.txt', 'a+') as file:
+            print(self.local_msg['watchdog_update'], file=file, flush=True)
+
         # if both timer and file are open, reset the timer
         if self._stream_delay.active and self._stream_active:
             self._stream_delay.reset()
@@ -118,7 +123,8 @@ class Terminal(FileSystemEventHandler):
             # if log file is empty, send an error message, else,
             # send each line of the log file
             if os.stat(event.src_path).st_size == 0:
-                print(self.local_msg['stream_complete'], flush=True)
+                with open('terminal_log.txt', 'a+') as file:
+                    print(self.local_msg['stream_complete'], file=file, flush=True)
                 self.one_way_handler(5555, f'tg:>')
             else:
                 with open(event.src_path, 'r') as file:
@@ -140,14 +146,13 @@ class Terminal(FileSystemEventHandler):
                 s.settimeout(self._timeout)
                 s.bind((self._host, port))
                 s.listen()
-                print(self.local_msg['server_open'])
                 try:
                     func(self, port, s)
                 except socket.timeout as error:
-                    print(self.local_msg['timeout'],
-                          end=f'\n\t\t -> {error}\n' if self._verbose else '\n',
-                          flush=True)
-            exit(0)
+                    with open('terminal_log.txt', 'a+') as file:
+                        print(self.local_msg['timeout'],
+                              end=f'\n\t\t -> {error}\n' if self._verbose else '\n',
+                              file=file, flush=True)
         return _wrapper
 
     @_connectionBootstrap
@@ -161,6 +166,9 @@ class Terminal(FileSystemEventHandler):
         :param port: port number
         :param sock: parent socket
         """
+        with open('terminal_log.txt', 'a+') as file:
+            print(self.local_msg['server_open'], file=file, flush=True)
+
         while True:
             try:
                 # Continuously check for incoming clients waiting for request
@@ -172,31 +180,33 @@ class Terminal(FileSystemEventHandler):
                         if reply:
                             # print unknown command
                             if reply[:4] == 'uc:>':
-                                print(reply[4:])
+                                print(reply[4:], flush=True)
                                 self.one_way_handler(5555, 'tg:>unity log file empty')
                                 break
-                            # do nothing if the command's known. If the command is
-                            # 'get log', send the log file to app
+                            # do nothing if the command is valid. If the command is
+                            # 'get log', send it to app
                             elif reply[:4] == 'kc:>':
                                 if reply[4:] == 'get log':
                                     log_path = self.log_path()
                                     if os.stat(log_path).st_size == 0:
-                                        print(self.local_msg['stream_complete'], flush=True)
+                                        with open('terminal_log.txt', 'a+') as file:
+                                            print(self.local_msg['stream_complete'], file=file, flush=True)
                                         self.one_way_handler(5555, f'tg:>')
                                         break
                                     with open(log_path, 'r') as file:
-                                        self.one_way_handler(5555, package=
-                                        [line for line in file])
+                                        self.one_way_handler(5555, package=[line for line in file])
                                         self.one_way_handler(5555, msg='--EOF')
                                     with open(log_path, 'w'): pass
                             continue
                         break
             except (socket.timeout, WindowsError) as error:
-                print(self.local_msg['timeout'],
-                      f'\n\t\t -> {error}\n' if self._verbose else '\n',
-                      flush=True)
+                with open('terminal_log.txt', 'a+') as file:
+                    print(self.local_msg['timeout'],
+                          f'\n\t\t -> {error}\n' if self._verbose else '\n',
+                          file=file, flush=True)
                 break
-        print(self.local_msg['server_closed'])
+        with open('terminal_log.txt', 'a+') as file:
+            print(self.local_msg['server_closed'], file=file, flush=True)
 
     def one_way_handler(self, port: int, msg: str = None, package: [str] = None) -> bool:
         """
@@ -226,9 +236,10 @@ class Terminal(FileSystemEventHandler):
                     self._stream_active = False
                     return True
         except WindowsError as error:
-            print(self.local_msg['connection_closed'],
-                  f'\n\t\t -> {error}' if self._verbose else '\n',
-                  flush=True)
+            with open('terminal_log.txt', 'a+') as file:
+                print(self.local_msg['connection_closed'],
+                      f'\n\t\t -> {error}' if self._verbose else '\n',
+                      file=file, flush=True)
         return False
 
 
