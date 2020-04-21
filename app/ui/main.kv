@@ -16,15 +16,26 @@
     source: './icon/reconnect/reconnect_btn_256x256.png'
     on_press: app.reconnect()
 
-<DebugPanelFocused@RecycleView>:
-    viewclass: 'DataCell'
+<DebugLayerFocused@BoxLayout>:
     canvas.before:
         Color:
             rgba: (0, 0, 0, 1)  # log screen background color
         RoundedRectangle:
             radius: [60, 60, 60, 60]
-            size: root.size
+            size: root.width, Window.height*.38
             pos: root.pos
+
+<DebugLayer@BoxLayout>:
+    canvas.before:
+        Color:
+            rgba: (0, 0, 0, 1)  # log screen background color
+        RoundedRectangle:
+            radius: [60, 60, 60, 60]
+            size: root.width, Window.height*.445
+            pos: root.pos
+
+<DebugPanelFocused@RecycleView>:
+    viewclass: 'DataCell'
     RecycleGridLayout:
         orientation: 'vertical'
         cols: 1
@@ -36,13 +47,6 @@
 
 <DebugPanel@RecycleView>:
     viewclass: 'DataCell'
-    canvas.before:
-        Color:
-            rgba: (0, 0, 0, 1)  # log screen background color
-        RoundedRectangle:
-            radius: [60, 60, 60, 60]
-            size: root.size
-            pos: root.pos
     RecycleGridLayout:
         orientation: 'vertical'
         cols: 1
@@ -126,9 +130,12 @@
             Widget:
                 id: spacer
                 size_hint_y: .14
-            DebugPanel:
-                id: debug_panel
+            DebugLayer:
+                id: debug_layer
                 size_hint_y: .445
+                padding: [10, 20, 20, 20]
+                DebugPanel:
+                    id: debug_panel
             BoxLayout:
                 id: reconnect_layout
                 cols: 2
@@ -184,9 +191,12 @@
         orientation: 'vertical'
         size_hint: 1, 1
         padding: [20, 20, 20, 20]
-        DebugPanelFocused:
-            id: debug_panel_focused
+        DebugLayerFocused:
+            id: debug_layer_focused
             size_hint_y: .38
+            padding: [10, 20, 20, 20]
+            DebugPanelFocused:
+                id: debug_panel_focused
         Widget:
             size_hint_y: .03
         BoxLayout:
