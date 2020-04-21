@@ -14,9 +14,11 @@ __version__ = '1.0.0'
 __author__ = 'Elliot Charters, Sadeed Ahmad, Max Harvey, Samrat Kunwar, Nguyen Huy Hoang'
 
 import kivy
+
 kivy.require('1.11.1')
 
 from kivy.config import Config
+
 Config.set('graphics', 'width', '480')
 Config.set('graphics', 'height', '720')
 Config.set('graphics', 'minimum_width', '480')
@@ -45,6 +47,8 @@ from kivy.uix.screenmanager import Screen, ScreenManager, NoTransition
 # classes representing UI elements that need to be displayed
 # in main.py in order to work
 class DebugPanelFocused(RecycleView): pass
+
+
 class DebugPanel(RecycleView, Server, CommandLookup):
     temp_data: [set] = [{'text': 'type ? for a list of commands'}]  # temporary data stored before updating
 
@@ -83,6 +87,9 @@ class DebugPanel(RecycleView, Server, CommandLookup):
             while not self.DATA.empty():
                 self.temp_data.append({'text': self.DATA.get_nowait()})
             self.data = self.temp_data
+            if self.scroll_down:
+                self.scroll_y = 0
+                self.scroll_down = False
             time.sleep(2)
 
     def send_command(self, command: str):
@@ -99,16 +106,32 @@ class AppManager(ScreenManager):
     def __init__(self, **kwargs):
         super(AppManager, self).__init__(**kwargs)
         self.transition = NoTransition()
+
+
 class MainScreen(Screen): pass
+
+
 class InputFocusedScreen(Screen):
     def on_enter(self, *args):
         # focus on the input box after screen change
         self.children[0].children[1].children[0].children[0].focus = True
+
+
 class ReconnectBtn(ButtonBehavior, Image): pass
+
+
 class ClearBtn(Button): pass
+
+
 class SendBtn(Button): pass
+
+
 class Input(Widget): pass
+
+
 class Content(TextInput): pass
+
+
 class DataCell(MDLabel): pass
 
 

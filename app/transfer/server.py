@@ -2,7 +2,6 @@
 import os
 import re
 import time
-from sys import stderr, stdout, platform
 import socket
 from threading import Thread
 from datetime import datetime as dt
@@ -24,7 +23,9 @@ class Server:
     _timestamp = lambda msg: f'{dt.now().strftime("%I:%M%p")}: {msg}'
     _timeout: float = 3600
     _verbose: bool = False
+    scroll_down: bool = False
     DATA: Queue = Queue()
+    # noinspection PyArgumentList
     local_msg: dict = {
         'server_open': _timestamp('established server'),
         'server_connect_failed': _timestamp('failed to connect to the server'),
@@ -42,6 +43,7 @@ class Server:
         self._timeout = timeout
         self._verbose = verbose
 
+    # noinspection PyMethodParameters
     def _connectionBootstrap(func) -> ():
         """
         Wrapper in charge of initialising and stopping a socket correctly
@@ -50,14 +52,16 @@ class Server:
 
         :param func: handler function that should extend the wrapper
         """
+
+        # noinspection PyCallingNonCallable,PyUnusedLocal
         def _wrapper(self, port: int, sock: socket.socket = None):
             try:
-                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                    s.settimeout(self._timeout)
-                    s.bind((self._host, port))
-                    s.listen()
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as ws:
+                    ws.settimeout(self._timeout)
+                    ws.bind((self._host, port))
+                    ws.listen()
                     try:
-                        func(self, port, s)
+                        func(self, port, ws)
                     except (socket.timeout, WindowsError) as error:
                         self.DATA.put(self.local_msg['timeout'])
                         if self._verbose:
@@ -68,6 +72,7 @@ class Server:
             except OSError as error:
                 if self._verbose:
                     self.DATA.put(f'---> {error}')
+
         return _wrapper
 
     @_connectionBootstrap
@@ -91,28 +96,27 @@ class Server:
                     while True:
                         reply = client.recv(self._buffer).decode('utf-8')
                         if reply:
-                            if re.search('[\d]{2,2}:[\d]{2,2}(AM|PM)', reply):
-                                print(reply)
+                            if re.search("[\d]{2}:[\d]{2}(AM|PM)", reply):
                                 self.DATA.put(reply, block=True)
                                 temp_msg.put(reply, block=True)
                             elif reply == 'tg:>':
                                 self.DATA.put(self.local_msg['unity_log_empty'], block=True)
                             else:
-                                if reply == '--EOF':
+                                if '--EOF' in reply:
                                     path = f'{self._temp_log_folder}/log-{dt.now().strftime("%d-%m-%Y")}.txt'
                                     if os.path.exists(path):
                                         with open(path, 'a+') as file:
                                             while not temp_msg.empty():
                                                 line = temp_msg.get(block=True)
                                                 file.write(line)
-                                                self.DATA.put(line, block=True)
-                                                print(line)
+                                                self.DATA.put(line.replace('\n', ''), block=True)
+                                            self.scroll_down = True
                                     else:
                                         with open(path, 'w+') as file:
                                             while not temp_msg.empty():
                                                 file.write(temp_msg.get(block=True))
                                             for line in file:
-                                                self.DATA.put(line, block=True)
+                                                self.DATA.put(line.replace('\n', ''), block=True)
                                 else:
                                     temp_msg.put(reply, block=True)
                             continue
@@ -165,6 +169,7 @@ class Server:
         return False
 
     def test_connection(self, port: int) -> bool:
+        """ Test the connection to terminal """
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                 sock.setblocking(False)
