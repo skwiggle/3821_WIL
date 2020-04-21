@@ -29,7 +29,7 @@ file.
 The following command can be used with either batch or windows to pipe data
 from the terminal:
 ```shell script
-terminal.exe > some_other_file
+terminal_genie.exe > some_other_file
 ```
 
 ---
