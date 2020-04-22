@@ -84,13 +84,17 @@ class DebugPanel(RecycleView, Server, CommandLookup):
         debug screen should automatically update.
         """
         while True:
+            counter: int = 0
             while not self.DATA.empty():
-                self.temp_data.append({'text': self.DATA.get_nowait()})
+                self.temp_data.append({'text': self.DATA.get(block=True)})
+                counter += 1
+                if counter % 500 == 0:
+                    time.sleep(0.25)
             self.data = self.temp_data
             if self.scroll_down:
                 self.scroll_y = 0
                 self.scroll_down = False
-            time.sleep(2)
+            time.sleep(1)
 
     def send_command(self, command: str):
         """
@@ -180,6 +184,7 @@ class MainApp(MDApp):
         else:
             self.debug_data = self.root.get_screen('main').ids['debug_panel'].data
             self.root.current = 'input_focused'
+            self.root.get_screen('input_focused').ids['debug_panel_focused'].scroll_y = 0
             self.is_focused = True
 
 

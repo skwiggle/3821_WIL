@@ -75,6 +75,7 @@ class Server:
 
         return _wrapper
 
+    # noinspection PyUnusedLocal
     @_connectionBootstrap
     def two_way_handler(self, port: int, sock: socket.socket = None):
         """
@@ -94,7 +95,7 @@ class Server:
                 client, address = sock.accept()
                 with client:
                     while True:
-                        reply = client.recv(self._buffer).decode('utf-8')
+                        reply: str = client.recv(self._buffer).decode('utf-8')
                         if reply:
                             if re.search("[\d]{2}:[\d]{2}(AM|PM)", reply):
                                 self.DATA.put(reply, block=True)

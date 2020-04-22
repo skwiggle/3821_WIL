@@ -99,9 +99,9 @@ class IsolatedSender:
                 contents = [line for line in file]
                 contents.append('--EOF')
                 self.one_way_handler(5555, package=contents)
+            os.remove(temp)
             with open(re.sub('temp-', '', log_path(self.temp_log_name)), 'w'):
                 pass
-            os.remove(temp)
             return True
         except Exception as error:
             with open('terminal_log.txt', 'a+') as file:
@@ -137,13 +137,16 @@ class Timer(Thread, IsolatedSender):
     def run(self) -> None:
         """ continue to countdown to 0 """
         self.active = True
-        while self.current_num != 0:
-            print(f'will send in: {self.current_num} seconds')
-            time.sleep(1)
-            self.current_num -= 1
-        self.clear_temp_log()
-        self.active = False
-        print(f"{dt.now().strftime('%c')}: ready to send log", flush=True)
+        with open('terminal_log.txt', 'a+') as file:
+            while self.current_num != 0:
+                print(f'will send in: {self.current_num} seconds',
+                      file=file, flush=True)
+                time.sleep(1)
+                self.current_num -= 1
+            self.clear_temp_log()
+            self.active = False
+            print(f"{dt.now().strftime('%c')}: ready to send log",
+                  file=file, flush=True)
 
 
 # noinspection PyUnusedLocal
@@ -158,6 +161,7 @@ class Terminal(FileSystemEventHandler):
     _timeout: float = 3600
     _verbose: bool = False
     _stream_delay: Timer = None
+    _modifying: bool = False
 
     def __init__(self, verbose: bool = True, unittest: bool = False):
         """
@@ -184,15 +188,11 @@ class Terminal(FileSystemEventHandler):
 
         :param event: event instance including file info and type of event
         """
+        if self._modifying: return None
+        else: self._modifying = True
 
         with open('terminal_log.txt', 'a+') as file:
             print(local_msg['watchdog_update'], file=file, flush=True)
-
-        def send(path):
-            with open(path, 'r') as log:
-                contents = [line for line in log]
-                contents.append('--EOF')
-                self.one_way_handler(5555, package=contents)
 
         if not os.path.exists(event.src_path): return None
         if os.stat(event.src_path).st_size == 0:
@@ -215,12 +215,11 @@ class Terminal(FileSystemEventHandler):
                 self._stream_delay.start()
             elif os.path.exists(temp) and self._stream_delay.active:
                 self._stream_delay.reset()
-            elif not os.path.exists(temp) and self._stream_delay.active:
-                pass
             elif not os.path.exists(temp) and not self._stream_delay.active:
                 shutil.copyfile(event.src_path, temp)
                 self._stream_delay = Timer(3, temp_name_only)
                 self._stream_delay.start()
+        self._modifying = False
 
     # noinspection PyMethodParameters
     def _connectionBootstrap(func) -> ():
@@ -287,7 +286,10 @@ class Terminal(FileSystemEventHandler):
                                         self.one_way_handler(5555, f'tg:>')
                                         break
                                     with open(log_pth, 'r') as file:
-                                        self.one_way_handler(5555, package=[line for line in file])
+                                        contents = [line for line in file]
+                                        contents = contents[1000:] if len(contents) > 2000 else contents
+                                        contents.append('--EOF')
+                                        self.one_way_handler(5555, package=contents)
                                         self.one_way_handler(5555, msg='--EOF')
                                     with open(log_pth, 'w'):
                                         pass

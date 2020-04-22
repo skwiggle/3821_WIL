@@ -91,7 +91,8 @@ class CommandLookup:
             file_path = f"{self._directory}/log-{dt.now().strftime('%d-%m-%Y')}.txt"
             if os.path.exists(file_path):
                 with open(f"{self._directory}/log-{dt.now().strftime('%d-%m-%Y')}.txt", 'r+') as file:
-                    for line in file:
+                    for count, line in enumerate(file):
+                        if count > 1500: break
                         yield {'text': line}
                 yield {'text': _timestamp('end of file----\n')}
             else:
@@ -104,7 +105,8 @@ class CommandLookup:
             file_path = f"{self._directory}/log-{parameters[1]}.txt"
             if os.path.exists(file_path):
                 with open(file_path, 'r+') as file:
-                    for line in file:
+                    for count, line in enumerate(file):
+                        if count > 1500: break
                         yield {'text': line}
                     yield {'text': _timestamp('end of file----\n')}
             else:
