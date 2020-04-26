@@ -27,7 +27,8 @@ class Server:
         'connection_closed': _timestamp('failed to send message because no connection was found'),
         'timeout': _timestamp('connection timed out'),
         'stream_active': _timestamp('please wait until previous message has sent'),
-        'unity_log_empty': _timestamp('unity log file empty')
+        'unity_log_empty': _timestamp('unity log file empty'),
+        'unknown': 'unknown error, please restart terminal'
     }
 
     def __init__(self, temp_log_folder: str = './log',
@@ -63,7 +64,7 @@ class Server:
                 try:
                     func(self, port, ws)
                 except Exception as error:
-                    self.DATA.put(self.local_msg['timeout'])
+                    self.DATA.put(self.local_msg['unknown'])
                     if self._verbose:
                         self.DATA.put(f'---> {error}')
             self.DATA.put('server closed')
@@ -86,38 +87,42 @@ class Server:
 
         # Continuously check for incoming clients waiting for request
         while True:
-            client, address = sock.accept()
-            with client:
-                # Continuously check for incoming messages
-                while True:
-                    reply: str = client.recv(self._buffer).decode('utf-8')
-                    if reply:
-                        if re.search("[\d]{2}:[\d]{2}(AM|PM)", reply):
-                            self.DATA.put(reply, block=True)
-                            temp_msg.put(reply, block=True)
-                        elif reply == 'tg:>':
-                            self.DATA.put(self.local_msg['unity_log_empty'], block=True)
-                        else:
-                            if '--EOF' in reply:
-                                path = f'{self._temp_log_folder}/log-{dt.now().strftime("%d-%m-%Y")}.txt'
-                                if os.path.exists(path):
-                                    with open(path, 'a+') as file:
-                                        while not temp_msg.empty():
-                                            line = temp_msg.get(block=True)
-                                            file.write(line)
-                                            self.DATA.put(line.replace('\n', ''), block=True)
-                                        self.scroll_down = True
-                                else:
-                                    with open(path, 'w+') as file:
-                                        while not temp_msg.empty():
-                                            file.write(temp_msg.get(block=True))
-                                        for line in file:
-                                            self.DATA.put(line.replace('\n', ''), block=True)
-                            else:
+            try:
+                client, address = sock.accept()
+                with client:
+                    # Continuously check for incoming messages
+                    while True:
+                        reply: str = client.recv(self._buffer).decode('utf-8')
+                        if reply:
+                            if re.search("[\d]{2}:[\d]{2}(AM|PM)", reply):
+                                self.DATA.put(reply, block=True)
                                 temp_msg.put(reply, block=True)
-                        continue
-                    break
-                break
+                            elif reply == 'tg:>':
+                                self.DATA.put(self.local_msg['unity_log_empty'], block=True)
+                            else:
+                                if '--EOF' in reply:
+                                    path = f'{self._temp_log_folder}/log-{dt.now().strftime("%d-%m-%Y")}.txt'
+                                    if os.path.exists(path):
+                                        with open(path, 'a+') as file:
+                                            while not temp_msg.empty():
+                                                line = temp_msg.get(block=True)
+                                                file.write(line)
+                                                self.DATA.put(line.replace('\n', ''), block=True)
+                                            self.scroll_down = True
+                                    else:
+                                        with open(path, 'w+') as file:
+                                            while not temp_msg.empty():
+                                                file.write(temp_msg.get(block=True))
+                                            for line in file:
+                                                self.DATA.put(line.replace('\n', ''), block=True)
+                                else:
+                                    temp_msg.put(reply, block=True)
+                            continue
+                        break
+            except Exception as error:
+                self.DATA.put(self.local_msg['timeout'])
+                if self._verbose:
+                    self.DATA.put(f'---> {error}')
 
     def one_way_handler(self, port: int, msg: str = None, package: [str] = None) -> bool:
         """

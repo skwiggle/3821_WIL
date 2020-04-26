@@ -14,8 +14,9 @@ import re
 # noinspection PyArgumentList
 log_file_names: set = {'Editor.log', 'Editor_prev.log', 'upm.log'}
 local_msg: dict = {
-    'connection_closed': 'failed to send message because no connection was found',
-    'timeout': 'connection timed out',
+    'connection_closed': 'failed to send message because no connection was found%s',
+    'timeout': 'connection timed out%s',
+    'unknown': 'unknown error, please restart terminal%s'
 }
 logging.basicConfig(
     filemode='a+',
@@ -129,7 +130,6 @@ class Timer(Thread):
         """ continue to countdown to 0 """
         self.active = True
         sender = IsolatedSender(self._temp_log_name, self._verbose)
-
         while self._current_num != 0:
             logger.info(f'will send in: {self._current_num} seconds')
             time.sleep(1)
@@ -185,11 +185,9 @@ class Terminal(FileSystemEventHandler):
         else:
             self._modifying = True
 
-        with open('terminal_log.txt', 'a+') as file:
-            logger.warning('automatic unity log update, sending updated log files...')
-
+        logger.warning('automatic unity log update, sending updated log files...')
         if not os.path.exists(event.src_path):
-            logger.error('something went wrong, path from automatic update no longer exists')
+            logger.error('something went wrong, path from automatic log update no longer exists')
             return None
 
         if os.stat(event.src_path).st_size == 0:
@@ -241,7 +239,7 @@ class Terminal(FileSystemEventHandler):
                 try:
                     func(self, port, s)
                 except Exception as error:
-                    logger.critical(local_msg['timeout'] % error_msg(error, self._verbose))
+                    logger.critical(local_msg['unknown'] % error_msg(error, self._verbose))
             logger.critical('server closed')
         return _wrapper
 
@@ -260,36 +258,40 @@ class Terminal(FileSystemEventHandler):
 
         # Continuously check for incoming clients waiting for request
         while True:
-            client, address = sock.accept()
-            with client:
-                # Continuously check for incoming messages
-                while True:
-                    reply = client.recv(self._buffer).decode('utf-8')  # received message
-                    if reply:
-                        # print unknown command
-                        if reply[:4] == 'uc:>':
-                            print(reply[4:], flush=True)
-                            self.one_way_handler(5555, 'tg:>unity log file empty')
-                            break
-                        # do nothing if the command is valid. If the command is
-                        # 'get log', send it to app
-                        elif reply[:4] == 'kc:>':
-                            if reply[4:] == 'get log':
-                                log_pth = log_path()
-                                if os.stat(log_pth).st_size == 0:
-                                    logger.info(f'{log_pth} is empty, alerting application')
-                                    self.one_way_handler(5555, f'tg:>')
-                                    break
-                                with open(log_pth, 'r') as file:
-                                    logger.info(f'sending contents of {log_pth} to application...')
-                                    self.one_way_handler(5555, package=[line for line in file])
-                                with open(log_pth, 'w'):
-                                    pass
-                                logger.debug(f'{log_pth} cleared')
-                        logger.debug('message(s) sent')
-                        continue
-                    break
-                break
+            try:
+                client, address = sock.accept()
+                with client:
+                    # Continuously check for incoming messages
+                    while True:
+                        reply = client.recv(self._buffer).decode('utf-8')  # received message
+                        if reply:
+                            # print unknown command
+                            if reply[:4] == 'uc:>':
+                                self.one_way_handler(5555, 'tg:>unity log file empty')
+                                break
+                            # do nothing if the command is valid. If the command is
+                            # 'get log', send it to app
+                            elif reply[:4] == 'kc:>':
+                                if reply[4:] == 'get log':
+                                    log_pth = log_path()
+                                    if os.stat(log_pth).st_size == 0:
+                                        logger.warning(f'{log_pth} is empty, alerting application')
+                                        self.one_way_handler(5555, f'tg:>')
+                                        logger.info('message sent')
+                                    else:
+                                        with open(log_pth, 'r') as file:
+                                            logger.info(f'sending contents of {log_pth} to application...')
+                                            self.one_way_handler(5555, package=[line for line in file])
+                                            logger.info('package sent')
+                                        with open(log_pth, 'w'):
+                                            pass
+                                        logger.debug(f'{log_pth} cleared')
+                                else:
+                                    logger.info(f'command executed: \'{reply[4:]}\'')
+                            continue
+                        break
+            except Exception as error:
+                logger.error(local_msg['timeout'] % error_msg(error, self._verbose))
 
     def one_way_handler(self, port: int, msg: str = None, package: [str] = None) -> bool:
         """
@@ -322,4 +324,4 @@ class Terminal(FileSystemEventHandler):
 
 
 if __name__ == '__main__':
-    t = Terminal()
+    t = Terminal(verbose=True)
