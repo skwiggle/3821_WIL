@@ -1,5 +1,0 @@
-Wed Apr 22 09:41:58 2020: established server
-Wed Apr 22 09:51:01 2020: established server
-Wed Apr 22 09:51:01 2020: automatic unity log update, sending updated log files...
-Wed Apr 22 09:51:01 2020: log file sent to client
-Wed Apr 22 09:51:01 2020: log file sent to client
