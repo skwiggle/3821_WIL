@@ -3,7 +3,6 @@ import os
 import re
 import time
 import socket
-import logging
 from threading import Thread
 from datetime import datetime as dt
 from queue import Queue
@@ -39,7 +38,7 @@ class Server:
         self.server_active: bool = False
         self._stream_active: bool = False
         self.scroll_down: bool = False
-        self.DATA: Queue = Queue()
+        self.DATA: Queue = Queue(2000)
         self._temp_log_folder = temp_log_folder
         self._timeout = timeout
         self._verbose = verbose

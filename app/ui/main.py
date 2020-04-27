@@ -84,12 +84,8 @@ class DebugPanel(RecycleView, Server, CommandLookup):
         debug screen should automatically update.
         """
         while True:
-            counter: int = 0
             while not self.DATA.empty():
                 self.temp_data.append({'text': self.DATA.get(block=True)})
-                counter += 1
-                if counter % 500 == 0:
-                    time.sleep(0.25)
             self.data = self.temp_data
             if self.scroll_down:
                 self.scroll_y = 0
