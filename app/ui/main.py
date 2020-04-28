@@ -84,12 +84,15 @@ class DebugPanel(RecycleView, Server, CommandLookup):
         debug screen should automatically update.
         """
         while True:
-            while not self.DATA.empty():
-                self.temp_data.append({'text': self.DATA.get(block=True)})
-            self.data = self.temp_data
-            if self.scroll_down:
-                self.scroll_y = 0
-                self.scroll_down = False
+            if not self.DATA.empty():
+                while not self.DATA.empty():
+                    self.temp_data.append({'text': self.DATA.get(block=True)})
+                self.data = self.temp_data
+                if self.scroll_down:
+                    self.scroll_y = 0
+                    self.scroll_down = False
+                if len(self.temp_data) > 2000:
+                    self.temp_data.append({'text': 'Debug Info is getting too long, clearing screen recommended'})
             time.sleep(1)
 
     def send_command(self, command: str):
