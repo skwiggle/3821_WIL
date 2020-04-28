@@ -24,6 +24,7 @@ Config.set('graphics', 'height', '720')
 Config.set('graphics', 'minimum_width', '480')
 Config.set('graphics', 'minimum_height', '720')
 Config.set('graphics', 'resizable', '1')
+Config.set('graphics', 'borderless', '0')
 Config.set('widgets', 'scroll_moves', '100')
 
 import time
@@ -114,7 +115,6 @@ class MainScreen(Screen): pass
 
 class InputFocusedScreen(Screen):
     def on_enter(self, *args):
-        # focus on the input box after screen change
         self.children[0].children[1].children[0].children[0].focus = True
 
 

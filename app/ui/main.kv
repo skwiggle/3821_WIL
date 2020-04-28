@@ -21,8 +21,8 @@
         Color:
             rgba: (0, 0, 0, 1)  # log screen background color
         RoundedRectangle:
-            radius: [60, 60, 60, 60]
-            size: root.width, Window.height*.38
+            radius: [25, 25, 25, 25]
+            size: root.width, Window.height*.25
             pos: root.pos
 
 <DebugLayer@BoxLayout>:
@@ -30,7 +30,7 @@
         Color:
             rgba: (0, 0, 0, 1)  # log screen background color
         RoundedRectangle:
-            radius: [60, 60, 60, 60]
+            radius: [25, 25, 25, 25]
             size: root.width, Window.height*.445
             pos: root.pos
 
@@ -64,32 +64,32 @@
     text_color: [0, 0.68, 0, 1]
 
 <ClearBtn>:
-    text: "[color=#FFFFFF][size=20sp]Clear[/size][/color]"
+    text: "[color=#FFFFFF][size=22px][b]Clear[/b][/size][/color]"
     markup: True
     background_color: 0, 0, 0, 0
-    size_hint_x: .7
+    size_hint_x: .98
     height: Window.height*0.089
     on_press: app.clear_content()
     canvas.before:
         Color:
             rgba: .91, 0, .46, 1
         RoundedRectangle:
-            radius: [self.size[1]/2, self.size[1]/2, self.size[1]/2, self.size[1]/2]
+            radius: [self.size[1]/5, self.size[1]/5, self.size[1]/5, self.size[1]/5]
             size: self.size
             pos: self.pos
 
 <SendBtn>:
-    text: "[color=#FFFFFF][size=20sp]Send[/size][/color]"
+    text: "[color=#FFFFFF][size=22px][b]Send[/b][/size][/color]"
     markup: True
     background_color: 0, 0, 0, 0
-    size_hint_x: .7
+    size_hint_x: .98
     height: Window.height*0.089
     on_press: app.send_command()
     canvas.before:
         Color:
             rgba: .26, .73, .81, 1
         RoundedRectangle:
-            radius: [self.size[1]/2, self.size[1]/2, self.size[1]/2, self.size[1]/2]
+            radius: [self.size[1]/5, self.size[1]/5, self.size[1]/5, self.size[1]/5]
             size: self.size
             pos: self.pos
 
@@ -98,12 +98,13 @@
         Color:
             rgba: .17, .59, .8, 1
         RoundedRectangle:
-            radius: [self.height/2, self.height/2, self.height/2, self.height/2]
+            radius: [self.height/5, self.height/5, self.height/5, self.height/5]
             size: root.size
             pos: root.pos
 
 <Content@TextInput>:
-    font_size: sp(20)
+    font_size: '24px'
+    bold: True
     foreground_color: 1, 1, 1, 1
     background_color: 0, 0, 0, 0
     multiline: False
@@ -112,71 +113,66 @@
 <MainScreen@Screen>:
     name: 'main'
     on_enter: self.ids['cmd_input'].text = app.cmd_text
-    Widget:
-        id: main_widget
-        size: Window.size
-        Image:
-            id: background
-            allow_stretch: True
-            keep_ratio: False
+    canvas.before:
+        Rectangle:
             source: './icon/background/background_full.png'
-            size: root.width, root.height
-            pos: root.pos
+            size: Window.size
+            pos: (0, 0)
+    BoxLayout:
+        id: body
+        orientation: 'vertical'
+        size: Window.size
+        padding: [20, 0, 20, 0]
+        Widget:
+            id: spacer
+            size_hint_y: .14
+        DebugLayer:
+            id: debug_layer
+            size_hint_y: .445
+            padding: [0, 5, 0, 5]
+            DebugPanel:
+                id: debug_panel
         BoxLayout:
-            id: body
+            id: reconnect_layout
+            cols: 2
+            size_hint_x: None
+            size_hint_y: .082
+            ReconnectBtn:
+                id: reconnect_btn
+                size_hint_y: .6
+                pos_hint: {'center_y': .5, 'x': 0}
+        BoxLayout:
+            id: input_layout
             orientation: 'vertical'
-            size: root.size
-            padding: [20, 0, 20, 0]
+            size_hint_y: .333
+            Input:
+                id: input_box
+                size_hint_y: .31
+                Content:
+                    id: cmd_input
+                    size: (input_box.width-40, input_box.height)
+                    pos_hint: {'center_x': .5}
+                    pos: (input_box.pos[0]+20, input_box.pos[1]-(input_box.height/2)+20)
             Widget:
-                id: spacer
-                size_hint_y: .14
-            DebugLayer:
-                id: debug_layer
-                size_hint_y: .445
-                padding: [10, 20, 20, 20]
-                DebugPanel:
-                    id: debug_panel
-            BoxLayout:
-                id: reconnect_layout
+                size_hint_y: .16
+            GridLayout:
+                id: button_layout
                 cols: 2
-                size_hint_x: None
-                size_hint_y: .082
-                ReconnectBtn:
-                    id: reconnect_btn
-                    size_hint_y: .6
-                    pos_hint: {'center_y': .5, 'x': 0}
-            BoxLayout:
-                id: input_layout
-                orientation: 'vertical'
-                size_hint_y: .333
-                Input:
-                    id: input_box
-                    size_hint_y: .31
-                    Content:
-                        id: cmd_input
-                        size: (input_box.width-40, input_box.height)
-                        pos_hint: {'center_x': .5}
-                        pos: (input_box.pos[0]+20, input_box.pos[1]-(input_box.height/2)+20)
-                Widget:
-                    size_hint_y: .16
-                GridLayout:
-                    id: button_layout
-                    cols: 2
-                    size_hint_y: .26
-                    AnchorLayout:
-                        anchor_x: 'left'
-                        anchor_y: 'top'
-                        ClearBtn:
-                            id: clear_btn
-                            pos_hint: {'center_y': .5}
-                    AnchorLayout:
-                        anchor_x: 'right'
-                        anchor_y: 'top'
-                        SendBtn:
-                            id: send_btn
-                            pos_hint: {'center_y': .5}
-                Widget:
-                    size_hint_y: .27
+                size_hint_y: .26
+                AnchorLayout:
+                    anchor_x: 'left'
+                    anchor_y: 'top'
+                    ClearBtn:
+                        id: clear_btn
+                        pos_hint: {'center_y': .5}
+                AnchorLayout:
+                    anchor_x: 'right'
+                    anchor_y: 'top'
+                    SendBtn:
+                        id: send_btn
+                        pos_hint: {'center_y': .5}
+            Widget:
+                size_hint_y: .27
 
 <InputFocusedScreen@Screen>:
     name: 'input_focused'
@@ -189,20 +185,22 @@
     BoxLayout:
         id: body
         orientation: 'vertical'
-        size_hint: 1, 1
-        padding: [20, 20, 20, 20]
+        size: Window.size
+        padding: [20, 0, 20, 0]
+        Widget:
+            size_hint: 1, .08
         DebugLayerFocused:
             id: debug_layer_focused
-            size_hint_y: .38
-            padding: [10, 20, 20, 20]
+            size_hint: 1, .25
+            padding: [0, 5, 0, 5]
             DebugPanelFocused:
                 id: debug_panel_focused
         Widget:
-            size_hint_y: .03
+            size_hint: 1, .07
         BoxLayout:
             id: input_layout
             orientation: 'vertical'
-            size_hint_y: .12
+            size_hint: 1, .12
             Input:
                 id: input_box
                 size_hint_y: 1
@@ -213,7 +211,7 @@
                     pos: (input_box.pos[0]+20, input_box.pos[1]-(input_box.height/2)+20)
         Widget:
             id: bottom_half
-            size_hint: 1, .45
+            size_hint: 1, .48
 
 <AppManager@ScreenManager>:
     MainScreen:
