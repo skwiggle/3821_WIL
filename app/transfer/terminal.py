@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import asyncio
 import os
+import shutil
 import threading
 from sys import platform
 import logging
@@ -158,29 +159,60 @@ class Terminal:
         :param src_files: Log file, defaults to None
         :type src_files: set
         """
-        async def _safeguard(log_name: str):
+        async def _delay(_log_name: str, _orig_log_len: int = -1):
+            """
+            Delay the update by 1 second every time the log is modified
+            to reduce the chance of data loss
+            """
+            path = f'{self._log_path_dir}{_log_name}'  # absolute path to log file
+            _orig_log_len = os.stat(path).st_size
+            while True:
+                await asyncio.sleep(1)
+                _new_len = os.stat(path).st_size
+                if _new_len != _orig_log_len:
+                    _orig_log_len = _new_len
+                else:
+                    break
+            return True
+
+        async def _safeguard(_log_name: str):
             """
              Commit main operations of log file interaction
 
-             :param log_name: Name of log file e.g. Editor.log
-             :type log_name: str
+             :param _log_name: Name of log file e.g. Editor.log
+             :type _log_name: str
             """
-            path = f'{self._log_path_dir}{log_name}'  # absolute path to log file
+            path = f'{self._log_path_dir}{_log_name}'  # absolute path to log file
+            temp_path = f'{self._log_path_dir}~{_log_name}'  # absolute path to log file
 
-            # Send contents of file to application
-            with open(path, 'r') as log_file:
-                logger.info(f'sending contents of {log_name} to application...')
-                self.one_way_handler(5555, package=(line for line in log_file if line != '\n'))
+            shutil.copy(path, temp_path)
+
+        async def _send_log(_log_name: str):
+            path = f'{self._log_path_dir}{_log_name}'  # absolute path to log file
+            temp_path = f'{self._log_path_dir}~{_log_name}'  # absolute path to log file
 
             # Empty file
             with open(path.replace('\\\\', '\\'), 'w'): pass
-            logger.info(f'log {log_name} has been cleared')
+            logger.info(f'log {_log_name} has been cleared')
+
+            # Send contents of file to application
+            with open(temp_path, 'r') as log_file:
+                logger.info(f'sending contents of {_log_name} to application...')
+                self.one_way_handler(5555, package=[line for line in log_file])
+
+            os.remove(temp_path)
 
         # Check, send and clear all log files within the set passed from
         # `_check_for_updates` at once but finish concurrently to avoid
         # issues with data loss
+        delay_tasks = (asyncio.create_task(_delay(src_file)) for src_file in src_files)
+        await asyncio.gather(*delay_tasks)
+
         tasks = (asyncio.create_task(_safeguard(log)) for log in src_files)
         await asyncio.gather(*tasks)
+
+        for log in src_files:
+            await asyncio.shield(_send_log(log))
 
     # noinspection PyMethodParameters
     def _connectionBootstrap(func) -> ():

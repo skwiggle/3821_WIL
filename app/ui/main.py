@@ -176,6 +176,7 @@ class MainApp(MDApp):
     def clear_content(self):
         # Tell debug panel to clear data
         self.root.get_screen('main').ids['debug_panel'].data = [{'text': 'type ? to see list of commands'}]
+        self.root.get_screen('main').ids['debug_panel'].temp_data = [{'text': 'type ? to see list of commands'}]
 
     def send_command(self):
         # Send command to debug panel

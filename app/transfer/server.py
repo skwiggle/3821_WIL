@@ -126,7 +126,8 @@ class Server:
                                             while not temp_msg.empty():
                                                 line = temp_msg.get(block=True)
                                                 file.write(line)
-                                                self.DATA.put(line.replace('\n', ''), block=True)
+                                                if line != '':
+                                                    self.DATA.put(line, block=True)
                                             self.scroll_down = True
                                     else:
                                         with open(path, 'w+') as file:
@@ -168,7 +169,8 @@ class Server:
                 # send a list of messages if package not blank
                 if package:
                     for line in package:
-                        sock.send(line.encode('utf-8'))
+                        if line != '':
+                            sock.send(line.encode('utf-8'))
             return True
         except WindowsError as error:
             self._append_error(self.local_msg['connection_closed'], error)
