@@ -6,9 +6,10 @@ from sys import platform
 import logging
 import socket
 
+
 # list of all Unity log files
 # noinspection PyArgumentList
-log_file_names: list = ['Editor.log', 'Editor-prev.log', 'upm.log']
+log_file_names: tuple = ('Editor.log', 'Editor-prev.log', 'upm.log')
 
 # List of re-occurring error messages, easily referencable
 local_msg: dict = {
@@ -32,7 +33,6 @@ logger = logging.getLogger('logger')
 # lambda function in charge of appending an error message to a logger message
 # if `verbose` is True, otherwise, append nothing
 error_msg = lambda error, verbose: f'\n\t\t -> {error}' if verbose else ''
-
 
 def log_path(log_name: str = 'no_file_given', observer: bool = False) -> str:
     """
@@ -86,23 +86,20 @@ class Terminal:
                          purposes, defaults to False
         :type unittest: bool
         """
-        self._host: str = 'localhost'
-        self._buffer: int = 2048
-        self._timeout: float = 3600
-        self._log_path_dir: str = log_path(observer=True)
-        self._is_reading: bool = False
-        self._verbose: bool = verbose
+        self._host: str = 'localhost'                       # socket host
+        self._buffer: int = 2048                            # buffer limit (prevent buffer overflow)
+        self._log_path_dir: str = log_path(observer=True)   # Unity log directory location
+        self._timeout: float = 3600                         # server timeout duration
+        self._verbose: bool = verbose                       # checks whether to specify additional error information
+
+        # Open a secondary thread to monitor file system changes
+        # to `_log_path_dir` directory
+        _log_dir_handler = threading.Thread(
+            target=self.check_for_updates, daemon=True,
+            name='FileHandler')
+        _log_dir_handler.start()
+
         if not unittest:
-            """
-            observer = Observer()
-            observer.schedule(self, log_path(observer=True), False)
-            observer.start()
-            observer.stop()
-            """
-            _log_dir_handler = threading.Thread(
-                target=self.check_for_updates, daemon=True,
-                name='FileHandler')
-            _log_dir_handler.start()
             self.two_way_handler(5554)
 
     def check_for_updates(self):
@@ -127,7 +124,7 @@ class Terminal:
             await asyncio.gather(
                 _is_empty(log_file_names[0]),
                 _is_empty(log_file_names[1]),
-                _is_empty(log_file_names[2]),
+                _is_empty(log_file_names[2])
             )
             if len(_active_logs) > 0:
                 await self._log_manager(src_files=_active_logs)
@@ -161,6 +158,7 @@ class Terminal:
              :type log_name: str
             """
             path = f'{self._log_path_dir}{log_name}'  # absolute path to log file
+
             # Check if file is empty
             if os.stat(path).st_size == 0:
                 logger.info(f'Unity log file (\'{log_name}\') is empty')
@@ -169,7 +167,7 @@ class Terminal:
                 # Send contents of file to application
                 with open(path, 'r') as log_file:
                     logger.info(f'sending contents of {log_name} to application...')
-                    self.one_way_handler(5555, package=[line for line in log_file])
+                    self.one_way_handler(5555, package=(line for line in log_file))
                 # Empty file
                 with open(path.replace('\\\\', '\\'), 'w'): pass
                 logger.info(f'log {log_name} has been cleared')

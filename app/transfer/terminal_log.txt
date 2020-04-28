@@ -1,0 +1,24 @@
+DEBUG    2020-04-28 11:44:53,235: Using selector: SelectSelector
+INFO     2020-04-28 11:44:53,239: established server
+DEBUG    2020-04-28 11:44:54,237: Using selector: SelectSelector
+DEBUG    2020-04-28 11:44:55,239: Using selector: SelectSelector
+DEBUG    2020-04-28 11:44:56,242: Using selector: SelectSelector
+DEBUG    2020-04-28 11:44:57,243: Using selector: SelectSelector
+DEBUG    2020-04-28 11:44:58,245: Using selector: SelectSelector
+DEBUG    2020-04-28 11:44:59,247: Using selector: SelectSelector
+DEBUG    2020-04-28 11:45:00,250: Using selector: SelectSelector
+INFO     2020-04-28 11:45:00,251: sending contents of Editor.log to application...
+INFO     2020-04-28 11:45:00,253: log Editor.log has been cleared
+DEBUG    2020-04-28 11:45:01,254: Using selector: SelectSelector
+DEBUG    2020-04-28 11:45:02,256: Using selector: SelectSelector
+DEBUG    2020-04-28 11:45:03,258: Using selector: SelectSelector
+DEBUG    2020-04-28 11:45:04,261: Using selector: SelectSelector
+DEBUG    2020-04-28 11:45:05,262: Using selector: SelectSelector
+DEBUG    2020-04-28 11:45:06,264: Using selector: SelectSelector
+DEBUG    2020-04-28 11:45:07,267: Using selector: SelectSelector
+DEBUG    2020-04-28 11:45:08,269: Using selector: SelectSelector
+DEBUG    2020-04-28 11:45:09,272: Using selector: SelectSelector
+DEBUG    2020-04-28 11:45:10,274: Using selector: SelectSelector
+DEBUG    2020-04-28 11:45:11,276: Using selector: SelectSelector
+DEBUG    2020-04-28 11:45:12,279: Using selector: SelectSelector
+DEBUG    2020-04-28 11:45:13,286: Using selector: SelectSelector

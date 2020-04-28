@@ -32,11 +32,9 @@ from kivymd.app import MDApp
 from kivy.clock import Clock
 from kivy.uix.image import Image
 from kivy.uix.widget import Widget
-from kivy.core.window import Window
 from kivymd.uix.label import MDLabel
 from app.transfer.server import Server
 from kivy.uix.textinput import TextInput
-from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.recycleview import RecycleView
 from kivy.uix.button import ButtonBehavior, Button
 from app.transfer.command_lookup import CommandLookup
@@ -121,20 +119,10 @@ class InputFocusedScreen(Screen):
 
 
 class ReconnectBtn(ButtonBehavior, Image): pass
-
-
 class ClearBtn(Button): pass
-
-
 class SendBtn(Button): pass
-
-
 class Input(Widget): pass
-
-
 class Content(TextInput): pass
-
-
 class DataCell(MDLabel): pass
 
 

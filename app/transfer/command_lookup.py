@@ -1,9 +1,15 @@
+# -*- coding: utf-8 -*-
 import os
 import re
 from datetime import datetime as dt
 
 
+# noinspection RegExpSingleCharAlternation
 class CommandLookup:
+    """
+     Compares inbound command's format against expected command format
+     and returns result to application
+     """
 
     _directory = './log'    # local path to log directory without '/' at end
     command_list = [
@@ -23,9 +29,12 @@ class CommandLookup:
         return self._directory
 
     @staticmethod
-    def check(command: str) -> str:
+    def check(command: str) -> bool:
         """
         Do a quick lookup to check if the command exists
+
+        :param command: command string
+        :type command: str
         """
         commands = {
             r"\?",
@@ -44,23 +53,38 @@ class CommandLookup:
 
     def lookup(self, command: str, data: [set]) -> [set]:
         """
-        Compare the command against a list of valid commands and execute the command
-        and then append an error or success message to the data table.
+         Compare the command against a list of valid commands and execute the command
+         and then append an error or success message to the data table.
 
-        :param command: command sent by the user
-        :param data: data displayed on the debug screen
+         :param command: command sent by the user
+         :type command: str
+         :param data: data displayed on the debug screen
+         :type data: list[set]
+         :return: new updated version of data information
+         :rtype: list[set]
         """
         _timestamp = lambda msg: f'{dt.now().strftime("%I:%M%p")}: {msg}'  # current time
 
         # command without capitalisation and whitespace
         fixed = command.lower().replace(' ', '')
-        if re.match('(clear|get|\?)(log|logs)?(--today|--[\d]{2,2}(/|-)[\d]{2,2}(/|-)[\d]{4,4})?$', fixed):
+        """
+         filter command must conform to the following cases:
+            - first word must be 'clear', 'get' or '?'
+            - second word must be 'log' or 'logs'
+            - second word is optional
+            - third word must be '--today' or '--<date>'
+            - third word is optional
+            - <date> must have three numbers separated by '/' or '-'
+            - day and month must have 2 characters while year has 4
+        """
+        if re.match('(clear|get|\?)(log|logs)?(--today|--[\d]{2}(/|-)[\d]{2}(/|-)[\d]{4})?$', fixed):
             # return if the command is simply 'get log'
             if fixed == 'getlog':
                 return data
 
             # separate the command from it's parameters
             parameters = re.split('--', f'{fixed}--')
+            # return command execution data if viable
             if parameters[0] == '?':
                 for line in self.command_list:
                     data.append({'text': line})
@@ -78,11 +102,12 @@ class CommandLookup:
 
     def get_log(self, parameters: [str]):
         """
-        Either retrieve a local temporary copy of a log file if it exists or
-        request a latest copy from the client terminal's pc. can specify either
-        the current day or a specific date.
+         Either retrieve a local temporary copy of a log file if it exists or
+         request a latest copy from the client terminal's pc. can specify either
+         the current day or a specific date.
 
-        :param parameters: the base command followed by parameters
+         :param parameters: the base command followed by parameters
+         :type parameters: list[str]
         """
         _timestamp = lambda msg: f'{dt.now().strftime("%I:%M%p")}: {msg}'  # current time
 
@@ -100,7 +125,7 @@ class CommandLookup:
                 yield {'text': _timestamp('no previous logs from today, blank file created')}
 
         # GET log from SPECIFIC DAY
-        elif re.match('[\d]{2,2}(/|-)[\d]{2,2}(/|-)[\d]{4,4}$', parameters[1]):
+        elif re.match('[\d]{2}(/|-)[\d]{2}(/|-)[\d]{4}$', parameters[1]):
             parameters[1] = re.sub('/', '-', parameters[1])
             file_path = f"{self._directory}/log-{parameters[1]}.txt"
             if os.path.exists(file_path):
@@ -136,7 +161,7 @@ class CommandLookup:
                     yield {'text': _timestamp(f'no log file found at {file_path}')}
 
             # CLEAR log from SPECIFIC DAY
-            elif re.search('[\d]{2,2}(/|-)[\d]{2,2}(/|-)[\d]{4,4}$', parameters[1]):
+            elif re.search('[\d]{2}(/|-)[\d]{2}(/|-)[\d]{4}$', parameters[1]):
                 parameters[1] = re.sub('/', '-', parameters[1])
                 file_path = f"{self._directory}/log-{parameters[1]}.txt"
                 if os.path.exists(file_path):
