@@ -1,33 +1,40 @@
 # -*- coding: utf-8 -*-
+import asyncio
 import os
-import shutil
+import threading
 from sys import platform
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
-from threading import Thread
-from datetime import datetime as dt
+import logging
 import socket
-import time
-import re
 
-_timestamp = lambda msg: f'{dt.now().strftime("%c")}: {msg}'
+
+# list of all Unity log files
 # noinspection PyArgumentList
-log_file_names: set = {'Editor.log', 'Editor_prev.log', 'upm.log'}
+log_file_names: tuple = ('Editor.log', 'Editor-prev.log', 'upm.log')
+
+# List of re-occurring error messages, easily referencable
 local_msg: dict = {
-    'server_open': _timestamp('established server'),
-    'server_connect_failed': _timestamp('failed to connect to the client'),
-    'server_closed': _timestamp('server closed'),
-    'connection_closed': _timestamp('failed to send message because no connection was found'),
-    'timeout': _timestamp('connection timed out'),
-    'stream_active': _timestamp("log file was updated while being sent, either wait for another update or "
-                                "retrieve manually using \'get log\'"),
-    'stream_complete': _timestamp('log file sent to client'),
-    'path_not_exist': _timestamp('the path %s does not exist, please use an absolute path with file extension'),
-    'watchdog_update': _timestamp('automatic unity log update, sending updated log files...')
+    'connection_closed': 'failed to send message because no connection was found%s',
+    'timeout': 'connection timed out%s',
+    'unknown': 'unknown error, please restart terminal%s'
 }
 
+# Configuration of logging system,
+# - appends data to 'terminal_log.txt'
+# - sets minimal level of error types to DEBUG level
+# - sets format of errors to include level, time and message
+logging.basicConfig(
+    filemode='a+',
+    filename='terminal_log.txt',
+    level=logging.INFO,
+    format='%(levelname)-8s %(asctime)s: %(message)s'
+)
+logger = logging.getLogger('logger')
 
-def log_path(log_name: str = 'Editor.log', observer: bool = False) -> str:
+# lambda function in charge of appending an error message to a logger message
+# if `verbose` is True, otherwise, append nothing
+error_msg = lambda error, verbose: f'\n\t\t -> {error}' if verbose else ''
+
+def log_path(log_name: str = 'no_file_given', observer: bool = False) -> str:
     """
     Returns the current log file location or the log's parent directory for the
     watchdog observer to monitor for changes.
@@ -36,190 +43,140 @@ def log_path(log_name: str = 'Editor.log', observer: bool = False) -> str:
                         - Editor.log
                         - Editor-prev.log
                         - upm.log
+                     defaults to 'no_file_given'
+    :type log_name: str
     :param observer: should the function return the parent directory
-                     location instead? (True = yes)
+                     location instead? (True = yes), defaults to False
+    :type observer: bool
     """
     if 'win' in platform:
-        return f"C:/Users/{os.getlogin()}/AppData/Local/Unity/Editor/{'' if observer else log_name}"
+        return r'C:\Users\%s\AppData\Local\Unity\Editor\%s' % (os.getlogin(), '' if observer else log_name)
     elif 'mac' in platform:
         return f"~/Library/Logs/Unity/{'' if observer else log_name}"
     elif ('lin' or 'unix') in platform:
         return f"~/.config/unity3d/{'' if observer else log_name}"
-    return 'no path found'
-
-
-class IsolatedSender:
-    """
-    Extension of the Terminal class but can only send log files built to be
-    handled by the timer class. Should only be triggered after the timer has
-    completed.
-    """
-    _host = 'localhost'
-    _verbose: bool = False
-
-    def __init__(self, temp_log_name: str, verbose: bool = False):
-        self._verbose = verbose
-        self.temp_log_name = temp_log_name
-
-    def one_way_handler(self, port: int, msg: str = None, package: [str] = None) -> bool:
-        """
-        Sends a message or an array of messages to application.
-
-        Should be used to receive commands from the app or send the current
-        Unity debug log information to the application. Also displays error info.
-
-        :param port: port number
-        :param msg: the message (defaults to none)
-        :param package: a list of messages (defaults to none)
-        """
-        try:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-                sock.connect((self._host, port))
-                # send the message if message not blank
-                if msg:
-                    sock.send(msg.replace('\t', '').encode('utf-8'))
-                    return True
-                # send a list of messages if package not blank
-                if package:
-                    for line in package:
-                        sock.send(line.replace('\t', '').encode('utf-8'))
-                    sock.send('--EOF'.encode('utf-8'))
-                    return True
-        except WindowsError as error:
-            with open('terminal_log.txt', 'a+') as file:
-                print(local_msg['connection_closed'],
-                      f'\n\t\t -> {error}' if self._verbose else '',
-                      file=file, flush=True)
-        return False
-
-    def clear_temp_log(self) -> bool:
-        try:
-            temp = f'{log_path(observer=True)}{self.temp_log_name}'
-            with open(temp, 'r') as file:
-                contents = [line for line in file]
-                contents.append('--EOF')
-                self.one_way_handler(5555, package=contents)
-            os.remove(temp)
-            with open(re.sub('temp-', '', log_path(self.temp_log_name)), 'w'):
-                pass
-            return True
-        except Exception as error:
-            with open('terminal_log.txt', 'a+') as file:
-                print(local_msg['timeout'],
-                      end=f'\n\t\t -> {error}' if self._verbose else '\n',
-                      file=file, flush=True)
-            return False
-
-
-class Timer(Thread, IsolatedSender):
-    """
-    Custom timer that starts and counts down from an (interval) once
-    a unity log file has been updated, the counter resets if updated again.
-
-    The class itself does not handle observer and socket objects, it is used
-    as only a timer extending a thread object meaning it can only be ran once.
-    However, resetting the timer does not complete the thread just as the timer
-    reset cannot be ran after the thread has finished.
-    """
-    active: bool = False
-
-    def __init__(self, interval: float, temp_log_name: str, verbose: bool = False):
-        Thread.__init__(self)
-        IsolatedSender.__init__(self, temp_log_name, verbose)
-        self.current_num = interval
-        self.max_num = interval
-        self.active = False
-
-    def reset(self):
-        """ Reset the timer """
-        self.current_num = self.max_num
-
-    def run(self) -> None:
-        """ continue to countdown to 0 """
-        self.active = True
-        with open('terminal_log.txt', 'a+') as file:
-            while self.current_num != 0:
-                print(f'will send in: {self.current_num} seconds',
-                      file=file, flush=True)
-                time.sleep(1)
-                self.current_num -= 1
-            self.clear_temp_log()
-            self.active = False
-            print(f"{dt.now().strftime('%c')}: ready to send log",
-                  file=file, flush=True)
+    else:
+        logger.critical('Path to Unity log files does not exist, check that the one of the following URLs matche that '
+                        'of your platform')
+        logger.critical(f'WINDOWS    - C:/Users/{os.getlogin()}/AppData/Local/Unity/Editor/')
+        logger.critical('MAC OS     - ~/Library/Logs/Unity/')
+        logger.critical('LINUX/UNIX - ~/.config/unity3d/')
+        exit(-1)
 
 
 # noinspection PyUnusedLocal
-class Terminal(FileSystemEventHandler):
+class Terminal:
     """
     A server handler in charge or listening and sending information over sockets.
     the class consists of one/two way connection handling and checking for filesystem
     changes for log files.
     """
-    _host: str = 'localhost'
-    _buffer: int = 2048
-    _timeout: float = 3600
-    _verbose: bool = False
-    _stream_delay: Timer = None
-    _modifying: bool = False
 
     def __init__(self, verbose: bool = True, unittest: bool = False):
         """
         Initialise the server class by creating an observer object to monitor
         for unity debug log file changes and start main server. Observer and program
         stop once server shuts down.
+
+        :param verbose: Specifies whether or not the error messages should contain
+                        the actual system error messages or just errors created by the
+                        terminal, defaults to True
+        :type verbose: bool
+        :param unittest: Used to stop automatically connecting for unit test
+                         purposes, defaults to False
+        :type unittest: bool
         """
-        self._verbose = verbose
+        self._host: str = 'localhost'                       # socket host
+        self._buffer: int = 2048                            # buffer limit (prevent buffer overflow)
+        self._log_path_dir: str = log_path(observer=True)   # Unity log directory location
+        self._timeout: float = 3600                         # server timeout duration
+        self._verbose: bool = verbose                       # checks whether to specify additional error information
+
+        # Open a secondary thread to monitor file system changes
+        # to `_log_path_dir` directory
+        _log_dir_handler = threading.Thread(
+            target=self.check_for_updates, daemon=True,
+            name='FileHandler')
+        _log_dir_handler.start()
+
         if not unittest:
-            observer = Observer()
-            observer.schedule(self, log_path(observer=True), False)
-            observer.start()
             self.two_way_handler(5554)
-            observer.stop()
 
-    def on_modified(self, event):
+    def check_for_updates(self):
         """
-        This function will run every time the unity log file is edited/modified in
-        any way including when unity decides to update it.
+        Check for file system events within Editor directory of Unity.
 
-        It will attempt to send the current log file before deleting the contents
-        of the local log file. A timed delay will prevent excessive updates at once
-        which would cause data loss and other issues to the log file.
-
-        :param event: event instance including file info and type of event
+        Asynchronously checks for active logs that aren't empty before
+        sending name of log to _log_manager()
         """
-        if self._modifying: return None
-        else: self._modifying = True
+        _active_logs = set()
 
-        with open('terminal_log.txt', 'a+') as file:
-            print(local_msg['watchdog_update'], file=file, flush=True)
+        async def _is_empty(_log_name: str):
+            """ Check that log file is empty """
+            if not os.stat(f'{self._log_path_dir}{_log_name}').st_size == 0:
+                _active_logs.add(_log_name)
 
-        if not os.path.exists(event.src_path): return None
-        if os.stat(event.src_path).st_size == 0:
-            with open('terminal_log.txt', 'a+') as file:
-                print(local_msg['stream_complete'], file=file, flush=True)
-            self.one_way_handler(5555, f'tg:>')
-        else:
-            temp: str = 'temp.log'
-            temp_name_only: str = 'temp.log'
-            for log_name in log_file_names:
-                if re.search('[\w]+\.log', event.src_path).group() == log_name:
-                    temp = re.sub('[\w]+\.log', f'temp-{log_name}', event.src_path)
-                    temp_name_only = f'temp-{log_name}'
-            if temp not in log_file_names:
-                assert NameError, "No valid unity log files found, please check that the directory " \
-                                  "'%LOCALAPPDATA%/Unity/Editor/' exists"
-            if self._stream_delay is None:
-                shutil.copyfile(event.src_path, temp)
-                self._stream_delay = Timer(3, temp_name_only)
-                self._stream_delay.start()
-            elif os.path.exists(temp) and self._stream_delay.active:
-                self._stream_delay.reset()
-            elif not os.path.exists(temp) and not self._stream_delay.active:
-                shutil.copyfile(event.src_path, temp)
-                self._stream_delay = Timer(3, temp_name_only)
-                self._stream_delay.start()
-        self._modifying = False
+        async def _update():
+            """
+            Run _is_empty() asynchronously for each log file in `_active_logs`
+            and then perform log operations if at least one file contains content
+            """
+            await asyncio.gather(
+                _is_empty(log_file_names[0]),
+                _is_empty(log_file_names[1]),
+                _is_empty(log_file_names[2])
+            )
+            if len(_active_logs) > 0:
+                await self._log_manager(src_files=_active_logs)
+            await asyncio.sleep(1)
+
+        while True:
+            asyncio.run(_update())
+            _active_logs.clear()
+
+    async def _log_manager(self, src_files: {str} = None):
+        """
+        Extends on_modified function or used whenever 'get log'
+        is retrieved.
+
+        This function will attempt to
+        -   check for empty log file(s),
+        -   send log file(s) if not empty
+        -   clear log file(s)
+
+        If any `src_files` are given, only those files will
+        be updated.
+
+        :param src_files: Log file, defaults to None
+        :type src_files: set
+        """
+        async def _safeguard(log_name: str):
+            """
+             Commit main operations of log file interaction
+
+             :param log_name: Name of log file e.g. Editor.log
+             :type log_name: str
+            """
+            path = f'{self._log_path_dir}{log_name}'  # absolute path to log file
+
+            # Check if file is empty
+            if os.stat(path).st_size == 0:
+                logger.info(f'Unity log file (\'{log_name}\') is empty')
+                self.one_way_handler(5555, f'tg:>')
+            else:
+                # Send contents of file to application
+                with open(path, 'r') as log_file:
+                    logger.info(f'sending contents of {log_name} to application...')
+                    self.one_way_handler(5555, package=(line for line in log_file))
+                # Empty file
+                with open(path.replace('\\\\', '\\'), 'w'): pass
+                logger.info(f'log {log_name} has been cleared')
+
+        # Check, send and clear all log files within the set passed from
+        # `_check_for_updates` at once but finish concurrently to avoid
+        # issues with data loss
+        tasks = (asyncio.create_task(_safeguard(log)) for log in src_files)
+        await asyncio.gather(*tasks)
 
     # noinspection PyMethodParameters
     def _connectionBootstrap(func) -> ():
@@ -228,7 +185,8 @@ class Terminal(FileSystemEventHandler):
         as well as stopping the server when an event or error occurs such
         as a timeout event.
 
-        :param func: handler function that should extend the wrapper
+        :param func: handler function that extends from `_wrapper`
+        :type func: function
         """
 
         # noinspection PyCallingNonCallable
@@ -237,16 +195,16 @@ class Terminal(FileSystemEventHandler):
                 s.settimeout(self._timeout)
                 s.bind((self._host, port))
                 s.listen()
+                logger.info('established server')
                 try:
                     func(self, port, s)
-                except socket.timeout as error:
-                    with open('terminal_log.txt', 'a+') as file:
-                        print(local_msg['timeout'],
-                              end=f'\n\t\t -> {error}\n' if self._verbose else '\n',
-                              file=file, flush=True)
+                except Exception as error:
+                    logger.critical(local_msg['unknown'] % error_msg(error, self._verbose))
+            logger.critical('server closed')
 
         return _wrapper
 
+    # noinspection PyArgumentList
     @_connectionBootstrap
     def two_way_handler(self, port: int, sock: socket.socket = None):
         """
@@ -256,14 +214,14 @@ class Terminal(FileSystemEventHandler):
         or incoming commands from the application. Also displays error info.
 
         :param port: port number
-        :param sock: parent socket
+        :type port: int, optional
+        :param sock: parent socket, defaults to None
+        :type sock: socket.socket
         """
-        with open('terminal_log.txt', 'a+') as file:
-            print(local_msg['server_open'], file=file, flush=True)
 
+        # Continuously check for incoming clients waiting for request
         while True:
             try:
-                # Continuously check for incoming clients waiting for request
                 client, address = sock.accept()
                 with client:
                     # Continuously check for incoming messages
@@ -272,37 +230,19 @@ class Terminal(FileSystemEventHandler):
                         if reply:
                             # print unknown command
                             if reply[:4] == 'uc:>':
-                                print(reply[4:], flush=True)
-                                self.one_way_handler(5555, 'tg:>unity log file empty')
-                                break
+                                print(reply[4:])
                             # do nothing if the command is valid. If the command is
                             # 'get log', send it to app
                             elif reply[:4] == 'kc:>':
                                 if reply[4:] == 'get log':
-                                    log_pth = log_path()
-                                    if os.stat(log_pth).st_size == 0:
-                                        with open('terminal_log.txt', 'a+') as file:
-                                            print(local_msg['stream_complete'], file=file, flush=True)
-                                        self.one_way_handler(5555, f'tg:>')
-                                        break
-                                    with open(log_pth, 'r') as file:
-                                        contents = [line for line in file]
-                                        contents = contents[1000:] if len(contents) > 2000 else contents
-                                        contents.append('--EOF')
-                                        self.one_way_handler(5555, package=contents)
-                                        self.one_way_handler(5555, msg='--EOF')
-                                    with open(log_pth, 'w'):
-                                        pass
+                                    log_pth = log_path(observer=True)
+                                    self._log_manager(set(log_file_names))
+                                else:
+                                    logger.info(f'command executed: \'{reply[4:]}\'')
                             continue
                         break
-            except (socket.timeout, WindowsError) as error:
-                with open('terminal_log.txt', 'a+') as file:
-                    print(local_msg['timeout'],
-                          f'\n\t\t -> {error}\n' if self._verbose else '\n',
-                          file=file, flush=True)
-                break
-        with open('terminal_log.txt', 'a+') as file:
-            print(local_msg['server_closed'], file=file, flush=True)
+            except Exception as error:
+                logger.error(local_msg['timeout'] % error_msg(error, self._verbose))
 
     def one_way_handler(self, port: int, msg: str = None, package: [str] = None) -> bool:
         """
@@ -312,8 +252,11 @@ class Terminal(FileSystemEventHandler):
         Unity debug log information to the application. Also displays error info.
 
         :param port: port number
-        :param msg: the message (defaults to none)
-        :param package: a list of messages (defaults to none)
+        :type port: int, optional
+        :param msg: the message, defaults to None
+        :type msg: str
+        :param package: a list of messages, defaults to None
+        :type port: list
         """
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
@@ -324,17 +267,16 @@ class Terminal(FileSystemEventHandler):
                     return True
                 # send a list of messages if package not blank
                 if package:
-                    for line in package:
+                    for index, line in enumerate(package):
+                        # limit number of lines to `limit`
+                        if index >= 1999: break
                         sock.send(line.replace('\t', '').encode('utf-8'))
                     sock.send('--EOF'.encode('utf-8'))
                     return True
         except WindowsError as error:
-            with open('terminal_log.txt', 'a+') as file:
-                print(local_msg['connection_closed'],
-                      f'\n\t\t -> {error}' if self._verbose else '\n',
-                      file=file, flush=True)
+            logger.error(local_msg['connection_closed'] % error_msg(error, self._verbose))
         return False
 
 
 if __name__ == '__main__':
-    t = Terminal()
+    t = Terminal(verbose=True)

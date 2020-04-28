@@ -14,6 +14,8 @@ __version__ = '1.0.0'
 __author__ = 'Elliot Charters, Sadeed Ahmad, Max Harvey, Samrat Kunwar, Nguyen Huy Hoang'
 
 import kivy
+from kivy.core.text import LabelBase
+from kivy.metrics import sp
 
 kivy.require('1.11.1')
 
@@ -24,6 +26,7 @@ Config.set('graphics', 'height', '720')
 Config.set('graphics', 'minimum_width', '480')
 Config.set('graphics', 'minimum_height', '720')
 Config.set('graphics', 'resizable', '1')
+Config.set('graphics', 'borderless', '0')
 Config.set('widgets', 'scroll_moves', '100')
 
 import time
@@ -32,17 +35,26 @@ from kivymd.app import MDApp
 from kivy.clock import Clock
 from kivy.uix.image import Image
 from kivy.uix.widget import Widget
-from kivy.core.window import Window
 from kivymd.uix.label import MDLabel
 from app.transfer.server import Server
 from kivy.uix.textinput import TextInput
-from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.recycleview import RecycleView
 from kivy.uix.button import ButtonBehavior, Button
 from app.transfer.command_lookup import CommandLookup
 from kivy.properties import NumericProperty, StringProperty
 from kivy.uix.screenmanager import Screen, ScreenManager, NoTransition
 
+
+# Add book-antiqua font and load into kivy
+extra_font = [{
+    "name": "BookAntiqua",
+    "fn_regular": "./font/book-antiqua.ttf",
+    "fn_bold": "./font/book-antiqua.ttf",
+    "fn_italic": "./font/book-antiqua.ttf",
+    "fn_bolditalic": "./font/book-antiqua.ttf"
+}]
+for font in extra_font:
+    LabelBase.register(**font)
 
 # classes representing UI elements that need to be displayed
 # in main.py in order to work
@@ -84,16 +96,15 @@ class DebugPanel(RecycleView, Server, CommandLookup):
         debug screen should automatically update.
         """
         while True:
-            counter: int = 0
-            while not self.DATA.empty():
-                self.temp_data.append({'text': self.DATA.get(block=True)})
-                counter += 1
-                if counter % 500 == 0:
-                    time.sleep(0.25)
-            self.data = self.temp_data
-            if self.scroll_down:
-                self.scroll_y = 0
-                self.scroll_down = False
+            if not self.DATA.empty():
+                while not self.DATA.empty():
+                    self.temp_data.append({'text': self.DATA.get(block=True)})
+                self.data = self.temp_data
+                if self.scroll_down:
+                    self.scroll_y = 0
+                    self.scroll_down = False
+                if len(self.temp_data) > 2000:
+                    self.temp_data.append({'text': 'Debug Info is getting too long, clearing screen recommended'})
             time.sleep(1)
 
     def send_command(self, command: str):
@@ -117,26 +128,29 @@ class MainScreen(Screen): pass
 
 class InputFocusedScreen(Screen):
     def on_enter(self, *args):
-        # focus on the input box after screen change
-        self.children[0].children[1].children[0].children[0].focus = True
+        text_input = self.children[0].children[1].children[0].children[0]
+        text_input.focus = True
+        if text_input.text == 'Enter command...':
+            text_input.text = ''
 
 
 class ReconnectBtn(ButtonBehavior, Image): pass
-
-
 class ClearBtn(Button): pass
-
-
 class SendBtn(Button): pass
-
-
 class Input(Widget): pass
 
 
-class Content(TextInput): pass
+class Content(TextInput):
+    def __init__(self, **kwargs):
+        TextInput.__init__(self, **kwargs)
+        self.text = 'Enter command...'
 
 
-class DataCell(MDLabel): pass
+class DataCell(MDLabel):
+    def __init__(self, **kwargs):
+        MDLabel.__init__(self, **kwargs)
+        self.font_size = sp(14)
+        self.font_family = 'BookAntiqua'
 
 
 class MainApp(MDApp):
