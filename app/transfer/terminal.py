@@ -102,7 +102,7 @@ class Terminal:
         if not unittest:
             self.two_way_handler(5554)
 
-    def check_for_updates(self):
+    def check_for_updates(self, _manual_update: bool = False):
         """
         Check for file system events within Editor directory of Unity.
 
@@ -113,6 +113,9 @@ class Terminal:
 
         async def _is_empty(_log_name: str):
             """ Check that log file is empty """
+            if os.stat(f'{self._log_path_dir}{_log_name}').st_size == 0 and _manual_update:
+                logger.info(f'Unity log file (\'{_log_name}\') is empty')
+                self.one_way_handler(5555, f'tg:>{_log_name}')
             if not os.stat(f'{self._log_path_dir}{_log_name}').st_size == 0:
                 _active_logs.add(_log_name)
 
@@ -126,11 +129,16 @@ class Terminal:
                 _is_empty(log_file_names[1]),
                 _is_empty(log_file_names[2])
             )
-            if len(_active_logs) > 0:
+            if len(_active_logs) == 0 and _manual_update:
+                self.one_way_handler(5555, f'tga:>')
+            elif len(_active_logs) > 0:
                 await self._log_manager(src_files=_active_logs)
             await asyncio.sleep(1)
 
         while True:
+            if _manual_update:
+                asyncio.run(_update())
+                break
             asyncio.run(_update())
             _active_logs.clear()
 
@@ -159,18 +167,14 @@ class Terminal:
             """
             path = f'{self._log_path_dir}{log_name}'  # absolute path to log file
 
-            # Check if file is empty
-            if os.stat(path).st_size == 0:
-                logger.info(f'Unity log file (\'{log_name}\') is empty')
-                self.one_way_handler(5555, f'tg:>')
-            else:
-                # Send contents of file to application
-                with open(path, 'r') as log_file:
-                    logger.info(f'sending contents of {log_name} to application...')
-                    self.one_way_handler(5555, package=(line for line in log_file))
-                # Empty file
-                with open(path.replace('\\\\', '\\'), 'w'): pass
-                logger.info(f'log {log_name} has been cleared')
+            # Send contents of file to application
+            with open(path, 'r') as log_file:
+                logger.info(f'sending contents of {log_name} to application...')
+                self.one_way_handler(5555, package=(line for line in log_file if line != '\n'))
+
+            # Empty file
+            with open(path.replace('\\\\', '\\'), 'w'): pass
+            logger.info(f'log {log_name} has been cleared')
 
         # Check, send and clear all log files within the set passed from
         # `_check_for_updates` at once but finish concurrently to avoid
@@ -235,8 +239,7 @@ class Terminal:
                             # 'get log', send it to app
                             elif reply[:4] == 'kc:>':
                                 if reply[4:] == 'get log':
-                                    log_pth = log_path(observer=True)
-                                    self._log_manager(set(log_file_names))
+                                    self.check_for_updates(_manual_update=True)
                                 else:
                                     logger.info(f'command executed: \'{reply[4:]}\'')
                             continue

@@ -32,7 +32,8 @@ class Server:
         'connection_closed': _timestamp('failed to send message because no connection was found'),
         'timeout': _timestamp('connection timed out'),
         'stream_active': _timestamp('please wait until previous message has sent'),
-        'unity_log_empty': _timestamp('unity log file empty'),
+        'unity_log_empty': _timestamp('log file %s is empty'),
+        'all_unity_logs_empty': _timestamp('no new updates from unity'),
         'unknown': _timestamp('unknown error, please restart terminal')
     }
 
@@ -40,8 +41,6 @@ class Server:
                  timeout: float = 3600, verbose: bool = False):
         self._host: str = 'localhost'               # socket host
         self._buffer: int = 2048                    # buffer limit (prevent buffer overflow)
-        self.server_active: bool = False            # checks if server is running
-        self._stream_active: bool = False           # checks if a log file is reading/writing
         self.scroll_down: bool = False              # checks if app should scroll to the bottom
         self.DATA: Queue = Queue(2000)              # temporary log data storage
         self._temp_log_folder = temp_log_folder     # temporary log directory location
@@ -113,8 +112,10 @@ class Server:
                         if reply:
                             # Send empty log file error message to application if received
                             # message equals 'tg:>'
-                            if reply == 'tg:>':
-                                self.DATA.put(self.local_msg['unity_log_empty'], block=True)
+                            if reply[:4] == 'tg:>':
+                                self.DATA.put(self.local_msg['unity_log_empty'] % reply[4:], block=True)
+                            elif reply == 'tga:>':
+                                self.DATA.put(self.local_msg['all_unity_logs_empty'], block=True)
                             else:
                                 # When the last line says --EOF, update temporary logs with
                                 # `temp_msg` data
@@ -161,16 +162,13 @@ class Server:
 
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                 sock.connect((self._host, port))
-                self._stream_active = True
                 # send the message if message not blank
                 if msg:
                     sock.send(msg.encode('utf-8'))
-                    self._stream_active = False
                 # send a list of messages if package not blank
                 if package:
                     for line in package:
                         sock.send(line.encode('utf-8'))
-                    self._stream_active = False
             return True
         except WindowsError as error:
             self._append_error(self.local_msg['connection_closed'], error)
@@ -190,6 +188,7 @@ class Server:
         if self._verbose:
             self.DATA.put(f"---> {verbose_msg}", block=True)
 
+    # noinspection PyBroadException
     def test_connection(self, port: int) -> bool:
         """ Test the connection to terminal """
         try:

@@ -32,7 +32,6 @@ Config.set('widgets', 'scroll_moves', '100')
 import time
 import threading
 from kivymd.app import MDApp
-from kivy.clock import Clock
 from kivy.uix.image import Image
 from kivy.uix.widget import Widget
 from kivymd.uix.label import MDLabel
@@ -82,9 +81,7 @@ class DebugPanel(RecycleView, Server, CommandLookup):
         Checks that an update handler is active and lets the user know, or,
         create a new connection to terminal
         """
-        if self.test_connection(5554):
-            pass
-        else:
+        if not self.test_connection(5554):
             update_thd = threading.Thread(target=self.two_way_handler, args=(5555,))
             update_thd.start()
 
@@ -103,8 +100,6 @@ class DebugPanel(RecycleView, Server, CommandLookup):
                 if self.scroll_down:
                     self.scroll_y = 0
                     self.scroll_down = False
-                if len(self.temp_data) > 2000:
-                    self.temp_data.append({'text': 'Debug Info is getting too long, clearing screen recommended'})
             time.sleep(1)
 
     def send_command(self, command: str):
@@ -174,13 +169,13 @@ class MainApp(MDApp):
     debug_data: [set] = [{}]
 
     def reconnect(self):
+        # test connection to terminal
         rec_thd = threading.Thread(target=self.root.get_screen('main').ids['debug_panel'].reconnect)
         rec_thd.start()
 
     def clear_content(self):
         # Tell debug panel to clear data
-        self.root.get_screen('main').ids['debug_panel'].temp_data = [{'text': 'type ? to see list of commands\n'}]
-        self.root.get_screen('main').ids['debug_panel'].data = []
+        self.root.get_screen('main').ids['debug_panel'].data = [{'text': 'type ? to see list of commands'}]
 
     def send_command(self):
         # Send command to debug panel
