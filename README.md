@@ -6,9 +6,9 @@ Comes with a remote terminal to run on windows/mac/linux.
 
 ---
 
-#### Installation Instructions
+#### 🔵 Installation Instructions
 
-    ##### ❗❗❗ Setting up PYTHON
+##### ❗❗❗ Setting up PYTHON ❗❗❗
 
 1. Uninstall all versions of python
 2. Type into windows search: "environment variables" and click on "Edit the system environment variables"
@@ -22,7 +22,7 @@ Comes with a remote terminal to run on windows/mac/linux.
 7. Done
 
 
-    ##### ❗❗❗ Setting up PROJECT
+##### ❗❗❗ Setting up PROJECT ❗❗❗
 
 1. Clone project to a folder (don't open in pycharm yet)
 2. Delete .idea folder if there is one
@@ -37,7 +37,7 @@ Comes with a remote terminal to run on windows/mac/linux.
 
 ---
 
-##### App
+#### 🔵 App
 The main application is run on android while the terminal is run from a computer. 
 The app will be used in conjunction with the terminal to check for Unity updates but also 
 comes with a list of commands to do operations manually. List of commands include:
@@ -53,8 +53,8 @@ comes with a list of commands to do operations manually. List of commands includ
 | __clear log --00-01-2000__ | *delete log from specific day*                           |
 
 ---
-##### Terminal
-The terminal can be run from windows/mac/linux and only prints out any commands sent via the main
+#### 🔵 Terminal
+The terminal can be run from windows/mac/linux and only prints 🔵out any commands sent via the main
 application. Commands that come with the terminal will be sent to the **terminal_log.txt** 
 file.
 
@@ -65,7 +65,7 @@ terminal_genie.exe > some_other_file
 ```
 
 ---
-### Requirements
+#### 🔵 Requirements
 * Android Version - 7.1 and above
 * API/NDK Version - API Level 25 and above
 * Unity Version 2019.3.10 and above
