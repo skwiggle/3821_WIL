@@ -32,7 +32,8 @@ class Server:
         'connection_closed': _timestamp('failed to send message because no connection was found'),
         'timeout': _timestamp('connection timed out'),
         'stream_active': _timestamp('please wait until previous message has sent'),
-        'unity_log_empty': _timestamp('unity log file empty'),
+        'unity_log_empty': _timestamp('log file %s is empty'),
+        'all_unity_logs_empty': _timestamp('no new updates from unity'),
         'unknown': _timestamp('unknown error, please restart terminal')
     }
 
@@ -113,8 +114,10 @@ class Server:
                         if reply:
                             # Send empty log file error message to application if received
                             # message equals 'tg:>'
-                            if reply == 'tg:>':
-                                self.DATA.put(self.local_msg['unity_log_empty'], block=True)
+                            if reply[:4] == 'tg:>':
+                                self.DATA.put(self.local_msg['unity_log_empty'] % reply[4:], block=True)
+                            elif reply == 'tga:>':
+                                self.DATA.put(self.local_msg['all_unity_logs_empty'], block=True)
                             else:
                                 # When the last line says --EOF, update temporary logs with
                                 # `temp_msg` data
@@ -190,6 +193,7 @@ class Server:
         if self._verbose:
             self.DATA.put(f"---> {verbose_msg}", block=True)
 
+    # noinspection PyBroadException
     def test_connection(self, port: int) -> bool:
         """ Test the connection to terminal """
         try:

@@ -1,8 +1,7 @@
 import unittest
 from threading import Thread
-
 from app.transfer.server import Server
-from app.transfer.terminal import Terminal, log_path, IsolatedSender
+from app.transfer.terminal import Terminal, log_path
 import os
 
 
@@ -32,13 +31,13 @@ class TestTerminal(unittest.TestCase):
         """ Test log path of unity log file/log file directory """
 
         # test that log_path returns the Editor.log file path
-        self.assertEqual(log_path(), f"C:/Users/{os.getlogin()}/AppData/Local/Unity/Editor/Editor.log")
+        self.assertEqual(log_path(), f"C:\\Users\\{os.getlogin()}\\AppData\\Local\\Unity\\Editor\\no_file_given")
 
         # test that log_path works with custom log names
-        self.assertEqual(log_path('upm.log'), f"C:/Users/{os.getlogin()}/AppData/Local/Unity/Editor/upm.log")
+        self.assertEqual(log_path('upm.log'), f"C:\\Users\\{os.getlogin()}\\AppData\\Local\\Unity\\Editor\\upm.log")
 
         # test that log_path with 'observer' being true returns the Editor.log directory path
-        self.assertEqual(log_path(observer=True), f"C:/Users/{os.getlogin()}/AppData/Local/Unity/Editor/")
+        self.assertEqual(log_path(observer=True), f"C:\\Users\\{os.getlogin()}\\AppData\\Local\\Unity\\Editor\\")
 
 
 if __name__ == '__main__':
