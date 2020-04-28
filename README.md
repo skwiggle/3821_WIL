@@ -54,7 +54,7 @@ comes with a list of commands to do operations manually. List of commands includ
 
 ---
 #### 🔵 Terminal
-The terminal can be run from windows/mac/linux and only prints 🔵out any commands sent via the main
+The terminal can be run from windows/mac/linux and only prints out any commands sent via the main
 application. Commands that come with the terminal will be sent to the **terminal_log.txt** 
 file.
 
