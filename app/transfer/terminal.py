@@ -170,7 +170,7 @@ class Terminal:
             # Send contents of file to application
             with open(path, 'r') as log_file:
                 logger.info(f'sending contents of {log_name} to application...')
-                self.one_way_handler(5555, package=(line for line in log_file))
+                self.one_way_handler(5555, package=(line for line in log_file if line != '\n'))
 
             # Empty file
             with open(path.replace('\\\\', '\\'), 'w'): pass
