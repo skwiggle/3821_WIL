@@ -139,7 +139,7 @@ class Server:
                                     temp_msg.put(reply, block=True)
                             continue
                         break
-            except Exception as error:
+            except (OSError, WindowsError, socket.timeout) as error:
                 # send an error message to application of error occurs
                 self._append_error(self.local_msg['timeout'], error)
 
@@ -194,13 +194,11 @@ class Server:
         """ Test the connection to terminal """
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-                sock.setblocking(False)
-                sock.settimeout(1)
-                sock.connect((self._host, port))
-                self.DATA.put(self.local_msg['connection_established'], block=True)
-                return True
-        except Exception as error:
-            self._append_error(self.local_msg['server_connect_failed'], error)
+                sock.bind((self._host, port))
+                self._append_error(self.local_msg['server_connect_failed'], "Check the server is on")
+        except Exception:
+            self._append_error(self.local_msg['connection_established'], f"Connected on port {port} and {port+1}")
+            return True
         return False
 
 

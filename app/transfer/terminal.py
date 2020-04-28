@@ -25,7 +25,7 @@ local_msg: dict = {
 logging.basicConfig(
     filemode='a+',
     filename='terminal_log.txt',
-    level=logging.DEBUG,
+    level=logging.INFO,
     format='%(levelname)-8s %(asctime)s: %(message)s'
 )
 logger = logging.getLogger('logger')

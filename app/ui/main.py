@@ -14,6 +14,8 @@ __version__ = '1.0.0'
 __author__ = 'Elliot Charters, Sadeed Ahmad, Max Harvey, Samrat Kunwar, Nguyen Huy Hoang'
 
 import kivy
+from kivy.core.text import LabelBase
+from kivy.metrics import sp
 
 kivy.require('1.11.1')
 
@@ -42,6 +44,17 @@ from app.transfer.command_lookup import CommandLookup
 from kivy.properties import NumericProperty, StringProperty
 from kivy.uix.screenmanager import Screen, ScreenManager, NoTransition
 
+
+# Add book-antiqua font and load into kivy
+extra_font = [{
+    "name": "BookAntiqua",
+    "fn_regular": "./font/book-antiqua.ttf",
+    "fn_bold": "./font/book-antiqua.ttf",
+    "fn_italic": "./font/book-antiqua.ttf",
+    "fn_bolditalic": "./font/book-antiqua.ttf"
+}]
+for font in extra_font:
+    LabelBase.register(**font)
 
 # classes representing UI elements that need to be displayed
 # in main.py in order to work
@@ -115,15 +128,29 @@ class MainScreen(Screen): pass
 
 class InputFocusedScreen(Screen):
     def on_enter(self, *args):
-        self.children[0].children[1].children[0].children[0].focus = True
+        text_input = self.children[0].children[1].children[0].children[0]
+        text_input.focus = True
+        if text_input.text == 'Enter command...':
+            text_input.text = ''
 
 
 class ReconnectBtn(ButtonBehavior, Image): pass
 class ClearBtn(Button): pass
 class SendBtn(Button): pass
 class Input(Widget): pass
-class Content(TextInput): pass
-class DataCell(MDLabel): pass
+
+
+class Content(TextInput):
+    def __init__(self, **kwargs):
+        TextInput.__init__(self, **kwargs)
+        self.text = 'Enter command...'
+
+
+class DataCell(MDLabel):
+    def __init__(self, **kwargs):
+        MDLabel.__init__(self, **kwargs)
+        self.font_size = sp(14)
+        self.font_family = 'BookAntiqua'
 
 
 class MainApp(MDApp):
