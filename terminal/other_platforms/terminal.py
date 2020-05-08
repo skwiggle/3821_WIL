@@ -25,7 +25,7 @@ local_msg: dict = {
 # - sets format of errors to include level, time and message
 logging.basicConfig(
     filemode='a+',
-    filename='terminal_log.txt',
+    filename='./terminal_log.txt',
     level=logging.INFO,
     format='%(levelname)-8s %(asctime)s: %(message)s'
 )
@@ -34,6 +34,20 @@ logger = logging.getLogger('logger')
 # lambda function in charge of appending an error message to a logger message
 # if `verbose` is True, otherwise, append nothing
 error_msg = lambda error, verbose: f'\n\t\t -> {error}' if verbose else ''
+
+def startup():
+    """
+    Delete temporary log files that failed to delete from a
+    previous session if either the app lost connection too early
+    or the terminal closed unexpectedly
+    """
+    parent = log_path(observer=True)
+    for option in log_file_names:
+        log_pth = f'{parent}~{option}'
+        if os.path.exists(log_pth):
+            os.remove(log_pth)
+            logger.warning(f'data from \'{option}\' failed to send to application from previous session, '
+                           f'recommended force update')
 
 def log_path(log_name: str = 'no_file_given', observer: bool = False) -> str:
     """
@@ -87,6 +101,7 @@ class Terminal:
                          purposes, defaults to False
         :type unittest: bool
         """
+        startup()
         self._host: str = 'localhost'                       # socket host
         self._buffer: int = 2048                            # buffer limit (prevent buffer overflow)
         self._log_path_dir: str = log_path(observer=True)   # Unity log directory location

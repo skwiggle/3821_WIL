@@ -1,7 +1,7 @@
 import unittest
 from threading import Thread
 from app.transfer.server import Server
-from app.transfer.terminal import Terminal, log_path
+from terminal.other_platforms.terminal import *
 import os
 
 

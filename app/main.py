@@ -14,6 +14,7 @@ __version__ = '1.0.0'
 __author__ = 'Elliot Charters, Sadeed Ahmad, Max Harvey, Samrat Kunwar, Nguyen Huy Hoang'
 
 import kivy
+from kivy.clock import mainthread
 from kivy.core.text import LabelBase
 from kivy.metrics import sp
 
@@ -47,10 +48,10 @@ from kivy.uix.screenmanager import Screen, ScreenManager, NoTransition
 # Add book-antiqua font and load into kivy
 extra_font = [{
     "name": "BookAntiqua",
-    "fn_regular": "./font/book-antiqua.ttf",
-    "fn_bold": "./font/book-antiqua.ttf",
-    "fn_italic": "./font/book-antiqua.ttf",
-    "fn_bolditalic": "./font/book-antiqua.ttf"
+    "fn_regular": "./ui/font/book-antiqua.ttf",
+    "fn_bold": "./ui/font/book-antiqua.ttf",
+    "fn_italic": "./ui/font/book-antiqua.ttf",
+    "fn_bolditalic": "./ui/font/book-antiqua.ttf"
 }]
 for font in extra_font:
     LabelBase.register(**font)
@@ -66,8 +67,8 @@ class DebugPanel(RecycleView, Server, CommandLookup):
     def __init__(self, **kwargs):
         # initialise super classes
         super(DebugPanel, self).__init__(**kwargs)  # initialise client super class
-        Server.__init__(self, '../transfer/log', 3600, True)  # initialise server
-        CommandLookup.__init__(self, '../transfer/log')  # initialise command lookup
+        Server.__init__(self, './transfer/log', 3600, True)  # initialise server
+        CommandLookup.__init__(self, './transfer/log')  # initialise command lookup
 
         # setup threads
         update_thd = threading.Thread(target=self.two_way_handler, args=(5555,))  # monitor for server updates
@@ -160,7 +161,7 @@ class MainApp(MDApp):
     """
 
     title = "Terminal Genie"
-    icon = './icon/app/app_icon256x256.png'
+    icon = './ui/icon/app/app_icon256x256.png'
     padding_def = NumericProperty(20)
     status = StringProperty('')
     command = StringProperty('')

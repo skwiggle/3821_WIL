@@ -1,6 +1,6 @@
 import unittest
 from app.transfer.server import Server
-from app.transfer.terminal import Terminal
+from terminal.other_platforms.terminal import Terminal
 from threading import Thread
 
 
