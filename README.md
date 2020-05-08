@@ -2,10 +2,10 @@
 A custom debugging program built for Android version 25.0 and higher to debug Unity projects.
 Comes with a remote terminal to run on windows/mac/linux.
 
-![Image](../3821_WIL/app/ui/screenshots/readme.png)
+![Main](./app/ui/screenshots/readme.PNG)
 
 ---
-###🔵 Application
+### 🔵 Application
 
 ---
 The main application is run on android while the terminal is run from a computer. 
@@ -29,11 +29,11 @@ comes with a list of commands to do operations manually. List of commands includ
 * *NDK Version* - Latest
 
 ---
-###🔵 Terminal
+### 🔵 Terminal
 
 ---
 
-![Image](../3821_WIL/app/ui/screenshots/terminal.png)
+![Terminal](./app/ui/screenshots/terminal.png)
 
 #####Windows Versions
 The terminal can be run from windows/mac/linux and only prints out any commands sent via the main
@@ -47,12 +47,12 @@ terminal_genie.exe > filename.extension
 ```
 > e.g. terminal_genie.exe > output.txt
 
-#####Mac OS and Linux Versions
+##### Mac OS and Linux Versions
 Mac and linux distributions will come with a shell (.sh) file called **run.sh** which can be 
 run by either right clicking the file and selecting open or by opening a bash terminal and
 typing `./run.sh`. In order to pipe data, use the following command `./run.sh > filename.extension`
 
-> #####:: Important ::
+> ##### :: Important ::
 >
 > Mac OS and Linux systems should automatically come with python3 installed, however, if this
   is not the case the program will not run. Any version of python3 will work. you can find the
@@ -60,7 +60,7 @@ typing `./run.sh`. In order to pipe data, use the following command `./run.sh > 
 > https://www.python.org/downloads/
 
 ---
-### 🔵 Terminal Requirements
+### Terminal Requirements
 * **Unity Version** - 2019.3.10 and above
 * **Python3** - any version above 3.7 *(Mac OS and Linux only)*
 
@@ -68,7 +68,7 @@ typing `./run.sh`. In order to pipe data, use the following command `./run.sh > 
 ### 🔵 Installation for Developers
 
 ---
-####Setting up Python 3
+#### Setting up Python 3
 1. Uninstall all versions of python
 2. Type into windows search: "*environment variables*" and click on "**Edit the system environment variables**"
 3. Go to **ENVIRONMENT VARIABLES > USER VARIABLES > path > EDIT** and then delete all python paths if there is any
@@ -92,4 +92,3 @@ _(usually the paths will end with python.exe or python/lib etc.)_
    **3821_WIL/app/kivy_venv/Scripts/python.exe** in your project and then press OK.
 5. open up a command prompt window (not the one in pycharm) and type: pip install watchdog
 6. try running the main.py file within pycharm and it should work
-
