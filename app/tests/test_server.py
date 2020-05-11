@@ -1,5 +1,5 @@
 import unittest
-from app.transfer.server import Server
+from app.scripts.transfer.server import Server
 from terminal.other_platforms.terminal import Terminal
 from threading import Thread
 
