@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
-import os
 import re
-from datetime import datetime as dt
-from app.transfer.essentials import format_debug_text, timestamp
+from app.transfer.essentials import *
 
 
-# noinspection RegExpSingleCharAlternation
+# noinspection RegExpSingleCharAlternation,SpellCheckingInspection
 class CommandLookup:
     """
      Compares inbound command's format against expected command format
@@ -13,7 +11,7 @@ class CommandLookup:
      """
 
     _directory = './log'    # local path to log directory without '/' at end
-    command_list = [
+    command_list = (
         '?: get list of commands',
         'get log: request current log from unity',
         'get log --today: get all logs from today',
@@ -21,13 +19,10 @@ class CommandLookup:
         'clear logs: delete all temporary logs',
         'clear log --today: clear all logs from today',
         'clear log --00-01-2000: clear log of specific day'
-    ]
+    )
 
     def __init__(self, _directory: str):
         self._directory = _directory
-
-    def __str__(self):
-        return self._directory
 
     @staticmethod
     def check(command: str) -> bool:
@@ -60,9 +55,9 @@ class CommandLookup:
          :param command: command sent by the user
          :type command: str
          :param data: data displayed on the debug screen
-         :type data: list[set]
+         :type data: list[Dict[str, str]]
          :return: new updated version of data information
-         :rtype: list[set]
+         :rtype: list[Dict[str, str]]
         """
 
         # command without capitalisation and whitespace
@@ -86,20 +81,19 @@ class CommandLookup:
             parameters = re.split('--', f'{fixed}--')
             # return command execution data if viable
             if parameters[0] == '?':
-                data.append({'text': ''})
+                data.append(format_data_text(''))
                 for line in self.command_list:
-                    data.append({'text': (line)})
-                data.append({'text': ''})
+                    data.append(format_data_text(line))
+                data.append(format_data_text(''))
             elif parameters[0] == 'getlog':
                 for line in self.get_log(parameters):
-                    data.append((line))
+                    data.append(line)
             elif parameters[0] == 'clearlog' or parameters[0] == 'clearlogs':
                 for line in self.clear_log(parameters):
-                    data.append((line))
+                    data.append(line)
         else:
             # do nothing if the command couldn't find a valid lookup
-            data.append({'text': timestamp(f'\'{command}\'')})
-
+            data.append(format_timestamped_data_text(f'\'{command}\''))
         return data
 
     def get_log(self, parameters: [str]):
@@ -119,11 +113,11 @@ class CommandLookup:
                 with open(f"{self._directory}/log-{dt.now().strftime('%d-%m-%Y')}.txt", 'r+') as file:
                     for count, line in enumerate(file):
                         if count > 4000: break
-                        yield {'text': (line)}
-                yield {'text': timestamp('end of file----\n')}
+                        yield format_timestamped_data_text(line)
+                yield format_timestamped_data_text('end of file----')
             else:
                 with open(file_path, 'w'): pass
-                yield {'text': timestamp('no previous logs from today, blank file created')}
+                yield format_timestamped_data_text('no previous logs from today, blank file created')
 
         # GET log from SPECIFIC DAY
         elif re.match('[\d]{2}(/|-)[\d]{2}(/|-)[\d]{4}$', parameters[1]):
@@ -133,15 +127,15 @@ class CommandLookup:
                 with open(file_path, 'r+') as file:
                     for count, line in enumerate(file):
                         if count > 4000: break
-                        yield {'text': line}
-                    yield {'text': timestamp('end of file----\n')}
+                        yield format_timestamped_data_text(line)
+                    yield format_timestamped_data_text('end of file----')
             else:
                 with open(file_path, 'w'): pass
-                yield {'text': timestamp('no previous logs from that day, blank file created')}
+                yield format_timestamped_data_text('no previous logs from that day, blank file created')
 
         # return error if parameters were wrong
         else:
-            yield {'text': timestamp('incorrect date format')}
+            yield format_timestamped_data_text('incorrect date format')
 
     def clear_log(self, parameters: [str]) -> set:
         """
@@ -157,9 +151,9 @@ class CommandLookup:
                 file_path = f"{self._directory}/log-{dt.now().strftime('%d-%m-%Y')}.txt"
                 if os.path.exists(file_path):
                     os.remove(file_path)
-                    yield {'text': timestamp(f'log file at {file_path} deleted')}
+                    yield format_timestamped_data_text(f'log file at {file_path} deleted')
                 else:
-                    yield {'text': timestamp(f'no log file found at {file_path}')}
+                    yield format_timestamped_data_text(f'no log file found at {file_path}')
 
             # CLEAR log from SPECIFIC DAY
             elif re.search('[\d]{2}(/|-)[\d]{2}(/|-)[\d]{4}$', parameters[1]):
@@ -167,19 +161,19 @@ class CommandLookup:
                 file_path = f"{self._directory}/log-{parameters[1]}.txt"
                 if os.path.exists(file_path):
                     os.remove(file_path)
-                    yield {'text': timestamp(f'log file at {file_path} deleted')}
+                    yield format_timestamped_data_text(f'log file at {file_path} deleted')
                 else:
-                    yield {'text': timestamp(f'no log file found at {file_path}')}
+                    yield format_timestamped_data_text(f'no log file found at {file_path}')
 
             # return error if date format was wrong
             else:
-                yield {'text': timestamp(f'incorrect date format')}
+                yield format_timestamped_data_text(f'incorrect date format')
 
         # CLEAR all logs
         if parameters[0] == 'clearlogs':
             for file in os.listdir(self._directory):
                 os.remove(f'{self._directory}/{file}')
-            yield {'text': timestamp('all log files deleted')}
+            yield format_timestamped_data_text('all log files deleted')
 
 
 if __name__ == '__main__':

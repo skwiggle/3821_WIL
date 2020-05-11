@@ -137,7 +137,7 @@ class Server:
                                     temp_msg.put(reply, block=True)
                             continue
                         break
-            except (OSError, WindowsError, socket.timeout) as error:
+            except Exception as error:
                 # send an error message to application of error occurs
                 self._append_error(self.local_msg['timeout'], error)
 
@@ -168,7 +168,7 @@ class Server:
                         if line != '':
                             sock.send(line.encode('utf-8'))
             return True
-        except WindowsError as error:
+        except Exception as error:
             self._append_error(self.local_msg['connection_closed'], error)
         return False
 
@@ -199,7 +199,7 @@ class Server:
 
 
 if __name__ == '__main__':
-    """ Unit testing purposes """
+    """ Unit testing only """
     s = Server()
     t1 = Thread(target=s.two_way_handler, args=(1111,))
     t1.start()

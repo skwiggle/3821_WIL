@@ -27,8 +27,7 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.recycleview import RecycleView
 from kivy.uix.button import ButtonBehavior, Button
 from app.transfer.command_lookup import CommandLookup
-from app.transfer.essentials import format_debug_text
-from kivy.properties import NumericProperty, StringProperty
+from app.transfer.essentials import format_timestamped_data_text
 from kivy.uix.screenmanager import Screen, ScreenManager, NoTransition
 
 kivy.require('1.11.1')
@@ -44,6 +43,7 @@ Config.set('widgets', 'scroll_moves', '100')
 
 
 # Add book-antiqua font and load into kivy
+# noinspection SpellCheckingInspection
 extra_font = [{
     "name": "BookAntiqua",
     "fn_regular": "./ui/font/book-antiqua.ttf",
@@ -61,7 +61,7 @@ class DebugPanelFocused(RecycleView): pass
 
 class DebugPanel(RecycleView, Server, CommandLookup):
     # temporary data stored before updating
-    temp_data = [{'text': format_debug_text('type ? for a list of commands')}]
+    temp_data = [format_timestamped_data_text('type ? for a list of commands')]
 
     def __init__(self, **kwargs):
         # initialise super classes
@@ -70,7 +70,8 @@ class DebugPanel(RecycleView, Server, CommandLookup):
         CommandLookup.__init__(self, './transfer/log')  # initialise command lookup
 
         # setup threads
-        update_thd = threading.Thread(target=self.two_way_handler, args=(5555,))  # monitor for server updates
+        update_thd = threading.Thread(target=self.two_way_handler, args=(5555,),
+                                      daemon=True)  # monitor for server updates
         watch_data_thd = threading.Thread(target=self.watch_log_update,
                                           daemon=True)  # monitor for data changes until app closes
         update_thd.start()
@@ -84,6 +85,7 @@ class DebugPanel(RecycleView, Server, CommandLookup):
         if not self.test_connection(5554):
             update_thd = threading.Thread(target=self.two_way_handler, args=(5555,))
             update_thd.start()
+        self.scroll_y = 0
 
     def watch_log_update(self):
         """
@@ -96,7 +98,7 @@ class DebugPanel(RecycleView, Server, CommandLookup):
             if not self.DATA.empty():
                 # Retrieve incoming data from server script and display to the log
                 while not self.DATA.empty():
-                    self.temp_data.append({'text': format_debug_text(self.DATA.get(block=True))})
+                    self.temp_data.append(format_timestamped_data_text(self.DATA.get(block=True)))
                 self.data = self.temp_data
                 # Set screen scroll to bottom once data is updated to screen
                 if self.scroll_down:
@@ -108,7 +110,10 @@ class DebugPanel(RecycleView, Server, CommandLookup):
     def send_command(self, command: str):
         """
         Compare the command against existing commands and then print the
-        result to the debug panel
+        result to the :class:`DebugPanel`
+
+        :param command: The command sent from the user input
+        :type command: str
         """
         # Check validity of command
         self.temp_data = self.lookup(command, self.data)
@@ -148,8 +153,6 @@ class Content(TextInput):
         self.text = 'Enter command...'
 
 
-
-
 class MainApp(MDApp):
     """
     Main Application Window
@@ -163,34 +166,31 @@ class MainApp(MDApp):
 
     title = "Terminal Genie"
     icon = './ui/icon/app/app_icon256x256.png'
-    padding_def = NumericProperty(20)
-    status = StringProperty('')
-    command = StringProperty('')
     is_focused: bool = False
     cmd_text: str = ''
     debug_data: [set] = [{}]
 
     def reconnect(self):
-        # test connection to terminal
+        """ test connection to terminal """
         rec_thd = threading.Thread(target=self.root.get_screen('main').ids['debug_panel'].reconnect)
         rec_thd.start()
 
     def clear_content(self):
-        # Tell debug panel to clear data
+        """ Tell debug panel to clear data """
         self.root.get_screen('main').ids['debug_panel'].data = \
-            [{'text': format_debug_text('type ? to see list of commands')}]
+            [format_timestamped_data_text('type ? to see list of commands')]
         self.root.get_screen('main').ids['debug_panel'].temp_data = \
-            [{'text': format_debug_text('type ? to see list of commands')}]
+            [format_timestamped_data_text('type ? to see list of commands')]
 
     def send_command(self):
-        # Send command to debug panel
+        """ Send command to debug panel """
         command = self.root.get_screen('main').ids['cmd_input'].text
         cmd_thd = threading.Thread(target=self.root.get_screen('main').ids['debug_panel'].send_command,
                                    args=(command,), name='send_command')
         cmd_thd.start()
 
     def on_input_focus(self):
-        # switch between screens on text input focus
+        """ switch between screens on text input focus """
         if self.is_focused:
             self.cmd_text = self.root.get_screen('input_focused').ids['cmd_input_focused'].text
             self.root.current = 'main'
