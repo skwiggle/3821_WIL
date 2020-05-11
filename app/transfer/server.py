@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from app.transfer.essentials import startup, timestamp
 import os
 import time
 import socket
@@ -16,29 +17,22 @@ class Server:
     custom actions upon event change.
     """
 
-    # append timestamp to message
-    _timestamp = lambda msg: f'{dt.now().strftime("%I:%M%p")}: {msg}'
-
-    # lambda function in charge of appending an error message to a logger message
-    # if `verbose` is True, otherwise, append nothing
-    error_msg = lambda error, verbose: f'\n\t\t -> {error}' if verbose else ''
-
     # List of re-occurring error messages, easily referencable
     local_msg: dict = {
-        'server_established': _timestamp('established server'),
-        'server_connect_failed': _timestamp('failed to connect to the server'),
-        'server_closed': _timestamp('server closed'),
-        'connection_established': _timestamp('connection established'),
-        'connection_closed': _timestamp('failed to send message because no connection was found'),
-        'timeout': _timestamp('connection timed out'),
-        'stream_active': _timestamp('please wait until previous message has sent'),
-        'unity_log_empty': _timestamp('log file %s is empty'),
-        'all_unity_logs_empty': _timestamp('no new updates from unity'),
-        'unknown': _timestamp('unknown error, please restart terminal')
+        'server_established': timestamp('established server'),
+        'server_connect_failed': timestamp('failed to connect to the server'),
+        'connection_established': timestamp('connection established'),
+        'connection_closed': timestamp('failed to send message because no connection was found'),
+        'timeout': timestamp('connection timed out'),
+        'stream_active': timestamp('please wait until previous message has sent'),
+        'unity_log_empty': timestamp('log file %s is empty'),
+        'all_unity_logs_empty': timestamp('no new updates from unity'),
+        'unknown': timestamp('unknown error, please restart terminal')
     }
 
     def __init__(self, temp_log_folder: str = './log',
                  timeout: float = 3600, verbose: bool = False):
+        startup()
         self._host: str = 'localhost'               # socket host
         self._buffer: int = 2048                    # buffer limit (prevent buffer overflow)
         self.scroll_down: bool = False              # checks if app should scroll to the bottom
@@ -72,14 +66,16 @@ class Server:
             """
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as ws:
                 ws.settimeout(self._timeout)
-                ws.bind((self._host, port))
-                ws.listen()
-                self.DATA.put(self.local_msg['server_established'])
                 try:
-                    func(self, port, ws)
+                    ws.bind((self._host, port))
+                    ws.listen()
+                    self.DATA.put(self.local_msg['server_established'])
+                    try:
+                        func(self, port, ws)
+                    except Exception as error:
+                        self._append_error(self.local_msg['unknown'], error)
                 except Exception as error:
-                    self._append_error(self.local_msg['unknown'], error)
-            self.DATA.put(self.local_msg['server closed'])
+                    self._append_error(self.local_msg['server_connect_failed'], "Check the server is on")
 
         return _wrapper
 
@@ -196,7 +192,6 @@ class Server:
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                 sock.bind((self._host, port))
-                self._append_error(self.local_msg['server_connect_failed'], "Check the server is on")
         except Exception:
             self._append_error(self.local_msg['connection_established'], f"Connected on port {port} and {port+1}")
             return True

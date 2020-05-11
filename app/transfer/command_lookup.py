@@ -2,6 +2,7 @@
 import os
 import re
 from datetime import datetime as dt
+from app.transfer.essentials import format_debug_text, timestamp
 
 
 # noinspection RegExpSingleCharAlternation
@@ -63,7 +64,6 @@ class CommandLookup:
          :return: new updated version of data information
          :rtype: list[set]
         """
-        _timestamp = lambda msg: f'{dt.now().strftime("%I:%M%p")}: {msg}'  # current time
 
         # command without capitalisation and whitespace
         fixed = command.lower().replace(' ', '')
@@ -86,17 +86,19 @@ class CommandLookup:
             parameters = re.split('--', f'{fixed}--')
             # return command execution data if viable
             if parameters[0] == '?':
+                data.append({'text': ''})
                 for line in self.command_list:
-                    data.append({'text': line})
+                    data.append({'text': (line)})
+                data.append({'text': ''})
             elif parameters[0] == 'getlog':
                 for line in self.get_log(parameters):
-                    data.append(line)
+                    data.append((line))
             elif parameters[0] == 'clearlog' or parameters[0] == 'clearlogs':
                 for line in self.clear_log(parameters):
-                    data.append(line)
+                    data.append((line))
         else:
             # do nothing if the command couldn't find a valid lookup
-            data.append({'text': _timestamp(f'\'{command}\'')})
+            data.append({'text': timestamp(f'\'{command}\'')})
 
         return data
 
@@ -109,7 +111,6 @@ class CommandLookup:
          :param parameters: the base command followed by parameters
          :type parameters: list[str]
         """
-        _timestamp = lambda msg: f'{dt.now().strftime("%I:%M%p")}: {msg}'  # current time
 
         # GET log from TODAY
         if parameters[1] == 'today':
@@ -117,12 +118,12 @@ class CommandLookup:
             if os.path.exists(file_path):
                 with open(f"{self._directory}/log-{dt.now().strftime('%d-%m-%Y')}.txt", 'r+') as file:
                     for count, line in enumerate(file):
-                        if count > 1500: break
-                        yield {'text': line}
-                yield {'text': _timestamp('end of file----\n')}
+                        if count > 4000: break
+                        yield {'text': (line)}
+                yield {'text': timestamp('end of file----\n')}
             else:
                 with open(file_path, 'w'): pass
-                yield {'text': _timestamp('no previous logs from today, blank file created')}
+                yield {'text': timestamp('no previous logs from today, blank file created')}
 
         # GET log from SPECIFIC DAY
         elif re.match('[\d]{2}(/|-)[\d]{2}(/|-)[\d]{4}$', parameters[1]):
@@ -131,24 +132,24 @@ class CommandLookup:
             if os.path.exists(file_path):
                 with open(file_path, 'r+') as file:
                     for count, line in enumerate(file):
-                        if count > 1500: break
+                        if count > 4000: break
                         yield {'text': line}
-                    yield {'text': _timestamp('end of file----\n')}
+                    yield {'text': timestamp('end of file----\n')}
             else:
                 with open(file_path, 'w'): pass
-                yield {'text': _timestamp('no previous logs from that day, blank file created')}
+                yield {'text': timestamp('no previous logs from that day, blank file created')}
 
         # return error if parameters were wrong
         else:
-            yield {'text': _timestamp('incorrect date format')}
+            yield {'text': timestamp('incorrect date format')}
 
     def clear_log(self, parameters: [str]) -> set:
         """
         Delete a local temporary copy of a log file from the android phone
 
         :param parameters: the base command followed by parameters
+        :type parameters: list[str]
         """
-        _timestamp = lambda msg: f'{dt.now().strftime("%I:%M%p")}: {msg}'  # current time
         if parameters[0] == 'clearlog':
 
             # CLEAR log from TODAY
@@ -156,9 +157,9 @@ class CommandLookup:
                 file_path = f"{self._directory}/log-{dt.now().strftime('%d-%m-%Y')}.txt"
                 if os.path.exists(file_path):
                     os.remove(file_path)
-                    yield {'text': _timestamp(f'log file at {file_path} deleted')}
+                    yield {'text': timestamp(f'log file at {file_path} deleted')}
                 else:
-                    yield {'text': _timestamp(f'no log file found at {file_path}')}
+                    yield {'text': timestamp(f'no log file found at {file_path}')}
 
             # CLEAR log from SPECIFIC DAY
             elif re.search('[\d]{2}(/|-)[\d]{2}(/|-)[\d]{4}$', parameters[1]):
@@ -166,19 +167,19 @@ class CommandLookup:
                 file_path = f"{self._directory}/log-{parameters[1]}.txt"
                 if os.path.exists(file_path):
                     os.remove(file_path)
-                    yield {'text': _timestamp(f'log file at {file_path} deleted')}
+                    yield {'text': timestamp(f'log file at {file_path} deleted')}
                 else:
-                    yield {'text': _timestamp(f'no log file found at {file_path}')}
+                    yield {'text': timestamp(f'no log file found at {file_path}')}
 
             # return error if date format was wrong
             else:
-                yield {'text': _timestamp(f'incorrect date format')}
+                yield {'text': timestamp(f'incorrect date format')}
 
         # CLEAR all logs
         if parameters[0] == 'clearlogs':
             for file in os.listdir(self._directory):
                 os.remove(f'{self._directory}/{file}')
-            yield {'text': _timestamp('all log files deleted')}
+            yield {'text': timestamp('all log files deleted')}
 
 
 if __name__ == '__main__':

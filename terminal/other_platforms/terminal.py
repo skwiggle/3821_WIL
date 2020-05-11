@@ -69,7 +69,7 @@ def log_path(log_name: str = 'no_file_given', observer: bool = False) -> str:
     elif 'mac' in platform:
         return f"~/Library/Logs/Unity/{'' if observer else log_name}"
     elif ('lin' or 'unix') in platform:
-        return f"~/.config/unity3d/{'' if observer else log_name}"
+        return f"/home/{os.getlogin()}/.config/unity3d/{'' if observer else log_name}"
     else:
         logger.critical('Path to Unity log files does not exist, check that the one of the following URLs matche that '
                         'of your platform')

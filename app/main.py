@@ -14,35 +14,33 @@ __version__ = '1.0.0'
 __author__ = 'Elliot Charters, Sadeed Ahmad, Max Harvey, Samrat Kunwar, Nguyen Huy Hoang'
 
 import kivy
-from kivy.clock import mainthread
-from kivy.core.text import LabelBase
-from kivy.metrics import sp
-
-kivy.require('1.11.1')
-
 from kivy.config import Config
-
-Config.set('graphics', 'width', '480')
-Config.set('graphics', 'height', '720')
-Config.set('graphics', 'minimum_width', '480')
-Config.set('graphics', 'minimum_height', '720')
-Config.set('graphics', 'resizable', '1')
-Config.set('graphics', 'borderless', '0')
-Config.set('widgets', 'scroll_moves', '100')
-
 import time
 import threading
 from kivymd.app import MDApp
 from kivy.uix.image import Image
 from kivy.uix.widget import Widget
 from kivymd.uix.label import MDLabel
+from kivy.core.text import LabelBase
 from app.transfer.server import Server
 from kivy.uix.textinput import TextInput
 from kivy.uix.recycleview import RecycleView
 from kivy.uix.button import ButtonBehavior, Button
 from app.transfer.command_lookup import CommandLookup
+from app.transfer.essentials import format_debug_text
 from kivy.properties import NumericProperty, StringProperty
 from kivy.uix.screenmanager import Screen, ScreenManager, NoTransition
+
+kivy.require('1.11.1')
+
+# configuration for testing only
+# Config.set('graphics', 'width', '480')
+# Config.set('graphics', 'height', '720')
+# Config.set('graphics', 'minimum_width', '480')
+# Config.set('graphics', 'minimum_height', '720')
+# Config.set('graphics', 'resizable', '1')
+# Config.set('graphics', 'borderless', '0')
+Config.set('widgets', 'scroll_moves', '100')
 
 
 # Add book-antiqua font and load into kivy
@@ -62,7 +60,8 @@ class DebugPanelFocused(RecycleView): pass
 
 
 class DebugPanel(RecycleView, Server, CommandLookup):
-    temp_data: [set] = [{'text': 'type ? for a list of commands'}]  # temporary data stored before updating
+    # temporary data stored before updating
+    temp_data = [{'text': format_debug_text('type ? for a list of commands')}]
 
     def __init__(self, **kwargs):
         # initialise super classes
@@ -95,12 +94,15 @@ class DebugPanel(RecycleView, Server, CommandLookup):
         """
         while True:
             if not self.DATA.empty():
+                # Retrieve incoming data from server script and display to the log
                 while not self.DATA.empty():
-                    self.temp_data.append({'text': self.DATA.get(block=True)})
+                    self.temp_data.append({'text': format_debug_text(self.DATA.get(block=True))})
                 self.data = self.temp_data
+                # Set screen scroll to bottom once data is updated to screen
                 if self.scroll_down:
                     self.scroll_y = 0
                     self.scroll_down = False
+            # wait 1 second before updating again
             time.sleep(1)
 
     def send_command(self, command: str):
@@ -108,8 +110,11 @@ class DebugPanel(RecycleView, Server, CommandLookup):
         Compare the command against existing commands and then print the
         result to the debug panel
         """
+        # Check validity of command
         self.temp_data = self.lookup(command, self.data)
+        # Send command
         self.one_way_handler(5554, f'kc:>{command}' if self.check(command) else f'uc:>{command}')
+        # Set scroll to bottom
         self.scroll_y = 0
 
 
@@ -134,19 +139,15 @@ class ReconnectBtn(ButtonBehavior, Image): pass
 class ClearBtn(Button): pass
 class SendBtn(Button): pass
 class Input(Widget): pass
+class DataCell(MDLabel): pass
 
 
 class Content(TextInput):
     def __init__(self, **kwargs):
-        TextInput.__init__(self, **kwargs)
+        super(Content, self).__init__(**kwargs)
         self.text = 'Enter command...'
 
 
-class DataCell(MDLabel):
-    def __init__(self, **kwargs):
-        MDLabel.__init__(self, **kwargs)
-        self.font_size = sp(14)
-        self.font_family = 'BookAntiqua'
 
 
 class MainApp(MDApp):
@@ -176,8 +177,10 @@ class MainApp(MDApp):
 
     def clear_content(self):
         # Tell debug panel to clear data
-        self.root.get_screen('main').ids['debug_panel'].data = [{'text': 'type ? to see list of commands'}]
-        self.root.get_screen('main').ids['debug_panel'].temp_data = [{'text': 'type ? to see list of commands'}]
+        self.root.get_screen('main').ids['debug_panel'].data = \
+            [{'text': format_debug_text('type ? to see list of commands')}]
+        self.root.get_screen('main').ids['debug_panel'].temp_data = \
+            [{'text': format_debug_text('type ? to see list of commands')}]
 
     def send_command(self):
         # Send command to debug panel

@@ -58,8 +58,9 @@
 
 <DataCell@MDLabel>:
     size_hint_y: None
+    markup: True
     text_size: self.width, None
-    height: self.texture_size[1]
+    height: self.texture_size[1] + dp(1)
     theme_text_color: 'Custom'
     text_color: [0, 0.68, 0, 1]
 
@@ -79,7 +80,7 @@
             pos: self.pos
 
 <SendBtn>:
-    text: "[color=#FFFFFF][size=22px][b]Send[/b][/size][/color]"
+    text: "[color=#FFFFFF][size=22sp][b]Send[/b][/size][/color]"
     markup: True
     background_color: 0, 0, 0, 0
     size_hint_x: .98
@@ -103,7 +104,7 @@
             pos: root.pos
 
 <Content@TextInput>:
-    font_size: '24px'
+    font_size: '24sp'
     foreground_color: 1, 1, 1, 1
     background_color: 0, 0, 0, 0
     multiline: False
