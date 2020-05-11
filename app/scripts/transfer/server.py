@@ -1,5 +1,6 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from app.transfer.essentials import startup, timestamp
+from app.scripts.misc.essentials import timestamp
 import os
 import time
 import socket
@@ -7,6 +8,11 @@ from threading import Thread
 from datetime import datetime as dt
 from queue import Queue
 
+
+def startup():
+    """ Make sure the log folder exists, if not, create one"""
+    if not os.path.exists('./log'):
+        os.mkdir('./log')
 
 # noinspection PyArgumentList
 class Server:

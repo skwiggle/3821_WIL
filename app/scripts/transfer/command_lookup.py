@@ -1,6 +1,8 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import os
 import re
-from app.transfer.essentials import *
+from app.scripts.misc.essentials import *
 
 
 # noinspection RegExpSingleCharAlternation,SpellCheckingInspection
@@ -30,7 +32,6 @@ class CommandLookup:
         Do a quick lookup to check if the command exists
 
         :param command: command string
-        :type command: str
         """
         commands = {
             r"\?",
@@ -53,11 +54,8 @@ class CommandLookup:
          and then append an error or success message to the data table.
 
          :param command: command sent by the user
-         :type command: str
          :param data: data displayed on the debug screen
-         :type data: list[Dict[str, str]]
-         :return: new updated version of data information
-         :rtype: list[Dict[str, str]]
+         :returns: new updated version of data information
         """
 
         # command without capitalisation and whitespace
@@ -103,7 +101,7 @@ class CommandLookup:
          the current day or a specific date.
 
          :param parameters: the base command followed by parameters
-         :type parameters: list[str]
+                            a.k.a. seperated by '--'
         """
 
         # GET log from TODAY
@@ -142,7 +140,6 @@ class CommandLookup:
         Delete a local temporary copy of a log file from the android phone
 
         :param parameters: the base command followed by parameters
-        :type parameters: list[str]
         """
         if parameters[0] == 'clearlog':
 

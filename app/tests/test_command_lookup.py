@@ -1,7 +1,6 @@
 import unittest
 from datetime import datetime as dt
-from app.transfer.command_lookup import CommandLookup
-import os
+from app.scripts.transfer.command_lookup import CommandLookup
 
 
 class TestCommandLookup(unittest.TestCase):
@@ -83,7 +82,7 @@ class TestCommandLookupClear(unittest.TestCase):
             [{'text': f'{_timestamp}: no log file found at ../transfer/log/log-01-01-2020.txt'}])
 
         # test file deletion with specific date using '/' instead of '-' in date string
-        with open('../transfer/log/log-01-01-2020.txt', 'w+'): pass
+        with open('../scripts/transfer/log/log-01-01-2020.txt', 'w+'): pass
         self.assertEqual(self.cmd_lo.lookup('clear log --01/01/2020', []),
             [{'text': f'{_timestamp}: log file at ../transfer/log/log-01-01-2020.txt deleted'}])
 
