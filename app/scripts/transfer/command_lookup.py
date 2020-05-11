@@ -175,4 +175,5 @@ class CommandLookup:
 
 if __name__ == '__main__':
     c = CommandLookup('./log')
-    print(c.check('get log--01/02-2090'))
+    # test that it returns the blank file message and creates file
+    print(c.lookup('clear logs', []))
