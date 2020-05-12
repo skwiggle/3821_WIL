@@ -115,7 +115,7 @@
     on_enter: self.ids['cmd_input'].text = app.cmd_text
     canvas.before:
         Rectangle:
-            source: './ui/icon/background/background_full.png'
+            source: './ui/background/background_main.png'
             size: Window.size
             pos: (0, 0)
     BoxLayout:
@@ -179,7 +179,7 @@
     on_enter: self.ids['debug_panel_focused'].data = app.debug_data
     canvas.before:
         Rectangle:
-            source: './ui/icon/background/background_partial.png'
+            source: './ui/background/background_focused.png'
             size: Window.size
             pos: (0, 0)
     BoxLayout:

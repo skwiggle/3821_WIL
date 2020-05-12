@@ -17,22 +17,22 @@ __version__ = '1.0.0'
 __author__ = 'Elliot Charters, Sadeed Ahmad, Max Harvey, Samrat Kunwar, Nguyen Huy Hoang'
 
 import kivy
+kivy.require('1.11.1')
+
+# configuration for testing only
 from kivy.config import Config
+# Config.set('graphics', 'minimum_width', '480')
+# Config.set('graphics', 'minimum_height', '720')
+# Config.set('graphics', 'width', '480')
+# Config.set('graphics', 'height', '720')
+# Config.set('graphics', 'resizable', '1')
+# Config.set('graphics', 'borderless', '1')
+Config.set('widgets', 'scroll_moves', '100')
+
 from kivymd.app import MDApp
 from kivy.core.text import LabelBase
 from app.scripts.misc.elements import *
 from app.scripts.misc.essentials import format_timestamped_data_text
-
-kivy.require('1.11.1')
-
-# configuration for testing only
-# Config.set('graphics', 'width', '480')
-# Config.set('graphics', 'height', '720')
-# Config.set('graphics', 'minimum_width', '480')
-# Config.set('graphics', 'minimum_height', '720')
-# Config.set('graphics', 'resizable', '1')
-# Config.set('graphics', 'borderless', '0')
-Config.set('widgets', 'scroll_moves', '100')
 
 # Add book-antiqua font and load into kivy
 # noinspection SpellCheckingInspection
