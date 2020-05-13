@@ -2,10 +2,13 @@
 # -*- coding: utf-8 -*-
 import os
 import re
-from app.scripts.misc.essentials import *
-
+from datetime import datetime as dt
 
 # noinspection RegExpSingleCharAlternation,SpellCheckingInspection
+from app.scripts.misc.essentials import fmt_datacell
+
+
+# noinspection RegExpSingleCharAlternation
 class CommandLookup:
     """
      Compares inbound command's format against expected command format
@@ -79,19 +82,19 @@ class CommandLookup:
             parameters = re.split('--', f'{fixed}--')
             # return command execution data if viable
             if parameters[0] == '?':
-                data.append(format_data_text(''))
+                data.append(fmt_datacell(''))
                 for line in self.command_list:
-                    data.append(format_data_text(line))
-                data.append(format_data_text(''))
+                    data.append(fmt_datacell(line))
+                data.append(fmt_datacell(''))
             elif parameters[0] == 'getlog':
                 for line in self.get_log(parameters):
-                    data.append(line)
+                    data.append(fmt_datacell(line))
             elif parameters[0] == 'clearlog' or parameters[0] == 'clearlogs':
                 for line in self.clear_log(parameters):
-                    data.append(line)
+                    data.append(fmt_datacell(line))
         else:
             # do nothing if the command couldn't find a valid lookup
-            data.append(format_timestamped_data_text(f'\'{command}\''))
+            data.append(fmt_datacell(f'\'{command}\''))
         return data
 
     def get_log(self, parameters: [str]):
@@ -111,11 +114,11 @@ class CommandLookup:
                 with open(f"{self._directory}/log-{dt.now().strftime('%d-%m-%Y')}.txt", 'r+') as file:
                     for count, line in enumerate(file):
                         if count > 4000: break
-                        yield format_timestamped_data_text(line)
-                yield format_timestamped_data_text('end of file----')
+                        yield line
+                yield 'end of file----'
             else:
                 with open(file_path, 'w'): pass
-                yield format_timestamped_data_text('no previous logs from today, blank file created')
+                yield 'no previous logs from today, blank file created'
 
         # GET log from SPECIFIC DAY
         elif re.match('[\d]{2}(/|-)[\d]{2}(/|-)[\d]{4}$', parameters[1]):
@@ -125,15 +128,15 @@ class CommandLookup:
                 with open(file_path, 'r+') as file:
                     for count, line in enumerate(file):
                         if count > 4000: break
-                        yield format_timestamped_data_text(line)
-                    yield format_timestamped_data_text('end of file----')
+                        yield line
+                    yield 'end of file----'
             else:
                 with open(file_path, 'w'): pass
-                yield format_timestamped_data_text('no previous logs from that day, blank file created')
+                yield 'no previous logs from that day, blank file created'
 
         # return error if parameters were wrong
         else:
-            yield format_timestamped_data_text('incorrect date format')
+            yield 'incorrect date format'
 
     def clear_log(self, parameters: [str]) -> set:
         """
@@ -148,9 +151,9 @@ class CommandLookup:
                 file_path = f"{self._directory}/log-{dt.now().strftime('%d-%m-%Y')}.txt"
                 if os.path.exists(file_path):
                     os.remove(file_path)
-                    yield format_timestamped_data_text(f'log file at {file_path} deleted')
+                    yield f'log file at {file_path} deleted'
                 else:
-                    yield format_timestamped_data_text(f'no log file found at {file_path}')
+                    yield f'no log file found at {file_path}'
 
             # CLEAR log from SPECIFIC DAY
             elif re.search('[\d]{2}(/|-)[\d]{2}(/|-)[\d]{4}$', parameters[1]):
@@ -158,19 +161,19 @@ class CommandLookup:
                 file_path = f"{self._directory}/log-{parameters[1]}.txt"
                 if os.path.exists(file_path):
                     os.remove(file_path)
-                    yield format_timestamped_data_text(f'log file at {file_path} deleted')
+                    yield f'log file at {file_path} deleted'
                 else:
-                    yield format_timestamped_data_text(f'no log file found at {file_path}')
+                    yield f'no log file found at {file_path}'
 
             # return error if date format was wrong
             else:
-                yield format_timestamped_data_text(f'incorrect date format')
+                yield f'incorrect date format'
 
         # CLEAR all logs
         if parameters[0] == 'clearlogs':
             for file in os.listdir(self._directory):
                 os.remove(f'{self._directory}/{file}')
-            yield format_timestamped_data_text('all log files deleted')
+            yield 'all log files deleted'
 
 
 if __name__ == '__main__':
