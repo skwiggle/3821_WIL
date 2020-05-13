@@ -58,9 +58,6 @@ class DataCell(MDLabel):
     pass
 
 
-class IPPopUp(Popup): pass
-
-
 # Debugging Panels
 DebugPanelFocused()
 
@@ -161,7 +158,10 @@ class MainApp(MDApp):
     is_focused: bool = False
     cmd_text: str = ''
     debug_data: [set] = [{}]
-    ipv4: str = None
+    settings: dict = {
+        'ipv4': '0.0.0.0',
+        'verbose': True
+    }
 
     def reconnect(self):
         """ test connection to terminal """
@@ -201,9 +201,14 @@ class MainApp(MDApp):
             for value in ranges:
                 if not (0 <= int(value) <= 255):
                     return
-            self.ipv4 = ip_address
-            self.root.get_screen('main').ids['debug_panel'].start_server(self.ipv4)
+            self.settings['ipv4'] = ip_address
+            self.root.get_screen('main').ids['debug_panel'].start_server(ip_address)
             self.root.current = 'main'
+
+    def save_settings(self):
+        with open('./settings_config.txt', 'w') as file:
+            file.write(f"ipv4={self.settings['ipv4']}\n")
+            file.write(f"verbose={self.settings['verbose']}")
 
 
 if __name__ == '__main__':

@@ -14,11 +14,11 @@
 #:import Factory kivy.factory.Factory
 
 
-<IPPopUp@Popup>:
-    size_hint: .75, .4
-    pos_hint: {'center_x': 0.5, 'center_y': 0.65}
-    title: "IPv4 Address"
-    auto_dismiss: False
+<IPInput@MDTextField>:
+    size_hint: 1, .6
+    hint_text: "e.g. 255.255.255.255"
+    required: True
+    max_text_length: 15
 
 <ReconnectBtn>:
     source: './ui/icon/reconnect/reconnect_btn_256x256.png'
@@ -125,30 +125,40 @@
             source: './ui/background/background_plain.png'
             size: Window.size
             pos: (0, 0)
-    IPPopUp:
+    on_enter: app.get_saved_ipv4()
+    on_leave: app.save_settings()
+    BoxLayout:
         id: popup
+        size_hint: .75, .4
+        pos_hint: {'center_x': 0.5, 'center_y': 0.65}
         BoxLayout:
             orientation: 'vertical'
-            padding: [sp(10), sp(10), sp(10), sp(20)]
+            padding: [sp(20), sp(20), sp(20), sp(20)]
             spacing: sp(1)
             size_hint: 1, 1
+            canvas.before:
+                Color:
+                    rgba: .1, .1, .1, 1
+                RoundedRectangle:
+                    radius: [sp(20), sp(20), sp(20), sp(20)]
+                    size: self.size
+                    pos: self.pos
             MDLabel:
                 size_hint: 1, .5
                 markup: True
                 text: "[size=16sp]Please enter the IPv4 address of the target host machine, this can be easily found by typing [b]ipconfig[/b] (Windows) or [b]ifconfig[/b] (Mac/Linux) into a command prompt/terminal window[/size]"
                 theme_text_color: 'Custom'
                 text_color: [1, 1, 1, 1]
-            MDTextField:
-                id: ip
-                size_hint: 1, .3
-                hint_text: "e.g. 255.255.255.255"
-                required: True
-                max_text_length: 15
-            MDRaisedButton:
-                size_hint: 1, .2
-                text: "save"
-                markup: True
-                on_press: app.set_ip_address()
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint: 1, .5
+                IPInput:
+                    id: ip
+                MDRaisedButton:
+                    size_hint: 1, .4
+                    text: "save"
+                    markup: True
+                    on_press: app.set_ip_address()
 
 <MainScreen@Screen>:
     name: 'main'

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import re
 import time
 from threading import Thread
 
@@ -10,6 +11,7 @@ from kivy.uix.recycleview import RecycleView
 from kivy.uix.screenmanager import ScreenManager, NoTransition, Screen
 from kivy.uix.textinput import TextInput
 from kivy.uix.widget import Widget
+from kivymd.uix.textfield import MDTextField
 
 from app.scripts.misc.essentials import fmt_datacell
 from app.scripts.transfer.command_lookup import CommandLookup
@@ -31,8 +33,12 @@ class AppManager(ScreenManager):
 
 # Screens
 class StartScreen(Screen):
-    """"""
+    """
+    The Startup Screen used to validate the IPv4 address to the
+    target host machine
+    """
     pass
+
 
 class MainScreen(Screen):
     """
@@ -50,6 +56,19 @@ class InputFocusedScreen(Screen):
             text_input.text = ''
 
 # User Oriented Elements
+class IPInput(MDTextField):
+    def __init__(self, **kwargs):
+        super(IPInput, self).__init__(**kwargs)
+        self.text = self.get_saved_ipv4()
+
+    def get_saved_ipv4(self):
+        ip_address = ''
+        with open('./settings_config.txt', 'r') as file:
+            option_ipv4 = re.split('=', file.readline())
+            if option_ipv4[0] == 'ipv4' and option_ipv4[1] != '':
+                ip_address = option_ipv4[1]
+        return ip_address
+
 class ReconnectBtn(ButtonBehavior, Image):
     """ Reconnect button UI"""
     pass
