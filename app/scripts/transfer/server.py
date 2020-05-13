@@ -20,7 +20,7 @@ class Server:
 
     def __init__(self, temp_log_folder: str = './scripts/transfer/log',
                  timeout: float = 3600, verbose: bool = False):
-        self.host = 'localhost'                            # host ip address (IPv4)
+        self.host = 'localhost'                     # host ip address (IPv4)
         self._buffer: int = 2048                    # buffer limit (prevent buffer overflow)
         self.scroll_down: bool = False              # checks if app should scroll to the bottom
         self.DATA: Queue = Queue(2000)              # temporary log data storage

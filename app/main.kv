@@ -15,7 +15,7 @@
 
 
 <IPPopUp@Popup>:
-    size_hint: .75, .35
+    size_hint: .75, .4
     pos_hint: {'center_x': 0.5, 'center_y': 0.65}
     title: "IPv4 Address"
     auto_dismiss: False
@@ -133,13 +133,14 @@
             spacing: sp(1)
             size_hint: 1, 1
             MDLabel:
-                size_hint: 1, .4
-                text: "Please enter the IPv4 address of target host, this can be easily found by typing ipconfig into a command prompt window"
+                size_hint: 1, .5
+                markup: True
+                text: "[size=16sp]Please enter the IPv4 address of the target host machine, this can be easily found by typing [b]ipconfig[/b] (Windows) or [b]ifconfig[/b] (Mac/Linux) into a command prompt/terminal window[/size]"
                 theme_text_color: 'Custom'
                 text_color: [1, 1, 1, 1]
             MDTextField:
                 id: ip
-                size_hint: 1, .4
+                size_hint: 1, .3
                 hint_text: "e.g. 255.255.255.255"
                 required: True
                 max_text_length: 15

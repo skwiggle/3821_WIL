@@ -79,6 +79,11 @@ def log_path(log_name: str = 'no_file_given', observer: bool = False) -> str:
         logger.critical('LINUX/UNIX - ~/.config/unity3d/')
         exit(-1)
 
+def validate_ipv4() -> str:
+    host = socket.gethostname()
+    address = socket.gethostbyname(host)
+    logger.info(f'hosted on: {address} ({host})')
+    return address
 
 # noinspection PyUnusedLocal
 class Terminal:
@@ -103,7 +108,7 @@ class Terminal:
         :type unittest: bool
         """
         startup()
-        self._host: str = socket.gethostname()              # socket host
+        self.host = validate_ipv4()                         # host IP address
         self._buffer: int = 2048                            # buffer limit (prevent buffer overflow)
         self._log_path_dir: str = log_path(observer=True)   # Unity log directory location
         self._timeout: float = 3600                         # server timeout duration
@@ -245,7 +250,7 @@ class Terminal:
         def _wrapper(self, port: int, sock: socket.socket = None):
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 s.settimeout(self._timeout)
-                s.bind((self._host, port))
+                s.bind((self.host, port))
                 s.listen()
                 logger.info('established server')
                 try:

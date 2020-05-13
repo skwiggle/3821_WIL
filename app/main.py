@@ -36,9 +36,7 @@ from kivymd.uix.label import MDLabel
 from kivy.core.text import LabelBase
 from kivy.metrics import dp
 from app.scripts.misc.elements import *
-from kivymd.uix.dialog import MDDialog
 import re
-from kivymd.uix.button import MDFlatButton
 from app.scripts.misc.essentials import fmt_datacell
 from kivy.uix.popup import Popup
 
