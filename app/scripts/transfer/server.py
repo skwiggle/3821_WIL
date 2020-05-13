@@ -1,20 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from app.scripts.misc.essentials import timestamp
 import os
 import time
 import socket
 from threading import Thread
 from datetime import datetime as dt
 from queue import Queue
+from app.scripts.misc.essentials import local_msg
 
 
-def startup():
-    """ Make sure the log folder exists, if not, create one"""
-    if not os.path.exists('./log'):
-        os.mkdir('./log')
-
-# noinspection PyArgumentList
+# noinspection PyArgumentList,PyBroadException
 class Server:
     """
     A server handler in charge or listening and sending information over sockets
@@ -23,37 +18,28 @@ class Server:
     custom actions upon event change.
     """
 
-    # List of re-occurring error messages, easily referencable
-    local_msg: dict = {
-        'server_established': timestamp('established server'),
-        'server_connect_failed': timestamp('failed to connect to the server'),
-        'connection_established': timestamp('connection established'),
-        'connection_closed': timestamp('failed to send message because no connection was found'),
-        'timeout': timestamp('connection timed out'),
-        'stream_active': timestamp('please wait until previous message has sent'),
-        'unity_log_empty': timestamp('log file %s is empty'),
-        'all_unity_logs_empty': timestamp('no new updates from unity'),
-        'unknown': timestamp('unknown error, please restart terminal')
-    }
-
-    def __init__(self, temp_log_folder: str = './log',
+    def __init__(self, temp_log_folder: str = './scripts/transfer/log',
                  timeout: float = 3600, verbose: bool = False):
-        startup()
         self._host: str = 'localhost'               # socket host
         self._buffer: int = 2048                    # buffer limit (prevent buffer overflow)
         self.scroll_down: bool = False              # checks if app should scroll to the bottom
         self.DATA: Queue = Queue(2000)              # temporary log data storage
         self._temp_log_folder = temp_log_folder     # temporary log directory location
+        self.validate_temp_folder()                 # validate the temp log folder exists
         self._timeout = timeout                     # server timeout duration
         self._verbose = verbose                     # checks whether to specify additional error information
 
+    def validate_temp_folder(self):
+        """ Make sure the log folder exists, if not, create one"""
+        if not os.path.exists(self._temp_log_folder):
+            os.mkdir(self._temp_log_folder)
+
     # noinspection PyMethodParameters
-    def _connectionBootstrap(func) -> ():
+    def _connection_bootstrap(func) -> ():
         """
         Handler function to return wrapper function
 
-        :param func: handler function that extends from `_wrapper`
-        :type func: function
+        :param func: handler function that extends from :class:`_wrapper`
         :return: wrapper function
         :rtype: function
         """
@@ -75,18 +61,18 @@ class Server:
                 try:
                     ws.bind((self._host, port))
                     ws.listen()
-                    self.DATA.put(self.local_msg['server_established'])
+                    self.DATA.put(local_msg['server_established'])
                     try:
                         func(self, port, ws)
                     except Exception as error:
-                        self._append_error(self.local_msg['unknown'], error)
+                        self._append_error(local_msg['unknown'], error)
                 except Exception as error:
-                    self._append_error(self.local_msg['server_connect_failed'], "Check the server is on")
+                    self._append_error(local_msg['server_connect_failed'], "Check the server is on")
 
         return _wrapper
 
     # noinspection PyUnusedLocal
-    @_connectionBootstrap
+    @_connection_bootstrap
     def two_way_handler(self, port: int, sock: socket.socket = None):
         """
         Constantly listen for incoming messages from other hosts.
@@ -115,9 +101,9 @@ class Server:
                             # Send empty log file error message to application if received
                             # message equals 'tg:>'
                             if reply[:4] == 'tg:>':
-                                self.DATA.put(self.local_msg['unity_log_empty'] % reply[4:], block=True)
+                                self.DATA.put(local_msg['unity_log_empty'] % reply[4:], block=True)
                             elif reply == 'tga:>':
-                                self.DATA.put(self.local_msg['all_unity_logs_empty'], block=True)
+                                self.DATA.put(local_msg['all_unity_logs_empty'], block=True)
                             else:
                                 # When the last line says --EOF, update temporary logs with
                                 # `temp_msg` data
@@ -145,7 +131,7 @@ class Server:
                         break
             except Exception as error:
                 # send an error message to application of error occurs
-                self._append_error(self.local_msg['timeout'], error)
+                self._append_error(local_msg['timeout'], error)
 
     def one_way_handler(self, port: int, msg: str = None, package: [str] = None) -> bool:
         """
@@ -175,7 +161,7 @@ class Server:
                             sock.send(line.encode('utf-8'))
             return True
         except Exception as error:
-            self._append_error(self.local_msg['connection_closed'], error)
+            self._append_error(local_msg['connection_closed'], error)
         return False
 
     def _append_error(self, error: str, verbose_msg):
@@ -199,7 +185,7 @@ class Server:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                 sock.bind((self._host, port))
         except Exception:
-            self._append_error(self.local_msg['connection_established'], f"Connected on port {port} and {port+1}")
+            self._append_error(local_msg['connection_established'], f"Connected on port {port} and {port+1}")
             return True
         return False
 
