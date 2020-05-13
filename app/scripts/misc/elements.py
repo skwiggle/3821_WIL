@@ -30,6 +30,10 @@ class AppManager(ScreenManager):
         self.transition = NoTransition()
 
 # Screens
+class StartScreen(Screen):
+    """"""
+    pass
+
 class MainScreen(Screen):
     """
     Main screen for when the user is doing anything else

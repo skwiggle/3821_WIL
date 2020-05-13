@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import asyncio
 import os
+import re
 import shutil
 import threading
 from sys import platform
@@ -102,7 +103,7 @@ class Terminal:
         :type unittest: bool
         """
         startup()
-        self._host: str = 'localhost'                       # socket host
+        self._host: str = socket.gethostname()              # socket host
         self._buffer: int = 2048                            # buffer limit (prevent buffer overflow)
         self._log_path_dir: str = log_path(observer=True)   # Unity log directory location
         self._timeout: float = 3600                         # server timeout duration

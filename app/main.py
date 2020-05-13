@@ -17,6 +17,7 @@ __version__ = '1.0.0'
 __author__ = 'Elliot Charters, Sadeed Ahmad, Max Harvey, Samrat Kunwar, Nguyen Huy Hoang'
 
 import kivy
+
 kivy.require('1.11.1')
 
 # configuration for testing only
@@ -27,14 +28,19 @@ Config.set('graphics', 'minimum_height', '720')
 Config.set('graphics', 'width', '480')
 Config.set('graphics', 'height', '720')
 Config.set('graphics', 'resizable', '1')
-Config.set('graphics', 'borderless', '1')
+Config.set('graphics', 'borderless', '0')
 Config.set('widgets', 'scroll_moves', '100')
 
 from kivymd.app import MDApp
 from kivymd.uix.label import MDLabel
 from kivy.core.text import LabelBase
+from kivy.metrics import dp
 from app.scripts.misc.elements import *
+from kivymd.uix.dialog import MDDialog
+import re
+from kivymd.uix.button import MDFlatButton
 from app.scripts.misc.essentials import fmt_datacell
+from kivy.uix.popup import Popup
 
 # Add book-antiqua font and load into kivy
 # noinspection SpellCheckingInspection
@@ -54,8 +60,12 @@ class DataCell(MDLabel):
     pass
 
 
+class IPPopUp(Popup): pass
+
+
 # Debugging Panels
 DebugPanelFocused()
+
 
 class DebugPanel(RecycleView, Server, CommandLookup):
     """
@@ -72,8 +82,9 @@ class DebugPanel(RecycleView, Server, CommandLookup):
         Server.__init__(self, './scripts/transfer/log', 3600, True)  # initialise server
         CommandLookup.__init__(self, './scripts/transfer/log')  # initialise command lookup
 
-        # setup threads
-        update_thd = Thread(target=self.two_way_handler, args=(5555,), daemon=True)  # monitor for server updates
+    def start_server(self, ip_address: str):
+        self.host = ip_address
+        update_thd = Thread(target=self.two_way_handler, args=(5555,), daemon=True)
         watch_data_thd = Thread(target=self.watch_log_update, daemon=True)  # monitor for data changes until app closes
         update_thd.start()
         watch_data_thd.start()
@@ -152,6 +163,7 @@ class MainApp(MDApp):
     is_focused: bool = False
     cmd_text: str = ''
     debug_data: [set] = [{}]
+    ipv4: str = None
 
     def reconnect(self):
         """ test connection to terminal """
@@ -183,6 +195,17 @@ class MainApp(MDApp):
             self.root.current = 'input_focused'
             self.root.get_screen('input_focused').ids['debug_panel_focused'].scroll_y = 0
             self.is_focused = True
+
+    def set_ip_address(self):
+        ip_address = self.root.get_screen('start').ids['ip'].text
+        if re.search('[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}$', ip_address):
+            ranges = re.split('\.', ip_address)
+            for value in ranges:
+                if not (0 <= int(value) <= 255):
+                    return
+            self.ipv4 = ip_address
+            self.root.get_screen('main').ids['debug_panel'].start_server(self.ipv4)
+            self.root.current = 'main'
 
 
 if __name__ == '__main__':

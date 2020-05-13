@@ -10,7 +10,15 @@
 #: import Svg kivy.graphics.svg.Svg
 #: import hex kivy.utils.get_color_from_hex
 #: import CoreImage kivy.uix.image.Image
+#: import MDDialog kivymd.uix.dialog.MDDialog
+#:import Factory kivy.factory.Factory
 
+
+<IPPopUp@Popup>:
+    size_hint: .75, .35
+    pos_hint: {'center_x': 0.5, 'center_y': 0.65}
+    title: "IPv4 Address"
+    auto_dismiss: False
 
 <ReconnectBtn>:
     source: './ui/icon/reconnect/reconnect_btn_256x256.png'
@@ -110,6 +118,37 @@
     multiline: False
     on_focus: app.on_input_focus()
 
+<StartScreen@Screen>:
+    name: 'start'
+    canvas.before:
+        Rectangle:
+            source: './ui/background/background_plain.png'
+            size: Window.size
+            pos: (0, 0)
+    IPPopUp:
+        id: popup
+        BoxLayout:
+            orientation: 'vertical'
+            padding: [sp(10), sp(10), sp(10), sp(20)]
+            spacing: sp(1)
+            size_hint: 1, 1
+            MDLabel:
+                size_hint: 1, .4
+                text: "Please enter the IPv4 address of target host, this can be easily found by typing ipconfig into a command prompt window"
+                theme_text_color: 'Custom'
+                text_color: [1, 1, 1, 1]
+            MDTextField:
+                id: ip
+                size_hint: 1, .4
+                hint_text: "e.g. 255.255.255.255"
+                required: True
+                max_text_length: 15
+            MDRaisedButton:
+                size_hint: 1, .2
+                text: "save"
+                markup: True
+                on_press: app.set_ip_address()
+
 <MainScreen@Screen>:
     name: 'main'
     on_enter: self.ids['cmd_input'].text = app.cmd_text
@@ -118,61 +157,63 @@
             source: './ui/background/background_main.png'
             size: Window.size
             pos: (0, 0)
-    BoxLayout:
-        id: body
-        orientation: 'vertical'
-        size: Window.size
-        padding: [20, 0, 20, 0]
-        Widget:
-            id: spacer
-            size_hint_y: .14
-        DebugLayer:
-            id: debug_layer
-            size_hint_y: .445
-            padding: [0, 5, 0, 5]
-            DebugPanel:
-                id: debug_panel
+    FloatLayout:
+        id: static
         BoxLayout:
-            id: reconnect_layout
-            cols: 2
-            size_hint_x: None
-            size_hint_y: .082
-            ReconnectBtn:
-                id: reconnect_btn
-                size_hint_y: .6
-                pos_hint: {'center_y': .5, 'x': 0}
-        BoxLayout:
-            id: input_layout
+            id: body
             orientation: 'vertical'
-            size_hint_y: .333
-            Input:
-                id: input_box
-                size_hint_y: .31
-                Content:
-                    id: cmd_input
-                    size: (input_box.width-40, input_box.height)
-                    pos_hint: {'center_x': .5}
-                    pos: (input_box.pos[0]+20, input_box.pos[1]-(input_box.height/2)+20)
+            size: Window.size
+            padding: [20, 0, 20, 0]
             Widget:
-                size_hint_y: .16
-            GridLayout:
-                id: button_layout
+                id: spacer
+                size_hint_y: .14
+            DebugLayer:
+                id: debug_layer
+                size_hint_y: .445
+                padding: [0, 5, 0, 5]
+                DebugPanel:
+                    id: debug_panel
+            BoxLayout:
+                id: reconnect_layout
                 cols: 2
-                size_hint_y: .26
-                AnchorLayout:
-                    anchor_x: 'left'
-                    anchor_y: 'top'
-                    ClearBtn:
-                        id: clear_btn
-                        pos_hint: {'center_y': .5}
-                AnchorLayout:
-                    anchor_x: 'right'
-                    anchor_y: 'top'
-                    SendBtn:
-                        id: send_btn
-                        pos_hint: {'center_y': .5}
-            Widget:
-                size_hint_y: .27
+                size_hint_x: None
+                size_hint_y: .082
+                ReconnectBtn:
+                    id: reconnect_btn
+                    size_hint_y: .6
+                    pos_hint: {'center_y': .5, 'x': 0}
+            BoxLayout:
+                id: input_layout
+                orientation: 'vertical'
+                size_hint_y: .333
+                Input:
+                    id: input_box
+                    size_hint_y: .31
+                    Content:
+                        id: cmd_input
+                        size: (input_box.width-40, input_box.height)
+                        pos_hint: {'center_x': .5}
+                        pos: (input_box.pos[0]+20, input_box.pos[1]-(input_box.height/2)+20)
+                Widget:
+                    size_hint_y: .16
+                GridLayout:
+                    id: button_layout
+                    cols: 2
+                    size_hint_y: .26
+                    AnchorLayout:
+                        anchor_x: 'left'
+                        anchor_y: 'top'
+                        ClearBtn:
+                            id: clear_btn
+                            pos_hint: {'center_y': .5}
+                    AnchorLayout:
+                        anchor_x: 'right'
+                        anchor_y: 'top'
+                        SendBtn:
+                            id: send_btn
+                            pos_hint: {'center_y': .5}
+                Widget:
+                    size_hint_y: .27
 
 <InputFocusedScreen@Screen>:
     name: 'input_focused'
@@ -214,6 +255,7 @@
             size_hint: 1, .48
 
 <AppManager@ScreenManager>:
+    StartScreen:
     MainScreen:
     InputFocusedScreen:
 

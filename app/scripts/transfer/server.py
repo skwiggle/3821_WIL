@@ -20,7 +20,7 @@ class Server:
 
     def __init__(self, temp_log_folder: str = './scripts/transfer/log',
                  timeout: float = 3600, verbose: bool = False):
-        self._host: str = 'localhost'               # socket host
+        self.host = 'localhost'                            # host ip address (IPv4)
         self._buffer: int = 2048                    # buffer limit (prevent buffer overflow)
         self.scroll_down: bool = False              # checks if app should scroll to the bottom
         self.DATA: Queue = Queue(2000)              # temporary log data storage
@@ -59,7 +59,7 @@ class Server:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as ws:
                 ws.settimeout(self._timeout)
                 try:
-                    ws.bind((self._host, port))
+                    ws.bind((self.host, port))
                     ws.listen()
                     self.DATA.put(local_msg['server_established'])
                     try:
@@ -150,7 +150,7 @@ class Server:
                 return False
 
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-                sock.connect((self._host, port))
+                sock.connect((self.host, port))
                 # send the message if message not blank
                 if msg:
                     sock.send(msg.encode('utf-8'))
@@ -183,9 +183,10 @@ class Server:
         """ Test the connection to terminal """
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-                sock.bind((self._host, port))
+                sock.bind((self.host, port))
         except Exception:
-            self._append_error(local_msg['connection_established'], f"Connected on port {port} and {port+1}")
+            self._append_error(local_msg['connection_established'], f"Connected to "
+                                                                    f"{self.host} on ports {port} and {port+1}")
             return True
         return False
 
