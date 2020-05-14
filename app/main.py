@@ -27,14 +27,17 @@ Config.set('graphics', 'minimum_height', '720')
 Config.set('graphics', 'width', '480')
 Config.set('graphics', 'height', '720')
 Config.set('graphics', 'resizable', '1')
-Config.set('graphics', 'borderless', '1')
+Config.set('graphics', 'borderless', '0')
 Config.set('widgets', 'scroll_moves', '100')
 
 from kivymd.app import MDApp
 from kivymd.uix.label import MDLabel
 from kivy.core.text import LabelBase
+from kivy.metrics import dp
 from app.scripts.misc.elements import *
+import re
 from app.scripts.misc.essentials import fmt_datacell
+from kivy.uix.popup import Popup
 
 # Add book-antiqua font and load into kivy
 # noinspection SpellCheckingInspection
@@ -47,93 +50,6 @@ extra_font = [{
 }]
 for font in extra_font:
     LabelBase.register(**font)
-
-
-class DataCell(MDLabel):
-    """ Individual Label UI in :class:`DebugPanel`"""
-    pass
-
-
-# Debugging Panels
-DebugPanelFocused()
-
-class DebugPanel(RecycleView, Server, CommandLookup):
-    """
-    Debug Panel in charge of displaying and managing updates on
-    information to the screen. Extends :class:`Server` for connectivity
-    and :class:`CommandLookup` for command validity check.
-    """
-    # temporary data stored before updating
-    temp_data = [fmt_datacell('type ? for a list of commands')]
-
-    def __init__(self, **kwargs):
-        # initialise super classes
-        RecycleView.__init__(self, **kwargs)  # initialise client super class
-        Server.__init__(self, './scripts/transfer/log', 3600, True)  # initialise server
-        CommandLookup.__init__(self, './scripts/transfer/log')  # initialise command lookup
-
-        # setup threads
-        update_thd = Thread(target=self.two_way_handler, args=(5555,), daemon=True)  # monitor for server updates
-        watch_data_thd = Thread(target=self.watch_log_update, daemon=True)  # monitor for data changes until app closes
-        update_thd.start()
-        watch_data_thd.start()
-
-    def reconnect(self):
-        """
-        Checks that an update handler is active and lets the user know, or,
-        create a new connection to terminal
-        """
-        if not self.test_connection(5554):
-            update_thd = Thread(target=self.two_way_handler, args=(5555,))
-            update_thd.start()
-        self.scroll_y = 0
-
-    def watch_log_update(self):
-        """
-        A thread will run this function in the background every second.
-        Compare local data value to client DATA variable. If results are
-        different and/or aren't empty, copy to local variable and then
-        debug screen should automatically update.
-        """
-        while True:
-            if not self.DATA.empty():
-                # Retrieve incoming data from server script and display to the log
-                while not self.DATA.empty():
-                    self.temp_data.append(fmt_datacell(self.DATA.get(block=True)))
-                self.data = self.temp_data
-                # Set screen scroll to bottom once data is updated to screen
-                if self.scroll_down:
-                    self.scroll_y = 0
-                    self.scroll_down = False
-            # wait 1 second before updating again
-            time.sleep(1)
-
-    def send_command(self, command: str):
-        """
-        Compare the command against existing commands and then print the
-        result to the :class:`DebugPanel`
-
-        :param command: The command sent from the user input
-        """
-        # Check validity of command
-        self.temp_data = self.lookup(command, self.data)
-        # Send command
-        self.one_way_handler(5554, f'kc:>{command}' if self.check(command) else f'uc:>{command}')
-        # Set scroll to bottom
-        self.scroll_y = 0
-
-
-# App Manager
-AppManager()
-# Screens
-MainScreen()
-InputFocusedScreen()
-# User Oriented Elements
-ReconnectBtn()
-ClearBtn()
-SendBtn()
-Input()
-Content()
 
 
 class MainApp(MDApp):
@@ -183,6 +99,11 @@ class MainApp(MDApp):
             self.root.current = 'input_focused'
             self.root.get_screen('input_focused').ids['debug_panel_focused'].scroll_y = 0
             self.is_focused = True
+
+    def start_screen_submit(self):
+        self.root.get_screen('start').ids['ip'].set_ipv4()
+        self.root.get_screen('main').ids['debug_panel'].start_server()
+        self.root.current = 'main'
 
 
 if __name__ == '__main__':
