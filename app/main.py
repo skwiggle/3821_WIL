@@ -17,7 +17,6 @@ __version__ = '1.0.0'
 __author__ = 'Elliot Charters, Sadeed Ahmad, Max Harvey, Samrat Kunwar, Nguyen Huy Hoang'
 
 import kivy
-
 kivy.require('1.11.1')
 
 # configuration for testing only
@@ -53,95 +52,6 @@ for font in extra_font:
     LabelBase.register(**font)
 
 
-class DataCell(MDLabel):
-    """ Individual Label UI in :class:`DebugPanel`"""
-    pass
-
-
-# Debugging Panels
-DebugPanelFocused()
-
-
-class DebugPanel(RecycleView, Server, CommandLookup):
-    """
-    Debug Panel in charge of displaying and managing updates on
-    information to the screen. Extends :class:`Server` for connectivity
-    and :class:`CommandLookup` for command validity check.
-    """
-    # temporary data stored before updating
-    temp_data = [fmt_datacell('type ? for a list of commands')]
-
-    def __init__(self, **kwargs):
-        # initialise super classes
-        RecycleView.__init__(self, **kwargs)  # initialise client super class
-        Server.__init__(self, './scripts/transfer/log', 3600, True)  # initialise server
-        CommandLookup.__init__(self, './scripts/transfer/log')  # initialise command lookup
-
-    def start_server(self, ip_address: str):
-        self.host = ip_address
-        update_thd = Thread(target=self.two_way_handler, args=(5555,), daemon=True)
-        watch_data_thd = Thread(target=self.watch_log_update, daemon=True)  # monitor for data changes until app closes
-        update_thd.start()
-        watch_data_thd.start()
-
-    def reconnect(self):
-        """
-        Checks that an update handler is active and lets the user know, or,
-        create a new connection to terminal
-        """
-        if not self.test_connection(5554):
-            update_thd = Thread(target=self.two_way_handler, args=(5555,))
-            update_thd.start()
-        self.scroll_y = 0
-
-    def watch_log_update(self):
-        """
-        A thread will run this function in the background every second.
-        Compare local data value to client DATA variable. If results are
-        different and/or aren't empty, copy to local variable and then
-        debug screen should automatically update.
-        """
-        while True:
-            if not self.DATA.empty():
-                # Retrieve incoming data from server script and display to the log
-                while not self.DATA.empty():
-                    self.temp_data.append(fmt_datacell(self.DATA.get(block=True)))
-                self.data = self.temp_data
-                # Set screen scroll to bottom once data is updated to screen
-                if self.scroll_down:
-                    self.scroll_y = 0
-                    self.scroll_down = False
-            # wait 1 second before updating again
-            time.sleep(1)
-
-    def send_command(self, command: str):
-        """
-        Compare the command against existing commands and then print the
-        result to the :class:`DebugPanel`
-
-        :param command: The command sent from the user input
-        """
-        # Check validity of command
-        self.temp_data = self.lookup(command, self.data)
-        # Send command
-        self.one_way_handler(5554, f'kc:>{command}' if self.check(command) else f'uc:>{command}')
-        # Set scroll to bottom
-        self.scroll_y = 0
-
-
-# App Manager
-AppManager()
-# Screens
-MainScreen()
-InputFocusedScreen()
-# User Oriented Elements
-ReconnectBtn()
-ClearBtn()
-SendBtn()
-Input()
-Content()
-
-
 class MainApp(MDApp):
     """
     Main Application Window
@@ -158,10 +68,6 @@ class MainApp(MDApp):
     is_focused: bool = False
     cmd_text: str = ''
     debug_data: [set] = [{}]
-    settings: dict = {
-        'ipv4': '0.0.0.0',
-        'verbose': True
-    }
 
     def reconnect(self):
         """ test connection to terminal """
@@ -194,21 +100,10 @@ class MainApp(MDApp):
             self.root.get_screen('input_focused').ids['debug_panel_focused'].scroll_y = 0
             self.is_focused = True
 
-    def set_ip_address(self):
-        ip_address = self.root.get_screen('start').ids['ip'].text
-        if re.search('[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}$', ip_address):
-            ranges = re.split('\.', ip_address)
-            for value in ranges:
-                if not (0 <= int(value) <= 255):
-                    return
-            self.settings['ipv4'] = ip_address
-            self.root.get_screen('main').ids['debug_panel'].start_server(ip_address)
-            self.root.current = 'main'
-
-    def save_settings(self):
-        with open('./settings_config.txt', 'w') as file:
-            file.write(f"ipv4={self.settings['ipv4']}\n")
-            file.write(f"verbose={self.settings['verbose']}")
+    def start_screen_submit(self):
+        self.root.get_screen('start').ids['ip'].set_ipv4()
+        self.root.get_screen('main').ids['debug_panel'].start_server()
+        self.root.current = 'main'
 
 
 if __name__ == '__main__':

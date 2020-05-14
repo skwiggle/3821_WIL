@@ -125,8 +125,6 @@
             source: './ui/background/background_plain.png'
             size: Window.size
             pos: (0, 0)
-    on_enter: app.get_saved_ipv4()
-    on_leave: app.save_settings()
     BoxLayout:
         id: popup
         size_hint: .75, .4
@@ -158,7 +156,7 @@
                     size_hint: 1, .4
                     text: "save"
                     markup: True
-                    on_press: app.set_ip_address()
+                    on_press: app.start_screen_submit()
 
 <MainScreen@Screen>:
     name: 'main'
