@@ -108,7 +108,7 @@ class Terminal:
         :type unittest: bool
         """
         startup()
-        self.host = validate_ipv4()                         # host IP address
+        self._host = validate_ipv4()                         # host IP address
         self._buffer: int = 2048                            # buffer limit (prevent buffer overflow)
         self._log_path_dir: str = log_path(observer=True)   # Unity log directory location
         self._timeout: float = 3600                         # server timeout duration
@@ -250,7 +250,7 @@ class Terminal:
         def _wrapper(self, port: int, sock: socket.socket = None):
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 s.settimeout(self._timeout)
-                s.bind((self.host, port))
+                s.bind((self._host, port))
                 s.listen()
                 logger.info('established server')
                 try:
