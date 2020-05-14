@@ -15,10 +15,12 @@
 
 
 <IPInput@MDTextField>:
-    size_hint: 1, .6
     hint_text: "e.g. 255.255.255.255"
     required: True
     max_text_length: 15
+
+<RefreshBtn>:
+    source: './ui/icon/refresh/refresh_icon_256x256.png'
 
 <ReconnectBtn>:
     source: './ui/icon/reconnect/reconnect_btn_256x256.png'
@@ -122,7 +124,7 @@
     name: 'start'
     canvas.before:
         Rectangle:
-            source: './ui/background/background_plain.png'
+            source: './ui/background/background_start.png'
             size: Window.size
             pos: (0, 0)
     BoxLayout:
@@ -150,10 +152,18 @@
             BoxLayout:
                 orientation: 'vertical'
                 size_hint: 1, .5
-                IPInput:
-                    id: ip
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint: 1, .5
+                    IPInput:
+                        id: ip
+                        size_hint: .8, 1
+                    RefreshBtn:
+                        size_hint: .2, 1
+                        padding: [sp(10), sp(10), sp(10), sp(10)]
+                        on_press: app.refresh()
                 MDRaisedButton:
-                    size_hint: 1, .4
+                    size_hint: 1, .5
                     text: "save"
                     markup: True
                     on_press: app.start_screen_submit()

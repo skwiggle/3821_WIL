@@ -27,7 +27,7 @@ Config.set('graphics', 'minimum_height', '720')
 Config.set('graphics', 'width', '480')
 Config.set('graphics', 'height', '720')
 Config.set('graphics', 'resizable', '1')
-Config.set('graphics', 'borderless', '0')
+Config.set('graphics', 'borderless', '1')
 Config.set('widgets', 'scroll_moves', '100')
 
 from kivymd.app import MDApp
@@ -73,6 +73,11 @@ class MainApp(MDApp):
         """ test connection to terminal """
         rec_thd = Thread(target=self.root.get_screen('main').ids['debug_panel'].reconnect)
         rec_thd.start()
+
+    def refresh(self):
+        host = socket.gethostname()
+        addr = socket.gethostbyname(host)
+        self.root.get_screen('start').ids['ip'].text = addr
 
     def clear_content(self):
         """ Tell debug panel to clear data """
