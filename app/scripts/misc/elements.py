@@ -143,10 +143,21 @@ class IPInput(MDTextField):
     def set_ipv4(self):
         settings.set_setting('ipv4', self.text)
 
+class RefreshBtn(ButtonBehavior, Image):
+    def on_press(self):
+        self.source = './ui/icon/refresh/refresh_icon_pressed_256x256.png'
+
+    def on_release(self):
+        self.source = './ui/icon/refresh/refresh_icon_256x256.png'
+
 
 class ReconnectBtn(ButtonBehavior, Image):
     """ Reconnect button UI"""
-    pass
+    def on_press(self):
+        self.source = './ui/icon/reconnect/reconnect_btn_pressed_256x256.png'
+
+    def on_release(self):
+        self.source = './ui/icon/reconnect/reconnect_btn_256x256.png'
 
 class ClearBtn(Button):
     """ Clear button UI """
