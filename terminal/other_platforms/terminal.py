@@ -38,6 +38,7 @@ logger = logging.getLogger('logger')
 error_msg = lambda error, verbose: f'\n\t\t -> {error}' if verbose else ''
 
 def validate_ipv4() -> str:
+    """ Return the IPv4 of this PC and print to log """
     host = socket.gethostname()
     address = socket.gethostbyname(host)
     logger.info(f'hosted on: {address} ({host})')
@@ -54,11 +55,13 @@ def startup() -> dict:
     not exist
 
     These settings include the following properties:
-        - ipv4      default to 0.0.0.0 (IP Address)
-        - timeout   default to 3600 (seconds)
-        - verbose   default to True (boolean)
+        - ipv4      default to [THIS IP] (IP)   The host IP address (this computer)
+        - timeout   default to 3600 (seconds)   The number of seconds before the :class:`Terminal` times out
+        - verbose   default to True (boolean)   Specifies whether or not the error messages should contain
+                                                the actual system error messages or just errors created by the
+                                                terminal, defaults to True
 
-    :returns: global settings properties
+    :returns: global settings dictionary
     """
     parent = log_path(observer=True)
 
@@ -136,7 +139,9 @@ def log_path(log_name: str = 'no_file_given', observer: bool = False) -> str:
                      location instead? (True = yes), defaults to False
     :type observer: bool
     """
-    new_path: str = None
+
+    new_path: str = ''
+
     if 'win' in platform:
         new_path = r'C:\Users\%s\AppData\Local\Unity\Editor\%s' % (os.getlogin(), '' if observer else log_name)
     elif 'mac' in platform:
@@ -154,6 +159,7 @@ def log_path(log_name: str = 'no_file_given', observer: bool = False) -> str:
     if not os.path.exists(new_path):
         logger.critical(f'Unity \'Editor\' directory could not be found at {new_path}')
         exit(-1)
+
     return new_path
 
 
@@ -173,14 +179,10 @@ class Terminal:
         for unity debug log file changes and start main server. Observer and program
         stop once server shuts down.
 
-        :param verbose: Specifies whether or not the error messages should contain
-                        the actual system error messages or just errors created by the
-                        terminal, defaults to True
-        :type verbose: bool
         :param unittest: Used to stop automatically connecting for unit test
                          purposes, defaults to False
-        :type unittest: bool
         """
+
         self.settings = startup()
         self._buffer: int = 2048                            # buffer limit (prevent buffer overflow)
         self._log_path_dir: str = log_path(observer=True)   # Unity log directory location
@@ -193,7 +195,7 @@ class Terminal:
         _log_dir_handler.start()
 
         if not unittest:
-            self.two_way_handler(5554)
+            self.two_way_handler()
 
     def check_for_updates(self, _manual_update: bool = False):
         """
@@ -201,14 +203,17 @@ class Terminal:
 
         Asynchronously checks for active logs that aren't empty before
         sending name of log to _log_manager()
+
+        :param _manual_update: force the terminal to return all logs, defaults to False
         """
+
         _active_logs = set()
 
         async def _is_empty(_log_name: str):
             """ Check that log file is empty """
             if os.stat(f'{self._log_path_dir}{_log_name}').st_size == 0 and _manual_update:
                 logger.info(f'Unity log file (\'{_log_name}\') is empty')
-                self.one_way_handler(5555, f'tg:>{_log_name}')
+                self.one_way_handler(f'tg:>{_log_name}')
             if not os.stat(f'{self._log_path_dir}{_log_name}').st_size == 0:
                 _active_logs.add(_log_name)
 
@@ -223,7 +228,7 @@ class Terminal:
                 _is_empty(log_file_names[2])
             )
             if len(_active_logs) == 0 and _manual_update:
-                self.one_way_handler(5555, f'tga:>')
+                self.one_way_handler(f'tga:>')
             elif len(_active_logs) > 0:
                 await self._log_manager(src_files=_active_logs)
             await asyncio.sleep(1)
@@ -251,6 +256,7 @@ class Terminal:
         :param src_files: Log file, defaults to None
         :type src_files: set
         """
+
         async def _delay(_log_name: str, _orig_log_len: int = -1):
             """
             Delay the update by 1 second every time the log is modified
@@ -272,16 +278,23 @@ class Terminal:
              Commit main operations of log file interaction
 
              :param _log_name: Name of log file e.g. Editor.log
-             :type _log_name: str
             """
+
             path = f'{self._log_path_dir}{_log_name}'  # absolute path to log file
             temp_path = f'{self._log_path_dir}~{_log_name}'  # absolute path to log file
 
             shutil.copy(path, temp_path)
 
         async def _send_log(_log_name: str):
+            """
+            Send contents of temporary log to application and then
+            delete the file
+
+            :param _log_name: name of log file
+            """
+
             path = f'{self._log_path_dir}{_log_name}'  # absolute path to log file
-            temp_path = f'{self._log_path_dir}~{_log_name}'  # absolute path to log file
+            temp_path = f'{self._log_path_dir}~{_log_name}'  # absolute path to temporary log file
 
             # Empty file
             with open(path.replace('\\\\', '\\'), 'w'): pass
@@ -290,12 +303,12 @@ class Terminal:
             # Send contents of file to application
             with open(temp_path, 'r') as log_file:
                 logger.info(f'sending contents of {_log_name} to application...')
-                self.one_way_handler(5555, package=[line for line in log_file])
+                self.one_way_handler(package=[line for line in log_file])
 
             os.remove(temp_path)
 
         # Check, send and clear all log files within the set passed from
-        # `_check_for_updates` at once but finish concurrently to avoid
+        # :function:`_check_for_updates` at once but finish concurrently to avoid
         # issues with data loss
         delay_tasks = (asyncio.create_task(_delay(src_file)) for src_file in src_files)
         await asyncio.gather(*delay_tasks)
@@ -318,14 +331,14 @@ class Terminal:
         """
 
         # noinspection PyCallingNonCallable
-        def _wrapper(self, port: int, sock: socket.socket = None):
+        def _wrapper(self, sock: socket.socket = None):
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 s.settimeout(self.settings['timeout'])
-                s.bind((self.settings['ipv4'], port))
+                s.bind((self.settings['ipv4'], self.settings['port']['in']))
                 s.listen()
                 logger.info('established server')
                 try:
-                    func(self, port, s)
+                    func(self, s)
                 except Exception as error:
                     logger.critical(local_msg['unknown'] % error_msg(error, self.settings['verbose']))
             logger.critical('server closed')
@@ -334,17 +347,14 @@ class Terminal:
 
     # noinspection PyArgumentList
     @_connectionBootstrap
-    def two_way_handler(self, port: int, sock: socket.socket = None):
+    def two_way_handler(self, sock: socket.socket = None):
         """
         Constantly listen for incoming messages from other hosts.
 
         Should be used to handle incoming log updates from the terminal
         or incoming commands from the application. Also displays error info.
 
-        :param port: port number
-        :type port: int, optional
         :param sock: parent socket, defaults to None
-        :type sock: socket.socket
         """
 
         # Continuously check for incoming clients waiting for request
@@ -372,24 +382,20 @@ class Terminal:
                 logger.error(local_msg['timeout'] % error_msg(error, self.settings['verbose']))
                 exit(-1)
 
-    def one_way_handler(self, port: int, msg: str = None, package: [str] = None) -> bool:
+    def one_way_handler(self, msg: str = None, package: [str] = None) -> bool:
         """
         Sends a message or an array of messages to application.
 
         Should be used to receive commands from the app or send the current
         Unity debug log information to the application. Also displays error info.
 
-        :param port: port number
-        :type port: int, optional
-        :param msg: the message, defaults to None
-        :type msg: str
+        :param msg: a message, defaults to None
         :param package: a list of messages, defaults to None
-        :type port: list
         """
 
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-                sock.connect((self.settings['ipv4'], port))
+                sock.connect((self.settings['ipv4'], self.settings['port']['out']))
                 # send the message if message not blank
                 if msg:
                     sock.send(msg.replace('\t', '').encode('utf-8'))

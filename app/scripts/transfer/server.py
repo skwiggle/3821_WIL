@@ -98,9 +98,9 @@ class Server:
                             # Send empty log file error message to application if received
                             # message equals 'tg:>'
                             if reply[:4] == 'tg:>':
-                                self.DATA.put(local_msg['unity_log_empty'] % reply[4:], block=True)
+                                self.DATA.put(local_msg['unity_log_empty'] % reply[4:])
                             elif reply == 'tga:>':
-                                self.DATA.put(local_msg['all_unity_logs_empty'], block=True)
+                                self.DATA.put(local_msg['all_unity_logs_empty'])
                             else:
                                 # When the last line says --EOF, update temporary logs with
                                 # `temp_msg` data
@@ -109,21 +109,21 @@ class Server:
                                     if os.path.exists(path):
                                         with open(path, 'a+') as file:
                                             while not temp_msg.empty():
-                                                line = temp_msg.get(block=True)
+                                                line = temp_msg.get()
                                                 file.write(line)
                                                 if line != '':
-                                                    self.DATA.put(line, block=True)
+                                                    self.DATA.put(line)
                                             self.scroll_down = True
                                     else:
                                         with open(path, 'w+') as file:
                                             while not temp_msg.empty():
-                                                file.write(temp_msg.get(block=True))
+                                                file.write(temp_msg.get())
                                             for line in file:
-                                                self.DATA.put(line.replace('\n', ''), block=True)
+                                                self.DATA.put(line.replace('\n', ''))
                                 # Any other message is recognised as log data,
                                 # appends to `temp_msg`
                                 else:
-                                    temp_msg.put(reply, block=True)
+                                    temp_msg.put(reply)
                             continue
                         break
             except Exception as error:
@@ -171,9 +171,9 @@ class Server:
                             `_verbose` is True
         :type verbose_msg: any exception error type
         """
-        self.DATA.put(error, block=True)
+        self.DATA.put(error)
         if self._verbose:
-            self.DATA.put(f"---> {verbose_msg}", block=True)
+            self.DATA.put(f"---> {verbose_msg}")
 
     # noinspection PyBroadException
     def test_connection(self, port: int) -> bool:

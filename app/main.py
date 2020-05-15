@@ -17,6 +17,9 @@ __version__ = '1.0.0'
 __author__ = 'Elliot Charters, Sadeed Ahmad, Max Harvey, Samrat Kunwar, Nguyen Huy Hoang'
 
 import kivy
+
+from app.scripts.misc.settings_config import _ipv4_is_valid
+
 kivy.require('1.11.1')
 
 # configuration for testing only
@@ -31,13 +34,10 @@ Config.set('graphics', 'borderless', '0')
 Config.set('widgets', 'scroll_moves', '100')
 
 from kivymd.app import MDApp
-from kivymd.uix.label import MDLabel
 from kivy.core.text import LabelBase
-from kivy.metrics import dp
 from app.scripts.misc.elements import *
 import re
 from app.scripts.misc.essentials import fmt_datacell
-from kivy.uix.popup import Popup
 
 # Add book-antiqua font and load into kivy
 # noinspection SpellCheckingInspection
@@ -106,9 +106,11 @@ class MainApp(MDApp):
             self.is_focused = True
 
     def start_screen_submit(self):
-        self.root.get_screen('start').ids['ip'].set_ipv4()
-        self.root.get_screen('main').ids['debug_panel'].start_server()
-        self.root.current = 'main'
+        ipv4 = self.root.get_screen('start').ids['ip'].text
+        if _ipv4_is_valid(ipv4):
+            self.root.get_screen('start').ids['ip'].set_ipv4()
+            self.root.get_screen('main').ids['debug_panel'].start_server()
+            self.root.current = 'main'
 
 
 if __name__ == '__main__':
