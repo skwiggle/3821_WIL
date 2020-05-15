@@ -35,11 +35,11 @@ class Server:
             os.mkdir(self._temp_log_folder)
 
     # noinspection PyMethodParameters
-    def _connection_bootstrap(func) -> ():
+    def _connectionBootstrap(func) -> ():
         """
         Handler function to return wrapper function
-
-        :param func: handler function that extends from :class:`_wrapper`
+        :param func: handler function that extends from `_wrapper`
+        :type func: function
         :return: wrapper function
         :rtype: function
         """
@@ -50,7 +50,6 @@ class Server:
             Wrapper in charge of initialising and stopping a socket correctly
             as well as stopping the server when an event or error occurs such
             as a timeout event.
-
             :param port: port number
             :type port: int, optional
             :param sock: parent socket, defaults to None
@@ -67,25 +66,23 @@ class Server:
                     except Exception as error:
                         self._append_error(local_msg['unknown'], error)
                 except Exception as error:
-                    self._append_error(local_msg['server_connect_failed'], "Check the server is on")
+                    self._append_error(local_msg['server_connect_failed'], error)
 
         return _wrapper
 
     # noinspection PyUnusedLocal
-    @_connection_bootstrap
+    @_connectionBootstrap
     def two_way_handler(self, port: int, sock: socket.socket = None):
         """
         Constantly listen for incoming messages from other hosts.
-
         Should be used to handle incoming log updates from the terminal
         or incoming commands from the application. Also displays error info.
-
         :param port: port number
         :type port: int, optional
         :param sock: parent socket, defaults to None
         :type port: socket.socket
         """
-        temp_msg: Queue = Queue()   # temporary log data storage
+        temp_msg: Queue = Queue()  # temporary log data storage
 
         # Continuously check for incoming clients waiting for request
         while True:

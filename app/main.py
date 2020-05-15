@@ -27,7 +27,7 @@ Config.set('graphics', 'minimum_height', '720')
 Config.set('graphics', 'width', '480')
 Config.set('graphics', 'height', '720')
 Config.set('graphics', 'resizable', '1')
-Config.set('graphics', 'borderless', '1')
+Config.set('graphics', 'borderless', '0')
 Config.set('widgets', 'scroll_moves', '100')
 
 from kivymd.app import MDApp
