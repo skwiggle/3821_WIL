@@ -16,11 +16,11 @@ from kivymd.uix.label import MDLabel
 from kivymd.uix.textfield import MDTextField
 
 from app.scripts.misc.essentials import fmt_datacell
-from app.scripts.misc.settings_config import Settings
+from app.scripts.misc.settings_config import Settings, _ipv4_is_valid, fix_ipv4
 from app.scripts.transfer.command_lookup import CommandLookup
 from app.scripts.transfer.server import Server
 
-settings = Settings('./settings_config.txt')
+settings = Settings('./settings.json')
 
 class DataCell(MDLabel):
     """ Individual Label UI in :class:`DebugPanel`"""
@@ -108,7 +108,7 @@ class AppManager(ScreenManager):
         super(AppManager, self).__init__(**kwargs)
         self.transition = NoTransition()
 
-# Screens
+
 class StartScreen(Screen):
     """
     The Startup Screen used to validate the IPv4 address to the
@@ -125,6 +125,7 @@ class MainScreen(Screen):
     """
     pass
 
+
 class InputFocusedScreen(Screen):
     """ Screen for when user needs to input text """
     def on_enter(self, *args):
@@ -134,7 +135,6 @@ class InputFocusedScreen(Screen):
             text_input.text = ''
 
 
-# User Oriented Elements
 class IPInput(MDTextField):
     def __init__(self, **kwargs):
         super(IPInput, self).__init__(**kwargs)
@@ -142,6 +142,7 @@ class IPInput(MDTextField):
 
     def set_ipv4(self):
         settings.set_setting('ipv4', self.text)
+
 
 class RefreshBtn(ButtonBehavior, Image):
     def on_press(self):
@@ -159,17 +160,21 @@ class ReconnectBtn(ButtonBehavior, Image):
     def on_release(self):
         self.source = './ui/icon/reconnect/reconnect_btn_256x256.png'
 
+
 class ClearBtn(Button):
     """ Clear button UI """
     pass
+
 
 class SendBtn(Button):
     """ Send button UI """
     pass
 
+
 class Input(Widget):
     """ :class:`Content` Container UI"""
     pass
+
 
 class Content(TextInput):
     """ User input field UI"""

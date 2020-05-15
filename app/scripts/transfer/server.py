@@ -35,11 +35,11 @@ class Server:
             os.mkdir(self._temp_log_folder)
 
     # noinspection PyMethodParameters
-    def _connection_bootstrap(func) -> ():
+    def _connectionBootstrap(func) -> ():
         """
         Handler function to return wrapper function
-
-        :param func: handler function that extends from :class:`_wrapper`
+        :param func: handler function that extends from `_wrapper`
+        :type func: function
         :return: wrapper function
         :rtype: function
         """
@@ -50,7 +50,6 @@ class Server:
             Wrapper in charge of initialising and stopping a socket correctly
             as well as stopping the server when an event or error occurs such
             as a timeout event.
-
             :param port: port number
             :type port: int, optional
             :param sock: parent socket, defaults to None
@@ -67,25 +66,23 @@ class Server:
                     except Exception as error:
                         self._append_error(local_msg['unknown'], error)
                 except Exception as error:
-                    self._append_error(local_msg['server_connect_failed'], "Check the server is on")
+                    self._append_error(local_msg['server_connect_failed'], error)
 
         return _wrapper
 
     # noinspection PyUnusedLocal
-    @_connection_bootstrap
+    @_connectionBootstrap
     def two_way_handler(self, port: int, sock: socket.socket = None):
         """
         Constantly listen for incoming messages from other hosts.
-
         Should be used to handle incoming log updates from the terminal
         or incoming commands from the application. Also displays error info.
-
         :param port: port number
         :type port: int, optional
         :param sock: parent socket, defaults to None
         :type port: socket.socket
         """
-        temp_msg: Queue = Queue()   # temporary log data storage
+        temp_msg: Queue = Queue()  # temporary log data storage
 
         # Continuously check for incoming clients waiting for request
         while True:
@@ -101,9 +98,9 @@ class Server:
                             # Send empty log file error message to application if received
                             # message equals 'tg:>'
                             if reply[:4] == 'tg:>':
-                                self.DATA.put(local_msg['unity_log_empty'] % reply[4:], block=True)
+                                self.DATA.put(local_msg['unity_log_empty'] % reply[4:])
                             elif reply == 'tga:>':
-                                self.DATA.put(local_msg['all_unity_logs_empty'], block=True)
+                                self.DATA.put(local_msg['all_unity_logs_empty'])
                             else:
                                 # When the last line says --EOF, update temporary logs with
                                 # `temp_msg` data
@@ -112,21 +109,21 @@ class Server:
                                     if os.path.exists(path):
                                         with open(path, 'a+') as file:
                                             while not temp_msg.empty():
-                                                line = temp_msg.get(block=True)
+                                                line = temp_msg.get()
                                                 file.write(line)
                                                 if line != '':
-                                                    self.DATA.put(line, block=True)
+                                                    self.DATA.put(line)
                                             self.scroll_down = True
                                     else:
                                         with open(path, 'w+') as file:
                                             while not temp_msg.empty():
-                                                file.write(temp_msg.get(block=True))
+                                                file.write(temp_msg.get())
                                             for line in file:
-                                                self.DATA.put(line.replace('\n', ''), block=True)
+                                                self.DATA.put(line.replace('\n', ''))
                                 # Any other message is recognised as log data,
                                 # appends to `temp_msg`
                                 else:
-                                    temp_msg.put(reply, block=True)
+                                    temp_msg.put(reply)
                             continue
                         break
             except Exception as error:
@@ -174,9 +171,9 @@ class Server:
                             `_verbose` is True
         :type verbose_msg: any exception error type
         """
-        self.DATA.put(error, block=True)
+        self.DATA.put(error)
         if self._verbose:
-            self.DATA.put(f"---> {verbose_msg}", block=True)
+            self.DATA.put(f"---> {verbose_msg}")
 
     # noinspection PyBroadException
     def test_connection(self, port: int) -> bool:

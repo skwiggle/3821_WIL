@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import asyncio
+import json
 import os
 import re
 import shutil
@@ -36,19 +37,92 @@ logger = logging.getLogger('logger')
 # if `verbose` is True, otherwise, append nothing
 error_msg = lambda error, verbose: f'\n\t\t -> {error}' if verbose else ''
 
-def startup():
+def validate_ipv4() -> str:
+    """ Return the IPv4 of this PC and print to log """
+    host = socket.gethostname()
+    address = socket.gethostbyname(host)
+    logger.info(f'hosted on: {address} ({host})')
+    return address
+
+def startup() -> dict:
     """
     Delete temporary log files that failed to delete from a
     previous session if either the app lost connection too early
-    or the terminal closed unexpectedly
+    or the terminal closed unexpectedly.
+
+    Load settings from the `settings.json` file into the terminal
+    class or create a new settings default class if the former does
+    not exist
+
+    These settings include the following properties:
+        - ipv4      default to [THIS IP] (IP)   The host IP address (this computer)
+        - timeout   default to 3600 (seconds)   The number of seconds before the :class:`Terminal` times out
+        - verbose   default to True (boolean)   Specifies whether or not the error messages should contain
+                                                the actual system error messages or just errors created by the
+                                                terminal, defaults to True
+
+    :returns: global settings dictionary
     """
     parent = log_path(observer=True)
+
+    # make sure that normal unity log files exist and that
+    # no temporary logs exist from a previous session
     for option in log_file_names:
-        log_pth = f'{parent}~{option}'
-        if os.path.exists(log_pth):
-            os.remove(log_pth)
+        log_pth = f'{parent}{option}'
+        temp_log_pth = f'{parent}~{option}'
+        if os.path.exists(temp_log_pth):
+            os.remove(temp_log_pth)
             logger.warning(f'data from \'{option}\' failed to send to application from previous session, '
                            f'recommended force update')
+        if not os.path.exists(log_pth):
+            logger.critical(f'Unity log files could not be found at \'{log_pth}\' directory')
+            exit(-1)
+
+        # create a new settings.json if one doesn't exist
+        # and then return settings dict
+        if not os.path.exists('settings.json'):
+            with open('settings.json', 'w') as output:
+                data = {
+                    'ipv4': validate_ipv4(),
+                    'port': {
+                        'in': 5554,
+                        'out': 5555
+                    },
+                    'timeout': 3600,
+                    'verbose': True
+                }
+                json.dump(data, output)
+                return data
+
+        # return settings dict
+        with open('settings.json', 'r') as settings:
+            data = json.load(settings)
+            data['ipv4'] = validate_ipv4()
+
+            # check that inbound port is a number between 0 and 65535
+            if not (isinstance(data['port']['in'], int) and 0 < data['port']['in'] < 65535):
+                logger.error('inbound port number must be a number between 0 and 65535, setting to 5554')
+                data['port']['in'] = 5554,
+            # check that outbound port is a number between 0 and 65535
+            if not (isinstance(data['port']['out'], int) and 0 < data['port']['out'] < 65535):
+                logger.error('outbound port number must be a number between 0 and 65535, setting to 5555')
+                data['port']['out'] = 5555,
+            # check that both inbound and outbound port don't match
+            if data['port']['in'] == data['port']['out']:
+                logger.error('inbound port and outbound port cannot be the same, setting to 5554 and 5555')
+                data['port']['in'] = 5554,
+                data['port']['out'] = 5555,
+            # check that timeout is a number above 0
+            if not (isinstance(data['timeout'], int) and data['timeout'] > 0):
+                logger.error('timeout must be a number larger than 0, setting it to 3600')
+                data['timeout'] = 3600
+            # check that verbose is set to True/False
+            if not (isinstance(data['verbose'], bool)):
+                logger.error('verbose must be set to True or False, setting it to True')
+                data['verbose'] = True
+
+            return data
+
 
 def log_path(log_name: str = 'no_file_given', observer: bool = False) -> str:
     """
@@ -65,12 +139,15 @@ def log_path(log_name: str = 'no_file_given', observer: bool = False) -> str:
                      location instead? (True = yes), defaults to False
     :type observer: bool
     """
+
+    new_path: str = ''
+
     if 'win' in platform:
-        return r'C:\Users\%s\AppData\Local\Unity\Editor\%s' % (os.getlogin(), '' if observer else log_name)
+        new_path = r'C:\Users\%s\AppData\Local\Unity\Editor\%s' % (os.getlogin(), '' if observer else log_name)
     elif 'mac' in platform:
-        return f"~/Library/Logs/Unity/{'' if observer else log_name}"
+        new_path = "~/Library/Logs/Unity/{'' if observer else log_name}"
     elif ('lin' or 'unix') in platform:
-        return f"/home/{os.getlogin()}/.config/unity3d/{'' if observer else log_name}"
+        new_path = f"/home/{os.getlogin()}/.config/unity3d/{'' if observer else log_name}"
     else:
         logger.critical('Path to Unity log files does not exist, check that the one of the following URLs matche that '
                         'of your platform')
@@ -79,11 +156,12 @@ def log_path(log_name: str = 'no_file_given', observer: bool = False) -> str:
         logger.critical('LINUX/UNIX - ~/.config/unity3d/')
         exit(-1)
 
-def validate_ipv4() -> str:
-    host = socket.gethostname()
-    address = socket.gethostbyname(host)
-    logger.info(f'hosted on: {address} ({host})')
-    return address
+    if not os.path.exists(new_path):
+        logger.critical(f'Unity \'Editor\' directory could not be found at {new_path}')
+        exit(-1)
+
+    return new_path
+
 
 # noinspection PyUnusedLocal
 class Terminal:
@@ -93,26 +171,21 @@ class Terminal:
     changes for log files.
     """
 
-    def __init__(self, verbose: bool = True, unittest: bool = False):
+    settings: dict = None   # settings properties, saved/retrieved from `settings.json`
+
+    def __init__(self, unittest: bool = False):
         """
         Initialise the server class by creating an observer object to monitor
         for unity debug log file changes and start main server. Observer and program
         stop once server shuts down.
 
-        :param verbose: Specifies whether or not the error messages should contain
-                        the actual system error messages or just errors created by the
-                        terminal, defaults to True
-        :type verbose: bool
         :param unittest: Used to stop automatically connecting for unit test
                          purposes, defaults to False
-        :type unittest: bool
         """
-        startup()
-        self._host = validate_ipv4()                         # host IP address
+
+        self.settings = startup()
         self._buffer: int = 2048                            # buffer limit (prevent buffer overflow)
         self._log_path_dir: str = log_path(observer=True)   # Unity log directory location
-        self._timeout: float = 3600                         # server timeout duration
-        self._verbose: bool = verbose                       # checks whether to specify additional error information
 
         # Open a secondary thread to monitor file system changes
         # to `_log_path_dir` directory
@@ -122,7 +195,7 @@ class Terminal:
         _log_dir_handler.start()
 
         if not unittest:
-            self.two_way_handler(5554)
+            self.two_way_handler()
 
     def check_for_updates(self, _manual_update: bool = False):
         """
@@ -130,14 +203,17 @@ class Terminal:
 
         Asynchronously checks for active logs that aren't empty before
         sending name of log to _log_manager()
+
+        :param _manual_update: force the terminal to return all logs, defaults to False
         """
+
         _active_logs = set()
 
         async def _is_empty(_log_name: str):
             """ Check that log file is empty """
             if os.stat(f'{self._log_path_dir}{_log_name}').st_size == 0 and _manual_update:
                 logger.info(f'Unity log file (\'{_log_name}\') is empty')
-                self.one_way_handler(5555, f'tg:>{_log_name}')
+                self.one_way_handler(f'tg:>{_log_name}')
             if not os.stat(f'{self._log_path_dir}{_log_name}').st_size == 0:
                 _active_logs.add(_log_name)
 
@@ -152,7 +228,7 @@ class Terminal:
                 _is_empty(log_file_names[2])
             )
             if len(_active_logs) == 0 and _manual_update:
-                self.one_way_handler(5555, f'tga:>')
+                self.one_way_handler(f'tga:>')
             elif len(_active_logs) > 0:
                 await self._log_manager(src_files=_active_logs)
             await asyncio.sleep(1)
@@ -180,6 +256,7 @@ class Terminal:
         :param src_files: Log file, defaults to None
         :type src_files: set
         """
+
         async def _delay(_log_name: str, _orig_log_len: int = -1):
             """
             Delay the update by 1 second every time the log is modified
@@ -201,16 +278,23 @@ class Terminal:
              Commit main operations of log file interaction
 
              :param _log_name: Name of log file e.g. Editor.log
-             :type _log_name: str
             """
+
             path = f'{self._log_path_dir}{_log_name}'  # absolute path to log file
             temp_path = f'{self._log_path_dir}~{_log_name}'  # absolute path to log file
 
             shutil.copy(path, temp_path)
 
         async def _send_log(_log_name: str):
+            """
+            Send contents of temporary log to application and then
+            delete the file
+
+            :param _log_name: name of log file
+            """
+
             path = f'{self._log_path_dir}{_log_name}'  # absolute path to log file
-            temp_path = f'{self._log_path_dir}~{_log_name}'  # absolute path to log file
+            temp_path = f'{self._log_path_dir}~{_log_name}'  # absolute path to temporary log file
 
             # Empty file
             with open(path.replace('\\\\', '\\'), 'w'): pass
@@ -219,12 +303,12 @@ class Terminal:
             # Send contents of file to application
             with open(temp_path, 'r') as log_file:
                 logger.info(f'sending contents of {_log_name} to application...')
-                self.one_way_handler(5555, package=[line for line in log_file])
+                self.one_way_handler(package=[line for line in log_file])
 
             os.remove(temp_path)
 
         # Check, send and clear all log files within the set passed from
-        # `_check_for_updates` at once but finish concurrently to avoid
+        # :function:`_check_for_updates` at once but finish concurrently to avoid
         # issues with data loss
         delay_tasks = (asyncio.create_task(_delay(src_file)) for src_file in src_files)
         await asyncio.gather(*delay_tasks)
@@ -247,33 +331,30 @@ class Terminal:
         """
 
         # noinspection PyCallingNonCallable
-        def _wrapper(self, port: int, sock: socket.socket = None):
+        def _wrapper(self, sock: socket.socket = None):
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.settimeout(self._timeout)
-                s.bind((self._host, port))
+                s.settimeout(self.settings['timeout'])
+                s.bind((self.settings['ipv4'], self.settings['port']['in']))
                 s.listen()
                 logger.info('established server')
                 try:
-                    func(self, port, s)
+                    func(self, s)
                 except Exception as error:
-                    logger.critical(local_msg['unknown'] % error_msg(error, self._verbose))
+                    logger.critical(local_msg['unknown'] % error_msg(error, self.settings['verbose']))
             logger.critical('server closed')
 
         return _wrapper
 
     # noinspection PyArgumentList
     @_connectionBootstrap
-    def two_way_handler(self, port: int, sock: socket.socket = None):
+    def two_way_handler(self, sock: socket.socket = None):
         """
         Constantly listen for incoming messages from other hosts.
 
         Should be used to handle incoming log updates from the terminal
         or incoming commands from the application. Also displays error info.
 
-        :param port: port number
-        :type port: int, optional
         :param sock: parent socket, defaults to None
-        :type sock: socket.socket
         """
 
         # Continuously check for incoming clients waiting for request
@@ -298,25 +379,23 @@ class Terminal:
                             continue
                         break
             except Exception as error:
-                logger.error(local_msg['timeout'] % error_msg(error, self._verbose))
+                logger.error(local_msg['timeout'] % error_msg(error, self.settings['verbose']))
+                exit(-1)
 
-    def one_way_handler(self, port: int, msg: str = None, package: [str] = None) -> bool:
+    def one_way_handler(self, msg: str = None, package: [str] = None) -> bool:
         """
         Sends a message or an array of messages to application.
 
         Should be used to receive commands from the app or send the current
         Unity debug log information to the application. Also displays error info.
 
-        :param port: port number
-        :type port: int, optional
-        :param msg: the message, defaults to None
-        :type msg: str
+        :param msg: a message, defaults to None
         :param package: a list of messages, defaults to None
-        :type port: list
         """
+
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-                sock.connect((self._host, port))
+                sock.connect((self.settings['ipv4'], self.settings['port']['out']))
                 # send the message if message not blank
                 if msg:
                     sock.send(msg.replace('\t', '').encode('utf-8'))
@@ -329,10 +408,10 @@ class Terminal:
                         sock.send(line.replace('\t', '').encode('utf-8'))
                     sock.send('--EOF'.encode('utf-8'))
                     return True
-        except WindowsError as error:
-            logger.error(local_msg['connection_closed'] % error_msg(error, self._verbose))
+        except Exception as error:
+            logger.error(local_msg['connection_closed'] % error_msg(error, self.settings['verbose']))
         return False
 
 
 if __name__ == '__main__':
-    t = Terminal(verbose=True)
+    t = Terminal()
