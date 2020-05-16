@@ -98,7 +98,6 @@ def startup() -> dict:
         # return settings dict
         with open('settings.json', 'r') as settings:
             data = json.load(settings)
-            data['ipv4'] = validate_ipv4()
 
             # check that inbound port is a number between 0 and 65535
             if not (isinstance(data['port']['in'], int) and 0 < data['port']['in'] < 65535):

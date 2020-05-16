@@ -142,6 +142,7 @@ class Server:
                 return False
 
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                sock.settimeout(5)
                 sock.connect((self.host, port))
                 # send the message if message not blank
                 if msg:
