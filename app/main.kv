@@ -129,7 +129,7 @@
             pos: (0, 0)
     BoxLayout:
         id: popup
-        size_hint: .75, .4
+        size_hint: .75, .42
         pos_hint: {'center_x': 0.5, 'center_y': 0.65}
         BoxLayout:
             orientation: 'vertical'
@@ -144,14 +144,14 @@
                     size: self.size
                     pos: self.pos
             MDLabel:
-                size_hint: 1, .5
+                size_hint: 1, .6
                 markup: True
-                text: "[size=16sp]Please enter the IPv4 address of the target host machine, this can be easily found by typing [b]ipconfig[/b] (Windows) or [b]ifconfig[/b] (Mac/Linux) into a command prompt/terminal window[/size]"
+                text: "[size=16sp]Please enter the PUBLIC IPv4 address of the target host machine, this can be easily found by typing [b]ipconfig[/b] (Windows) or [b]ifconfig[/b] (Mac/Linux) into a command prompt/bash window on the terminal's computer[/size]\n[size=14sp][color=#D8D8D8][i]NOTE: Pressing refresh below will return a LOCAL IP Address[/i][/color][/size]"
                 theme_text_color: 'Custom'
                 text_color: [1, 1, 1, 1]
             BoxLayout:
                 orientation: 'vertical'
-                size_hint: 1, .5
+                size_hint: 1, .4
                 BoxLayout:
                     orientation: 'horizontal'
                     size_hint: 1, .5
@@ -164,7 +164,7 @@
                         on_press: app.refresh()
                 MDRaisedButton:
                     size_hint: 1, .5
-                    text: "save"
+                    text: "[size=16sp][b]save[/b][/size]"
                     markup: True
                     on_press: app.start_screen_submit()
 
