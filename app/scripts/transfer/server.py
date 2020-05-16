@@ -170,7 +170,7 @@ class Server:
             self.DATA.put(f"---> {verbose_msg}")
 
     # noinspection PyBroadException
-    def test_connection(self, port: int) -> None:
+    def test_connection(self, port: int) -> bool:
         """
         Test the connection to terminal
 
