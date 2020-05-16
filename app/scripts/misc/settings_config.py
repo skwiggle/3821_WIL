@@ -1,8 +1,7 @@
-import json
-import os
 import pathlib
-import re
 import socket
+import json
+import re
 
 def fix_ipv4() -> str:
     """ Return the IPv4 of this PC and print to log """
@@ -11,7 +10,11 @@ def fix_ipv4() -> str:
     return address
 
 def _ipv4_is_valid(ipv4: str) -> bool:
-    new_ipv4: str = ipv4
+    """
+    Check that IPv4 is valid
+
+    :param ipv4: IPv4 address in the format [0-255].[0-255].[0-255].[0-255]
+    """
     if not (isinstance(ipv4, str)) or not \
             re.search('[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}', ipv4):
         return False
@@ -42,19 +45,19 @@ class Settings:
                 json.dump(data, file)
         self.get_settings()
 
-    def get_ipv4(self):
+    def get_ipv4(self) -> dict:
         """ return ipv4 address """
         return self._settings['ipv4']
 
-    def get_verbose(self):
+    def get_verbose(self) -> bool:
         """ return verbose boolean """
         return self._settings['verbose']
 
-    def set_setting(self, key: str, value: str):
+    def set_setting(self, key: str, value: str) -> None:
         """ set `_settings` key to value """
         self._settings[key] = value
 
-    def get_settings(self):
+    def get_settings(self) -> None:
         """ validate and return settings from `_directory` """
         with open(self._directory, 'r') as file:
             data = json.load(file)
@@ -64,7 +67,7 @@ class Settings:
                 data['verbose'] = True
         self._settings = data
 
-    def save_settings(self):
+    def save_settings(self) -> None:
         """ save global settings to `_directory` """
         with open(self._directory, 'w') as file:
             json.dump(self._settings, file)
