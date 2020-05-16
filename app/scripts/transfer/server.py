@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 import os
 import time
 import socket
@@ -29,7 +27,7 @@ class Server:
         self._timeout = timeout                     # server timeout duration
         self._verbose = verbose                     # checks whether to specify additional error information
 
-    def validate_temp_folder(self):
+    def validate_temp_folder(self) -> None:
         """ Make sure the log folder exists, if not, create one"""
         if not os.path.exists(self._temp_log_folder):
             os.mkdir(self._temp_log_folder)
@@ -38,22 +36,20 @@ class Server:
     def _connectionBootstrap(func) -> ():
         """
         Handler function to return wrapper function
+
         :param func: handler function that extends from `_wrapper`
-        :type func: function
-        :return: wrapper function
-        :rtype: function
+        :returns: wrapper function
         """
 
         # noinspection PyCallingNonCallable,PyUnusedLocal
-        def _wrapper(self, port: int, sock: socket.socket = None):
+        def _wrapper(self, port: int, sock: socket.socket = None) -> None:
             """
             Wrapper in charge of initialising and stopping a socket correctly
             as well as stopping the server when an event or error occurs such
             as a timeout event.
-            :param port: port number
-            :type port: int, optional
+
+            :param port: inbound port number
             :param sock: parent socket, defaults to None
-            :type port: socket.socket
             """
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as ws:
                 ws.settimeout(self._timeout)
@@ -72,15 +68,14 @@ class Server:
 
     # noinspection PyUnusedLocal
     @_connectionBootstrap
-    def two_way_handler(self, port: int, sock: socket.socket = None):
+    def two_way_handler(self, port: int, sock: socket.socket = None) -> None:
         """
         Constantly listen for incoming messages from other hosts.
         Should be used to handle incoming log updates from the terminal
         or incoming commands from the application. Also displays error info.
-        :param port: port number
-        :type port: int, optional
+
+        :param port: inbound port number
         :param sock: parent socket, defaults to None
-        :type port: socket.socket
         """
         temp_msg: Queue = Queue()  # temporary log data storage
 
@@ -137,7 +132,7 @@ class Server:
         Should be used to send commands to the terminal or send the current
         Unity debug log information to the application. Also displays error info.
 
-        :param port: port number
+        :param port: outbound port number
         :param msg: the message (defaults to none)
         :param package: a list of messages (defaults to none)
         """
@@ -161,12 +156,11 @@ class Server:
             self._append_error(local_msg['connection_closed'], error)
         return False
 
-    def _append_error(self, error: str, verbose_msg):
+    def _append_error(self, error: str, verbose_msg) -> None:
         """
-        Appends error to application debug panel.
+        Appends error to application debug panel to display to the user.
 
         :param error: custom error message
-        :type error: str
         :param verbose_msg: system error message, only appends if
                             `_verbose` is True
         :type verbose_msg: any exception error type
@@ -177,15 +171,21 @@ class Server:
 
     # noinspection PyBroadException
     def test_connection(self, port: int) -> bool:
-        """ Test the connection to terminal """
+        """
+        Test the connection to terminal
+
+        :param port: outbound port number
+        """
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-                sock.bind((self.host, port))
-        except Exception:
-            self._append_error(local_msg['connection_established'], f"Connected to "
-                                                                    f"{self.host} on ports {port} and {port+1}")
+                sock.settimeout(5)
+                sock.connect((self.host, port))
+                sock.send(b'tc:>')
+                self._append_error(local_msg['connection_established'], f"Connected to "
+                                                                        f"{self.host} on ports {port} and {port + 1}")
             return True
-        return False
+        except Exception:
+            return False
 
 
 if __name__ == '__main__':

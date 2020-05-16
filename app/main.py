@@ -36,8 +36,8 @@ Config.set('widgets', 'scroll_moves', '100')
 from kivymd.app import MDApp
 from kivy.core.text import LabelBase
 from app.scripts.misc.elements import *
-import re
 from app.scripts.misc.essentials import fmt_datacell
+import re
 
 # Add book-antiqua font and load into kivy
 # noinspection SpellCheckingInspection
@@ -69,7 +69,7 @@ class MainApp(MDApp):
     cmd_text: str = ''
     debug_data: [set] = [{}]
 
-    def reconnect(self):
+    def reconnect(self) -> None:
         """ test connection to terminal """
         rec_thd = Thread(target=self.root.get_screen('main').ids['debug_panel'].reconnect)
         rec_thd.start()
@@ -79,7 +79,7 @@ class MainApp(MDApp):
         addr = socket.gethostbyname(host)
         self.root.get_screen('start').ids['ip'].text = addr
 
-    def clear_content(self):
+    def clear_content(self) -> None:
         """ Tell debug panel to clear data """
         self.root.get_screen('main').ids['debug_panel'].data = \
             [fmt_datacell('type ? to see list of commands')]
@@ -93,7 +93,7 @@ class MainApp(MDApp):
                          args=(command,), name='send_command')
         cmd_thd.start()
 
-    def on_input_focus(self):
+    def on_input_focus(self) -> None:
         """ switch between screens on text input focus """
         if self.is_focused:
             self.cmd_text = self.root.get_screen('input_focused').ids['cmd_input_focused'].text
@@ -105,7 +105,7 @@ class MainApp(MDApp):
             self.root.get_screen('input_focused').ids['debug_panel_focused'].scroll_y = 0
             self.is_focused = True
 
-    def start_screen_submit(self):
+    def start_screen_submit(self) -> None:
         ipv4 = self.root.get_screen('start').ids['ip'].text
         if _ipv4_is_valid(ipv4):
             self.root.get_screen('start').ids['ip'].set_ipv4()

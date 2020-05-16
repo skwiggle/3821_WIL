@@ -1,25 +1,14 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import asyncio
-import json
 import os
-import re
-import shutil
-import threading
 from sys import platform
-import logging
+import threading
+import asyncio
 import socket
-
-
-# list of all Unity log files
-# noinspection PyArgumentList
-log_file_names: tuple = ('Editor.log', 'Editor-prev.log', 'upm.log')
-
-# List of re-occurring error messages, easily referencable
-local_msg: dict = {
-    'connection_closed': 'failed to send message because no connection was found%s',
-    'timeout': 'connection timed out%s',
-    'unknown': 'unknown error, please restart terminal%s'
-}
+import shutil
+import logging
+import re
+import json
 
 # Configuration of logging system,
 # - appends data to 'terminal_log.txt'
@@ -32,6 +21,18 @@ logging.basicConfig(
     format='%(levelname)-8s %(asctime)s: %(message)s'
 )
 logger = logging.getLogger('logger')
+
+# List of re-occurring error messages, easily referencable
+local_msg: dict = {
+    'server_connect_failed': 'Failed to connect to the server',
+    'connection_closed': 'Failed to send message because no connection could be found%s',
+    'timeout': 'Connection timed out%s',
+    'unknown': 'Unknown error, please restart terminal%s'
+}
+
+# list of all Unity log files
+# noinspection PyArgumentList
+log_file_names: tuple = ('Editor.log', 'Editor-prev.log', 'upm.log')
 
 # lambda function in charge of appending an error message to a logger message
 # if `verbose` is True, otherwise, append nothing
@@ -101,24 +102,24 @@ def startup() -> dict:
 
             # check that inbound port is a number between 0 and 65535
             if not (isinstance(data['port']['in'], int) and 0 < data['port']['in'] < 65535):
-                logger.error('inbound port number must be a number between 0 and 65535, setting to 5554')
-                data['port']['in'] = 5554,
+                logger.error('Inbound port number must be a number between 0 and 65535, setting to 5554')
+                data['port']['in'] = 5554
             # check that outbound port is a number between 0 and 65535
             if not (isinstance(data['port']['out'], int) and 0 < data['port']['out'] < 65535):
-                logger.error('outbound port number must be a number between 0 and 65535, setting to 5555')
-                data['port']['out'] = 5555,
+                logger.error('Outbound port number must be a number between 0 and 65535, setting to 5555')
+                data['port']['out'] = 5555
             # check that both inbound and outbound port don't match
             if data['port']['in'] == data['port']['out']:
-                logger.error('inbound port and outbound port cannot be the same, setting to 5554 and 5555')
-                data['port']['in'] = 5554,
-                data['port']['out'] = 5555,
+                logger.error('Inbound port and outbound port cannot be the same, setting to 5554 and 5555')
+                data['port']['in'] = 5554
+                data['port']['out'] = 5555
             # check that timeout is a number above 0
             if not (isinstance(data['timeout'], int) and data['timeout'] > 0):
-                logger.error('timeout must be a number larger than 0, setting it to 3600')
+                logger.error('Timeout must be a number larger than 0, setting it to 3600')
                 data['timeout'] = 3600
-            # check that verbose is set to True/False
+            # check that verbose is set to true or false
             if not (isinstance(data['verbose'], bool)):
-                logger.error('verbose must be set to True or False, setting it to True')
+                logger.error('Verbose must be set to True or False, setting it to True')
                 data['verbose'] = True
 
             return data
@@ -134,10 +135,8 @@ def log_path(log_name: str = 'no_file_given', observer: bool = False) -> str:
                         - Editor-prev.log
                         - upm.log
                      defaults to 'no_file_given'
-    :type log_name: str
     :param observer: should the function return the parent directory
                      location instead? (True = yes), defaults to False
-    :type observer: bool
     """
 
     new_path: str = ''
@@ -149,7 +148,7 @@ def log_path(log_name: str = 'no_file_given', observer: bool = False) -> str:
     elif ('lin' or 'unix') in platform:
         new_path = f"/home/{os.getlogin()}/.config/unity3d/{'' if observer else log_name}"
     else:
-        logger.critical('Path to Unity log files does not exist, check that the one of the following URLs matche that '
+        logger.critical('Path to Unity log files does not exist, check that the one of the following URLs matches that '
                         'of your platform')
         logger.critical(f'WINDOWS    - C:/Users/{os.getlogin()}/AppData/Local/Unity/Editor/')
         logger.critical('MAC OS     - ~/Library/Logs/Unity/')
@@ -197,7 +196,7 @@ class Terminal:
         if not unittest:
             self.two_way_handler()
 
-    def check_for_updates(self, _manual_update: bool = False):
+    def check_for_updates(self, _manual_update: bool = False) -> None:
         """
         Check for file system events within Editor directory of Unity.
 
@@ -254,7 +253,6 @@ class Terminal:
         be updated.
 
         :param src_files: Log file, defaults to None
-        :type src_files: set
         """
 
         async def _delay(_log_name: str, _orig_log_len: int = -1):
@@ -273,7 +271,7 @@ class Terminal:
                     break
             return True
 
-        async def _safeguard(_log_name: str):
+        async def _safeguard(_log_name: str) -> None:
             """
              Commit main operations of log file interaction
 
@@ -285,7 +283,7 @@ class Terminal:
 
             shutil.copy(path, temp_path)
 
-        async def _send_log(_log_name: str):
+        async def _send_log(_log_name: str) -> None:
             """
             Send contents of temporary log to application and then
             delete the file
@@ -327,27 +325,29 @@ class Terminal:
         as a timeout event.
 
         :param func: handler function that extends from `_wrapper`
-        :type func: function
         """
 
         # noinspection PyCallingNonCallable
         def _wrapper(self, sock: socket.socket = None):
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.settimeout(self.settings['timeout'])
-                s.bind((self.settings['ipv4'], self.settings['port']['in']))
-                s.listen()
-                logger.info('established server')
                 try:
-                    func(self, s)
+                    s.settimeout(self.settings['timeout'])
+                    s.bind((self.settings['ipv4'], self.settings['port']['in']))
+                    s.listen()
+                    logger.info('Established server')
+                    try:
+                        func(self, s)
+                    except Exception as error:
+                        logger.critical(local_msg['unknown'] % error_msg(error, self.settings['verbose']))
                 except Exception as error:
-                    logger.critical(local_msg['unknown'] % error_msg(error, self.settings['verbose']))
-            logger.critical('server closed')
+                    logger.critical(local_msg['server_connect_failed'] % error_msg(error, self.settings['verbose']))
+            logger.critical('Server closed')
 
         return _wrapper
 
     # noinspection PyArgumentList
     @_connectionBootstrap
-    def two_way_handler(self, sock: socket.socket = None):
+    def two_way_handler(self, sock: socket.socket = None) -> None:
         """
         Constantly listen for incoming messages from other hosts.
 
@@ -376,6 +376,8 @@ class Terminal:
                                     self.check_for_updates(_manual_update=True)
                                 else:
                                     logger.info(f'command executed: \'{reply[4:]}\'')
+                            elif reply[:4] == 'tc:>':
+                                pass
                             continue
                         break
             except Exception as error:

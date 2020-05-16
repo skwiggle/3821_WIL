@@ -6,7 +6,7 @@ from threading import Thread
 
 class TestServer(unittest.TestCase):
 
-    s = Server()
+    s = Server('./log')
     t = Terminal(unittest=True)
     thr1 = Thread(target=t.two_way_handler, args=(5554,), daemon=True)
     thr2 = Thread(target=s.two_way_handler, args=(5555,), daemon=True)

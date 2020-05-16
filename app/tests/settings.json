@@ -1,0 +1,1 @@
+{"ipv4": "192.168.56.1", "port": {"in": 5554, "out": 5555}, "timeout": 3600, "verbose": true}
