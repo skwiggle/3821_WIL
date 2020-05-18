@@ -1,2 +1,5 @@
-INFO     2020-05-16 12:36:01,168: Established server
-INFO     2020-05-16 12:39:31,842: Established server
+INFO     2020-05-18 14:51:18,775: Established server
+INFO     2020-05-18 14:51:46,653: Unity log file ('Editor.log') is empty
+INFO     2020-05-18 14:51:46,654: Unity log file ('Editor-prev.log') is empty
+INFO     2020-05-18 14:51:46,655: Unity log file ('upm.log') is empty
+INFO     2020-05-18 14:52:46,173: Established server

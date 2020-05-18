@@ -1,4 +1,5 @@
 import os
+import re
 import time
 import socket
 from threading import Thread
@@ -18,7 +19,9 @@ class Server:
 
     def __init__(self, temp_log_folder: str = './scripts/transfer/log',
                  timeout: float = 3600, verbose: bool = False):
-        self.host = 'localhost'                     # host ip address (IPv4)
+        self.host = None                            # Ip address of Application (IPv4)
+        self.target = None                          # Ip address of Terminal (IPv4)
+
         self._buffer: int = 2048                    # buffer limit (prevent buffer overflow)
         self.scroll_down: bool = False              # checks if app should scroll to the bottom
         self.DATA: Queue = Queue(2000)              # temporary log data storage
@@ -124,6 +127,7 @@ class Server:
             except Exception as error:
                 # send an error message to application of error occurs
                 self._append_error(local_msg['timeout'], error)
+                print(self.host, self.target, port)
 
     def one_way_handler(self, port: int, msg: str = None, package: [str] = None) -> bool:
         """
@@ -143,7 +147,7 @@ class Server:
 
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                 sock.settimeout(5)
-                sock.connect((self.host, port))
+                sock.connect((self.target, port))
                 # send the message if message not blank
                 if msg:
                     sock.send(msg.encode('utf-8'))
@@ -155,6 +159,7 @@ class Server:
             return True
         except Exception as error:
             self._append_error(local_msg['connection_closed'], error)
+            print(self.host, self.target, port)
         return False
 
     def _append_error(self, error: str, verbose_msg) -> None:
@@ -180,10 +185,10 @@ class Server:
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                 sock.settimeout(5)
-                sock.connect((self.host, port))
+                sock.connect((self.target, port))
                 sock.send(b'tc:>')
                 self._append_error(local_msg['connection_established'], f"Connected to "
-                                                                        f"{self.host} on ports {port} and {port + 1}")
+                                                                        f"{self.target} on ports {port} and {port + 1}")
             return True
         except Exception:
             return False

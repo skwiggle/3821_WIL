@@ -19,7 +19,7 @@
     required: True
     max_text_length: 15
 
-<RefreshBtn>:
+<RefreshBaseBtn>:
     source: './ui/icon/refresh/refresh_icon_256x256.png'
 
 <ReconnectBtn>:
@@ -40,7 +40,7 @@
         Color:
             rgba: (0, 0, 0, 1)  # log screen background color
         RoundedRectangle:
-            radius: [25, 25, 25, 25]
+            radius: [sp(25), sp(25), sp(25), sp(25)]
             size: root.width, Window.height*.445
             pos: root.pos
 
@@ -60,8 +60,8 @@
     RecycleGridLayout:
         orientation: 'vertical'
         cols: 1
-        padding: 25
-        default_size: None, dp(50)
+        padding: sp(25)
+        default_size: None, sp(50)
         default_size_hint: 1, None
         size_hint_y: None
         height: self.minimum_height
@@ -129,7 +129,7 @@
             pos: (0, 0)
     BoxLayout:
         id: popup
-        size_hint: .75, .42
+        size_hint: .75, .55
         pos_hint: {'center_x': 0.5, 'center_y': 0.65}
         BoxLayout:
             orientation: 'vertical'
@@ -143,30 +143,48 @@
                     radius: [sp(20), sp(20), sp(20), sp(20)]
                     size: self.size
                     pos: self.pos
-            MDLabel:
-                size_hint: 1, .6
-                markup: True
-                text: "[size=16sp]Please enter the PUBLIC IPv4 address of the target host machine, this can be easily found by typing [b]ipconfig[/b] (Windows) or [b]ifconfig[/b] (Mac/Linux) into a command prompt/bash window on the terminal's computer[/size]\n[size=14sp][color=#D8D8D8][i]NOTE: Pressing refresh below will return a LOCAL IP Address[/i][/color][/size]"
-                theme_text_color: 'Custom'
-                text_color: [1, 1, 1, 1]
             BoxLayout:
                 orientation: 'vertical'
-                size_hint: 1, .4
-                BoxLayout:
-                    orientation: 'horizontal'
-                    size_hint: 1, .5
-                    IPInput:
-                        id: ip
-                        size_hint: .8, 1
-                    RefreshBtn:
-                        size_hint: .2, 1
-                        padding: [sp(10), sp(10), sp(10), sp(10)]
-                        on_press: app.refresh()
-                MDRaisedButton:
-                    size_hint: 1, .5
-                    text: "[size=16sp][b]save[/b][/size]"
+                size_hint: 1, .5
+                MDLabel:
+                    size_hint: 1, .4
                     markup: True
-                    on_press: app.start_screen_submit()
+                    text: "[size=14sp][color=#777777][b]HOST[/b]: The PRIVATE IPv4 Address of this device. Can be found on most android phones by going to [b]settings > wifi > NETWORK_NAME > IP address[/b]\n\n[b]TARGET[/b]: The PRIVATE IPv4 address of the machine hosting the terminal, can be found by typing [b]ipconfig[/b] (Windows) or [b]ifconfig[/b] (Mac/Linux) into the command prompt window on the terminal's machine[/color][/size]"
+                    theme_text_color: 'Custom'
+                    text_color: [1, 1, 1, 1]
+            GridLayout:
+                cols: 3
+                rows: 2
+                orientation: 'vertical'
+                size_hint: 1, .35
+                MDLabel:
+                    size_hint: .175, 1
+                    markup: True
+                    text: "[size=14sp][color=#FFFFFF]Host:[/color][/size]"
+                IPInput:
+                    id: host_ip
+                    size_hint: .725, 1
+                RefreshBaseBtn:
+                    size_hint: .1, 1
+                    padding: [sp(10), sp(10), sp(10), sp(10)]
+                    on_press: app.refresh_host()
+                MDLabel:
+                    size_hint: .175, 1
+                    markup: True
+                    text: "[size=14sp][color=#FFFFFF]Target:   [/color][/size]"
+                IPInput:
+                    id: target_ip
+                    size_hint: .725, 1
+                RefreshBaseBtn:
+                    size_hint: .1, 1
+                    padding: [sp(10), sp(10), sp(10), sp(10)]
+                    on_press: app.refresh_target()
+            MDRaisedButton:
+                size_hint: 1, .15
+                text: "[size=16sp][b]save[/b][/size]"
+                markup: True
+                on_press: app.start_screen_submit()
+
 
 <MainScreen@Screen>:
     name: 'main'
@@ -182,14 +200,14 @@
             id: body
             orientation: 'vertical'
             size: Window.size
-            padding: [20, 0, 20, 0]
+            padding: [sp(20), 0, sp(20), 0]
             Widget:
                 id: spacer
                 size_hint_y: .14
             DebugLayer:
                 id: debug_layer
                 size_hint_y: .445
-                padding: [0, 5, 0, 5]
+                padding: [0, sp(5), 0, sp(5)]
                 DebugPanel:
                     id: debug_panel
             BoxLayout:
@@ -210,9 +228,9 @@
                     size_hint_y: .31
                     Content:
                         id: cmd_input
-                        size: (input_box.width-40, input_box.height)
+                        size: (input_box.width-sp(40), input_box.height)
                         pos_hint: {'center_x': .5}
-                        pos: (input_box.pos[0]+20, input_box.pos[1]-(input_box.height/2)+20)
+                        pos: (input_box.pos[0]+sp(20), input_box.pos[1]-(input_box.height/2)+sp(20))
                 Widget:
                     size_hint_y: .16
                 GridLayout:
@@ -246,13 +264,13 @@
         id: body
         orientation: 'vertical'
         size: Window.size
-        padding: [20, 0, 20, 0]
+        padding: [sp(20), 0, sp(20), 0]
         Widget:
             size_hint: 1, .08
         DebugLayerFocused:
             id: debug_layer_focused
             size_hint: 1, .25
-            padding: [0, 5, 0, 5]
+            padding: [0, sp(5), 0, sp(5)]
             DebugPanelFocused:
                 id: debug_panel_focused
         Widget:
@@ -266,9 +284,9 @@
                 size_hint_y: 1
                 Content:
                     id: cmd_input_focused
-                    size: (input_box.width-40, input_box.height)
+                    size: (input_box.width-sp(40), input_box.height)
                     pos_hint: {'center_x': .5}
-                    pos: (input_box.pos[0]+20, input_box.pos[1]-(input_box.height/2)+20)
+                    pos: (input_box.pos[0]+sp(20), input_box.pos[1]-(input_box.height/2)+sp(20))
         Widget:
             id: bottom_half
             size_hint: 1, .48

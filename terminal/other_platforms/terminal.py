@@ -27,6 +27,7 @@ local_msg: dict = {
     'server_connect_failed': 'Failed to connect to the server',
     'connection_closed': 'Failed to send message because no connection could be found%s',
     'timeout': 'Connection timed out%s',
+    'settings_parse': 'One of the values in settings.json was incorrectly parsed%s',
     'unknown': 'Unknown error, please restart terminal%s'
 }
 
@@ -38,12 +39,31 @@ log_file_names: tuple = ('Editor.log', 'Editor-prev.log', 'upm.log')
 # if `verbose` is True, otherwise, append nothing
 error_msg = lambda error, verbose: f'\n\t\t -> {error}' if verbose else ''
 
-def validate_ipv4() -> str:
+def _get_public_ipv4() -> str:
     """ Return the IPv4 of this PC and print to log """
     host = socket.gethostname()
-    address = socket.gethostbyname(host)
-    logger.info(f'hosted on: {address} ({host})')
-    return address
+    info = socket.getaddrinfo(host, 5555)
+    for ip in info:
+        if not ip[0] is socket.AddressFamily.AF_INET6:
+            address = ip[4][0]
+            read_ip: list = re.split('\.', ip[4][0])
+            if read_ip[2] == '0':
+                print(address)
+                logger.info(f'hosted on: {address} ({host})')
+                return address
+
+def _reset_settings():
+    """ Set settings.json back to default values """
+    with open('settings.json', 'w') as output:
+        host = _get_public_ipv4()
+        data = {
+            'host': host,
+            'target': host,
+            'timeout': 3600,
+            'verbose': True
+        }
+        json.dump(data, output)
+    return data
 
 def startup() -> dict:
     """
@@ -82,46 +102,27 @@ def startup() -> dict:
         # create a new settings.json if one doesn't exist
         # and then return settings dict
         if not os.path.exists('settings.json'):
-            with open('settings.json', 'w') as output:
-                data = {
-                    'ipv4': validate_ipv4(),
-                    'port': {
-                        'in': 5554,
-                        'out': 5555
-                    },
-                    'timeout': 3600,
-                    'verbose': True
-                }
-                json.dump(data, output)
-                return data
+            _reset_settings()
 
         # return settings dict
         with open('settings.json', 'r') as settings:
             data = json.load(settings)
+            try:
+                # check that timeout is a number above 0
+                if not (isinstance(data['host'], str) and isinstance(data['target'], str)):
+                    pass
+                if not (isinstance(data['timeout'], int) and data['timeout'] > 0):
+                    logger.error('Timeout must be a number larger than 0, setting it to 3600')
+                    data['timeout'] = 3600
+                # check that verbose is set to true or false
+                if not (isinstance(data['verbose'], bool)):
+                    logger.error('Verbose must be set to True or False, setting it to True')
+                    data['verbose'] = True
+            except Exception as error:
+                logger.critical(local_msg['settings_parse'] % error_msg(error, True))
+                _reset_settings()
 
-            # check that inbound port is a number between 0 and 65535
-            if not (isinstance(data['port']['in'], int) and 0 < data['port']['in'] < 65535):
-                logger.error('Inbound port number must be a number between 0 and 65535, setting to 5554')
-                data['port']['in'] = 5554
-            # check that outbound port is a number between 0 and 65535
-            if not (isinstance(data['port']['out'], int) and 0 < data['port']['out'] < 65535):
-                logger.error('Outbound port number must be a number between 0 and 65535, setting to 5555')
-                data['port']['out'] = 5555
-            # check that both inbound and outbound port don't match
-            if data['port']['in'] == data['port']['out']:
-                logger.error('Inbound port and outbound port cannot be the same, setting to 5554 and 5555')
-                data['port']['in'] = 5554
-                data['port']['out'] = 5555
-            # check that timeout is a number above 0
-            if not (isinstance(data['timeout'], int) and data['timeout'] > 0):
-                logger.error('Timeout must be a number larger than 0, setting it to 3600')
-                data['timeout'] = 3600
-            # check that verbose is set to true or false
-            if not (isinstance(data['verbose'], bool)):
-                logger.error('Verbose must be set to True or False, setting it to True')
-                data['verbose'] = True
-
-            return data
+        return data
 
 
 def log_path(log_name: str = 'no_file_given', observer: bool = False) -> str:
@@ -298,9 +299,12 @@ class Terminal:
             logger.info(f'log {_log_name} has been cleared')
 
             # Send contents of file to application
+            content = None
+            pattern = re.compile(r'[\n\t]', flags=re.MULTILINE)
             with open(temp_path, 'r') as log_file:
                 logger.info(f'sending contents of {_log_name} to application...')
-                self.one_way_handler(package=[line for line in log_file])
+                content = [re.sub(pattern, '', line) for line in log_file]
+            self.one_way_handler(package=content)
 
             os.remove(temp_path)
 
@@ -331,7 +335,8 @@ class Terminal:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 try:
                     s.settimeout(self.settings['timeout'])
-                    s.bind((self.settings['ipv4'], self.settings['port']['in']))
+                    print(f"about to create server on {self.settings['host']}:5554")
+                    s.bind((self.settings['host'], 5554))
                     s.listen()
                     logger.info('Established server')
                     try:
@@ -361,6 +366,7 @@ class Terminal:
             try:
                 client, address = sock.accept()
                 with client:
+                    self.one_way_handler(msg=self.settings['target'])
                     # Continuously check for incoming messages
                     while True:
                         reply = client.recv(self._buffer).decode('utf-8')  # received message
@@ -393,10 +399,9 @@ class Terminal:
         :param msg: a message, defaults to None
         :param package: a list of messages, defaults to None
         """
-
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-                sock.connect((self.settings['ipv4'], self.settings['port']['out']))
+                sock.connect((self.settings['target'], 5555))
                 # send the message if message not blank
                 if msg:
                     sock.send(msg.replace('\t', '').encode('utf-8'))
@@ -406,7 +411,7 @@ class Terminal:
                     for index, line in enumerate(package):
                         # limit number of lines to `limit`
                         if index >= 1999: break
-                        sock.send(line.replace('\t', '').encode('utf-8'))
+                        sock.send(line.encode('utf-8'))
                     sock.send('--EOF'.encode('utf-8'))
                     return True
         except Exception as error:
@@ -415,4 +420,7 @@ class Terminal:
 
 
 if __name__ == '__main__':
-    t = Terminal()
+    try:
+        Terminal()
+    except KeyboardInterrupt as end:
+        logger.info('Terminal closed\n')

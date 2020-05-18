@@ -3,11 +3,6 @@ import socket
 import json
 import re
 
-def fix_ipv4() -> str:
-    """ Return the IPv4 of this PC and print to log """
-    host = socket.gethostname()
-    address = socket.gethostbyname(host)
-    return address
 
 def _ipv4_is_valid(ipv4: str) -> bool:
     """
@@ -39,15 +34,20 @@ class Settings:
         else:
             with open(directory, 'w') as file:
                 data = {
-                    'ipv4': fix_ipv4(),
+                    'host': 'none',
+                    'target': 'none',
                     'verbose': True
                 }
                 json.dump(data, file)
         self.get_settings()
 
-    def get_ipv4(self) -> dict:
-        """ return ipv4 address """
-        return self._settings['ipv4']
+    def get_host(self) -> dict:
+        """ return Application ipv4 address """
+        return self._settings['host']
+
+    def get_target(self) -> dict:
+        """ return Terminal ipv4 address """
+        return self._settings['target']
 
     def get_verbose(self) -> bool:
         """ return verbose boolean """
@@ -61,8 +61,10 @@ class Settings:
         """ validate and return settings from `_directory` """
         with open(self._directory, 'r') as file:
             data = json.load(file)
-            if not _ipv4_is_valid(data['ipv4']):
-                data['ipv4'] = fix_ipv4()
+            if not _ipv4_is_valid(data['host']):
+                data['host'] = 'none'
+            if not _ipv4_is_valid(data['target']):
+                data['target'] = 'none'
             if not (isinstance(data['verbose'], bool)):
                 data['verbose'] = True
         self._settings = data

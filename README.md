@@ -69,17 +69,41 @@ typing `./run.sh`. In order to pipe data, use the following command `./run.sh > 
 
 ---
 #### Setting up Python 3
+
+##### Windows
 1. Uninstall all versions of python
 2. Type into windows search: "*environment variables*" and click on "**Edit the system environment variables**"
 3. Go to **ENVIRONMENT VARIABLES > USER VARIABLES > path > EDIT** and then delete all python paths if there is any
 _(usually the paths will end with python.exe or python/lib etc.)_
 4. Create a new folder at **C:/python**
-5. Download the python 3.7.3 installer from https://www.python.org/downloads/
+5. Download the python windows 3.7.3 installer from https://www.python.org/downloads/
 6. Open the installer and choose "*customize installation*" and change these 2 things
     - install in **C:/python** folder
     - tick "**add to environment variables**"
 7. Done
 
+##### Mac OS
+
+##### Linux (Universal)
+1. Uninstall all versions of python _(Recommended)_ using the bash terminal:
+```shell script
+$ sudo apt-get remove PYTHON_2_VERSION 
+$ sudo apt-get remove PYTHON_3_VERSION 
+```
+> example: sudo apt-get remove python2.7
+>
+.2. Use the same method to install python 3.7.3 through the bash terminal again
+```shell script
+$ sudo apt-get remove python3.7.3
+```
+.3. Install the community version of Pycharm from https://www.jetbrains.com/pycharm/download/#section=linux
+
+.4. Extract pycharm to an empty folder anywhere on the machine
+
+.5. use the bash terminal to run the **pycharm.sh** file at **pycharm/bin/pycharm.sh**
+```shell script
+$ sudo ./pycharm.sh
+```
 #### Setting up the Project
 1. clone project to a folder _(don't open in pycharm yet)_
 2. in pycharm go to open folder > choose the 3821_WIL folder

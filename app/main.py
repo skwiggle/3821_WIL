@@ -74,10 +74,11 @@ class MainApp(MDApp):
         rec_thd = Thread(target=self.root.get_screen('main').ids['debug_panel'].reconnect)
         rec_thd.start()
 
-    def refresh(self):
-        host = socket.gethostname()
-        addr = socket.gethostbyname(host)
-        self.root.get_screen('start').ids['ip'].text = addr
+    def refresh_host(self):
+        self.root.get_screen('start').ids['host_ip'].text = ''
+
+    def refresh_target(self):
+        self.root.get_screen('start').ids['target_ip'].text = ''
 
     def clear_content(self) -> None:
         """ Tell debug panel to clear data """
@@ -106,9 +107,11 @@ class MainApp(MDApp):
             self.is_focused = True
 
     def start_screen_submit(self) -> None:
-        ipv4 = self.root.get_screen('start').ids['ip'].text
-        if _ipv4_is_valid(ipv4):
-            self.root.get_screen('start').ids['ip'].set_ipv4()
+        host_ipv4 = self.root.get_screen('start').ids['host_ip'].text
+        target_ipv4 = self.root.get_screen('start').ids['target_ip'].text
+        if _ipv4_is_valid(host_ipv4) and _ipv4_is_valid(target_ipv4):
+            self.root.get_screen('start').ids['host_ip'].set_host()
+            self.root.get_screen('start').ids['target_ip'].set_target()
             self.root.get_screen('main').ids['debug_panel'].start_server()
             self.root.current = 'main'
 

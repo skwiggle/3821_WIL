@@ -21,6 +21,7 @@ def fmt_datacell(text: str):
 
 # List of re-occurring error messages, easily referencable
 local_msg: dict = {
+    'target_server': 'Server attempting to start on current port: \'%s\'',
     'server_established': 'established server',
     'server_connect_failed': 'failed to connect to the server',
     'connection_established': 'connection established',

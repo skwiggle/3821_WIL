@@ -14,7 +14,7 @@ from kivymd.uix.label import MDLabel
 from kivymd.uix.textfield import MDTextField
 
 from app.scripts.misc.essentials import fmt_datacell
-from app.scripts.misc.settings_config import Settings, _ipv4_is_valid, fix_ipv4
+from app.scripts.misc.settings_config import Settings
 from app.scripts.transfer.command_lookup import CommandLookup
 from app.scripts.transfer.server import Server
 
@@ -49,7 +49,9 @@ class DebugPanel(RecycleView, Server, CommandLookup):
         CommandLookup.__init__(self, './scripts/transfer/log')  # initialise command lookup
 
     def start_server(self) -> None:
-        self.host = settings.get_ipv4()
+        self.host = settings.get_host()
+        self.target = settings.get_target()
+        print(self.host, self.target)
         update_thd = Thread(target=self.two_way_handler, args=(5555,), daemon=True)
         watch_data_thd = Thread(target=self.watch_log_update, daemon=True)  # monitor for data changes until app closes
         update_thd.start()
@@ -136,14 +138,17 @@ class InputFocusedScreen(Screen):
 class IPInput(MDTextField):
     def __init__(self, **kwargs):
         super(IPInput, self).__init__(**kwargs)
-        self.text = settings.get_ipv4()
+        self.text = settings.get_target()
 
     # noinspection PyTypeChecker
-    def set_ipv4(self) -> None:
-        settings.set_setting('ipv4', self.text)
+    def set_host(self) -> None:
+        settings.set_setting('host', self.text)
+
+    def set_target(self) -> None:
+        settings.set_setting('target', self.text)
 
 
-class RefreshBtn(ButtonBehavior, Image):
+class RefreshBaseBtn(ButtonBehavior, Image):
     def on_press(self) -> None:
         self.source = './ui/icon/refresh/refresh_icon_pressed_256x256.png'
 
