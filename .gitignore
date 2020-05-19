@@ -1,2 +1,7 @@
 .idea
+app/settings.json
+app/scripts/transfer/log
 terminal/other_platforms/terminal_log.txt
+terminal/other_platforms/settings.json
+terminal/windows/terminal_log.txt
+terminal/windows/settings.json
