@@ -357,6 +357,7 @@ class Terminal:
         """
 
         async def _delay(_log_name: str, _orig_log_len: int = -1):
+            print('running delay...')
             """
             Delay the update by 1 second every time the log is modified
             to reduce the chance of data loss
@@ -373,6 +374,7 @@ class Terminal:
             return True
 
         async def _safeguard(_log_name: str) -> None:
+            print('running safeguard...')
             """
              Commit main operations of log file interaction
 
@@ -384,6 +386,7 @@ class Terminal:
             shutil.copy(path, temp_path)
 
         async def _send_log(_log_name: str) -> None:
+            print('sending log...')
             """
             Send contents of temporary log to application and then
             delete the file
@@ -406,6 +409,7 @@ class Terminal:
                     if not any((fline in clean_line) for fline in _filtered_key_words):
                         if clean_line[-1] == '\n':
                             clean_line = clean_line[:-1]
+                            print(f'-> {clean_line}')
                         content.append(clean_line)
             await self.async_one_way_handler(package=(x for x in content if x != ''))
 

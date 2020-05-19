@@ -121,6 +121,7 @@ class Server:
                                 # Any other message is recognised as log data,
                                 # appends to `temp_msg`
                                 else:
+                                    print(reply)
                                     temp_msg.put(reply)
                             continue
                         break
