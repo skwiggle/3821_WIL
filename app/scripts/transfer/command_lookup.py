@@ -26,6 +26,10 @@ class CommandLookup:
         'clear log --00-01-2000: clear log of specific day'
     )
 
+    _filterable_list = (
+        
+    )
+
     def __init__(self, _directory: str):
         self._directory = _directory
 
@@ -178,5 +182,3 @@ class CommandLookup:
 
 if __name__ == '__main__':
     c = CommandLookup('./log')
-    # test that it returns the blank file message and creates file
-    print(c.lookup('clear logs', []))

@@ -24,7 +24,7 @@ class Server:
 
         self._buffer: int = 2048                    # buffer limit (prevent buffer overflow)
         self.scroll_down: bool = False              # checks if app should scroll to the bottom
-        self.DATA: Queue = Queue(2000)              # temporary log data storage
+        self.DATA: Queue = Queue()                  # temporary log data storage
         self._temp_log_folder = temp_log_folder     # temporary log directory location
         self.validate_temp_folder()                 # validate the temp log folder exists
         self._timeout = timeout                     # server timeout duration
@@ -127,7 +127,6 @@ class Server:
             except Exception as error:
                 # send an error message to application of error occurs
                 self._append_error(local_msg['timeout'], error)
-                print(self.host, self.target, port)
 
     def one_way_handler(self, port: int, msg: str = None, package: [str] = None) -> bool:
         """
@@ -159,7 +158,6 @@ class Server:
             return True
         except Exception as error:
             self._append_error(local_msg['connection_closed'], error)
-            print(self.host, self.target, port)
         return False
 
     def _append_error(self, error: str, verbose_msg) -> None:
@@ -184,7 +182,7 @@ class Server:
         """
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-                sock.settimeout(5)
+                sock.settimeout(2)
                 sock.connect((self.target, port))
                 sock.send(b'tc:>')
                 self._append_error(local_msg['connection_established'], f"Connected to "

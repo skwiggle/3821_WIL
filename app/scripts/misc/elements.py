@@ -41,6 +41,7 @@ class DebugPanel(RecycleView, Server, CommandLookup):
     """
     # temporary data stored before updating
     temp_data = [fmt_datacell('type ? for a list of commands')]
+    temp_data_scanning: bool = False
 
     def __init__(self, **kwargs):
         # initialise super classes
@@ -51,7 +52,6 @@ class DebugPanel(RecycleView, Server, CommandLookup):
     def start_server(self) -> None:
         self.host = settings.get_host()
         self.target = settings.get_target()
-        print(self.host, self.target)
         update_thd = Thread(target=self.two_way_handler, args=(5555,), daemon=True)
         watch_data_thd = Thread(target=self.watch_log_update, daemon=True)  # monitor for data changes until app closes
         update_thd.start()

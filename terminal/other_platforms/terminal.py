@@ -48,7 +48,6 @@ def _get_public_ipv4() -> str:
             address = ip[4][0]
             read_ip: list = re.split('\.', ip[4][0])
             if read_ip[2] == '0':
-                print(address)
                 logger.info(f'hosted on: {address} ({host})')
                 return address
 
@@ -300,7 +299,7 @@ class Terminal:
 
             # Send contents of file to application
             content = None
-            pattern = re.compile(r'[\n\t]', flags=re.MULTILINE)
+            pattern = re.compile(r'[\t]', flags=re.MULTILINE)
             with open(temp_path, 'r') as log_file:
                 logger.info(f'sending contents of {_log_name} to application...')
                 content = [re.sub(pattern, '', line) for line in log_file]
@@ -335,10 +334,9 @@ class Terminal:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 try:
                     s.settimeout(self.settings['timeout'])
-                    print(f"about to create server on {self.settings['host']}:5554")
                     s.bind((self.settings['host'], 5554))
                     s.listen()
-                    logger.info('Established server')
+                    logger.info(f'Host address ({self.settings["host"]}:5554) is valid')
                     try:
                         func(self, s)
                     except Exception as error:
@@ -366,7 +364,6 @@ class Terminal:
             try:
                 client, address = sock.accept()
                 with client:
-                    self.one_way_handler(msg=self.settings['target'])
                     # Continuously check for incoming messages
                     while True:
                         reply = client.recv(self._buffer).decode('utf-8')  # received message

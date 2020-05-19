@@ -17,9 +17,6 @@ __version__ = '1.0.0'
 __author__ = 'Elliot Charters, Sadeed Ahmad, Max Harvey, Samrat Kunwar, Nguyen Huy Hoang'
 
 import kivy
-
-from app.scripts.misc.settings_config import _ipv4_is_valid
-
 kivy.require('1.11.1')
 
 # configuration for testing only
@@ -37,6 +34,7 @@ from kivymd.app import MDApp
 from kivy.core.text import LabelBase
 from app.scripts.misc.elements import *
 from app.scripts.misc.essentials import fmt_datacell
+from app.scripts.misc.settings_config import _ipv4_is_valid
 import re
 
 # Add book-antiqua font and load into kivy
