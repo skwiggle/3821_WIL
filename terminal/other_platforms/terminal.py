@@ -284,7 +284,7 @@ class Terminal:
         """
 
         self.settings = startup()
-        self._buffer: int = 2046                            # buffer limit (prevent buffer overflow)
+        self._buffer: int = 2048                            # buffer limit (prevent buffer overflow)
         self._log_path_dir: str = log_path(observer=True)   # Unity log directory location
 
         # Open a secondary thread to monitor file system changes
@@ -357,11 +357,13 @@ class Terminal:
         """
 
         async def _delay(_log_name: str, _orig_log_len: int = -1):
-            print('running delay...')
             """
             Delay the update by 1 second every time the log is modified
             to reduce the chance of data loss
             """
+
+            await self.async_one_way_handler(msg='reading incoming unity updates, please wait...')
+
             path = f'{self._log_path_dir}{_log_name}'  # absolute path to log file
             _orig_log_len = os.stat(path).st_size
             while True:
@@ -374,7 +376,6 @@ class Terminal:
             return True
 
         async def _safeguard(_log_name: str) -> None:
-            print('running safeguard...')
             """
              Commit main operations of log file interaction
 
@@ -386,7 +387,6 @@ class Terminal:
             shutil.copy(path, temp_path)
 
         async def _send_log(_log_name: str) -> None:
-            print('sending log...')
             """
             Send contents of temporary log to application and then
             delete the file
@@ -405,11 +405,10 @@ class Terminal:
             content = []
             with open(temp_path, 'r') as file:
                 for line in file:
-                    clean_line = re.sub('[\t\r]', '', line)
+                    clean_line = re.sub('[\n\t\r]', '', line)
                     if not any((fline in clean_line) for fline in _filtered_key_words):
                         if clean_line[-1] == '\n':
                             clean_line = clean_line[:-1]
-                            print(f'-> {clean_line}')
                         content.append(clean_line)
             await self.async_one_way_handler(package=(x for x in content if x != ''))
 
