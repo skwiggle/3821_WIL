@@ -1,4 +1,4 @@
-# !/usr/bin/env python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import enum
 import os
@@ -124,7 +124,6 @@ _filtered_key_words = {
     "WriteModifiedImportersToTextMetaFiles: ",
 }
 
-
 def _get_private_ipv4() -> str:
     """
     Return the IPv4 of this PC and print to log
@@ -141,8 +140,7 @@ def _get_private_ipv4() -> str:
                 logger.info(f'hosted on: {address} ({host})')
                 return address
 
-
-def _reset_settings() -> dict:
+def _reset_settings() -> None:
     """ Set settings.json back to default values """
     with open('settings.json', 'w') as output:
         host = _get_private_ipv4()
@@ -155,8 +153,6 @@ def _reset_settings() -> dict:
         json.dump(data, output)
     return data
 
-
-# noinspection PyArgumentList
 def _reset_value(value: str) -> None:
     """ Set settings.json back to default values """
     with open('settings.json', 'w') as output:
@@ -165,21 +161,23 @@ def _reset_value(value: str) -> None:
         json.dump(data)
     return
 
-
 def startup() -> dict:
     """
     Delete temporary log files that failed to delete from a
     previous session if either the app lost connection too early
     or the terminal closed unexpectedly.
+
     Load settings from the `settings.json` file into the terminal
     class or create a new settings default class if the former does
     not exist
+
     These settings include the following properties:
         - ipv4      default to [THIS IP] (IP)   The host IP address (this computer)
         - timeout   default to 3600 (seconds)   The number of seconds before the :class:`Terminal` times out
         - verbose   default to True (boolean)   Specifies whether or not the error messages should contain
                                                 the actual system error messages or just errors created by the
                                                 terminal, defaults to True
+
     :returns: global settings dictionary
     """
     parent = log_path(observer=True)
@@ -230,6 +228,7 @@ def log_path(log_name: str = 'no_file_given', observer: bool = False) -> str:
     """
     Returns the current log file location or the log's parent directory for the
     watchdog observer to monitor for changes.
+
     :param log_name: name of log file, can be one of the following
                         - Editor.log
                         - Editor-prev.log
@@ -270,20 +269,21 @@ class Terminal:
     changes for log files.
     """
 
-    settings: dict = None  # settings properties, saved/retrieved from `settings.json`
+    settings: dict = None   # settings properties, saved/retrieved from `settings.json`
 
     def __init__(self, unittest: bool = False):
         """
         Initialise the server class by creating an observer object to monitor
         for unity debug log file changes and start main server. Observer and program
         stop once server shuts down.
+
         :param unittest: Used to stop automatically connecting for unit test
                          purposes, defaults to False
         """
 
         self.settings = startup()
-        self._buffer: int = 2048  # buffer limit (prevent buffer overflow)
-        self._log_path_dir: str = log_path(observer=True)  # Unity log directory location
+        self._buffer: int = 2048                            # buffer limit (prevent buffer overflow)
+        self._log_path_dir: str = log_path(observer=True)   # Unity log directory location
 
         # Open a secondary thread to monitor file system changes
         # to `_log_path_dir` directory
@@ -298,8 +298,10 @@ class Terminal:
     def check_for_updates(self, _manual_update: bool = False) -> None:
         """
         Check for file system events within Editor directory of Unity.
+
         Asynchronously checks for active logs that aren't empty before
         sending name of log to _log_manager()
+
         :param _manual_update: force the terminal to return all logs, defaults to False
         """
 
@@ -327,7 +329,7 @@ class Terminal:
                 self.one_way_handler(f'tga:>')
             elif len(_active_logs) > 0:
                 await self._log_manager(src_files=_active_logs)
-            await asyncio.sleep(5)
+            await asyncio.sleep(1)
 
         while True:
             if _manual_update:
@@ -340,12 +342,15 @@ class Terminal:
         """
         Extends on_modified function or used whenever 'get log'
         is retrieved.
+
         This function will attempt to
         -   check for empty log file(s),
         -   send log file(s) if not empty
         -   clear log file(s)
+
         If any `src_files` are given, only those files will
         be updated.
+
         :param src_files: Log file, defaults to None
         """
 
@@ -357,7 +362,7 @@ class Terminal:
             path = f'{self._log_path_dir}{_log_name}'  # absolute path to log file
             _orig_log_len = os.stat(path).st_size
             while True:
-                await asyncio.sleep(10)
+                await asyncio.sleep(1)
                 _new_len = os.stat(path).st_size
                 if _new_len != _orig_log_len:
                     _orig_log_len = _new_len
@@ -368,17 +373,20 @@ class Terminal:
         async def _safeguard(_log_name: str) -> None:
             """
              Commit main operations of log file interaction
+
              :param _log_name: Name of log file e.g. Editor.log
             """
 
             path = f'{self._log_path_dir}{_log_name}'  # absolute path to log file
             temp_path = f'{self._log_path_dir}~{_log_name}'  # absolute path to log file
+
             shutil.copy(path, temp_path)
 
         async def _send_log(_log_name: str) -> None:
             """
             Send contents of temporary log to application and then
             delete the file
+
             :param _log_name: name of log file
             """
 
@@ -386,20 +394,24 @@ class Terminal:
             temp_path = f'{self._log_path_dir}~{_log_name}'  # absolute path to temporary log file
 
             # Empty file
-            with open(path.replace('\\\\', '\\'), 'w'):
-                pass
+            with open(path.replace('\\\\', '\\'), 'w'): pass
             logger.info(f'log {_log_name} has been cleared')
 
             # Send contents of file to application
             content = []
+            """
+            pattern = re.compile(r'[\t]', flags=re.MULTILINE)
+            with open(temp_path, 'r') as log_file:
+                logger.info(f'sending contents of {_log_name} to application...')
+                content = [re.sub(pattern, '', line) for line in log_file]
+            self.one_way_handler(package=content)
+            """
             with open(temp_path, 'r') as file:
                 for line in file:
-                    clean_line = re.sub('[\t\r]', '', line)
+                    clean_line = re.sub('[\n\t\r]', '', line)
                     if not any((fline in clean_line) for fline in _filtered_key_words):
-                        if clean_line[-1] == '\n':
-                            clean_line = clean_line[:-1]
                         content.append(clean_line)
-            await self.async_one_way_handler(package=(x for x in content if x != ''))
+            self.one_way_handler(package=(x for x in content if x != ''))
 
             os.remove(temp_path)
 
@@ -421,6 +433,7 @@ class Terminal:
         Wrapper in charge of initialising and stopping a socket correctly
         as well as stopping the server when an event or error occurs such
         as a timeout event.
+
         :param func: handler function that extends from `_wrapper`
         """
 
@@ -447,8 +460,10 @@ class Terminal:
     def two_way_handler(self, sock: socket.socket = None) -> None:
         """
         Constantly listen for incoming messages from other hosts.
+
         Should be used to handle incoming log updates from the terminal
         or incoming commands from the application. Also displays error info.
+
         :param sock: parent socket, defaults to None
         """
 
@@ -479,36 +494,13 @@ class Terminal:
                 logger.error(local_msg['timeout'] % error_msg(error, self.settings['verbose']))
                 exit(-1)
 
-    async def async_one_way_handler(self, msg: str = None, package: [str] = None) -> bool:
-        """
-        Sends a message or an array of messages to application.
-        Should be used to receive commands from the app or send the current
-        Unity debug log information to the application. Also displays error info.
-        :param msg: a message, defaults to None
-        :param package: a list of messages, defaults to None
-        """
-        try:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-                sock.connect((self.settings['target'], 5555))
-                # send the message if message not blank
-                if msg:
-                    sock.send(msg.replace('\t', '').encode('utf-8'))
-                    return True
-                # send a list of messages if package not blank
-                if package:
-                    for line in package:
-                        sock.send(line.encode('utf-8'))
-                    sock.send('--EOF'.encode('utf-8'))
-            return True
-        except Exception as error:
-            logger.error(local_msg['connection_closed'] % error_msg(error, self.settings['verbose']))
-        return False
-
     def one_way_handler(self, msg: str = None, package: [str] = None) -> bool:
         """
         Sends a message or an array of messages to application.
+
         Should be used to receive commands from the app or send the current
         Unity debug log information to the application. Also displays error info.
+
         :param msg: a message, defaults to None
         :param package: a list of messages, defaults to None
         """
@@ -524,7 +516,7 @@ class Terminal:
                     for line in package:
                         sock.send(line.encode('utf-8'))
                     sock.send('--EOF'.encode('utf-8'))
-            return True
+                    return True
         except Exception as error:
             logger.error(local_msg['connection_closed'] % error_msg(error, self.settings['verbose']))
         return False
