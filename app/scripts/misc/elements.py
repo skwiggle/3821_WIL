@@ -3,6 +3,7 @@ import socket
 import time
 from threading import Thread
 
+from kivy.properties import StringProperty
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.button import Button
 from kivy.uix.image import Image
@@ -138,7 +139,12 @@ class InputFocusedScreen(Screen):
 class IPInput(MDTextField):
     def __init__(self, **kwargs):
         super(IPInput, self).__init__(**kwargs)
-        self.text = settings.get_target()
+
+    def get_host(self) -> str:
+        return settings.get_host()
+
+    def get_target(self) -> str:
+        return settings.get_target()
 
     # noinspection PyTypeChecker
     def set_host(self) -> None:

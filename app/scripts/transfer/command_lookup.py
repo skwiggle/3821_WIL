@@ -26,10 +26,6 @@ class CommandLookup:
         'clear log --00-01-2000: clear log of specific day'
     )
 
-    _filterable_list = (
-        
-    )
-
     def __init__(self, _directory: str):
         self._directory = _directory
 

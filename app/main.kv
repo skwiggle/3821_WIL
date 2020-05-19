@@ -163,6 +163,7 @@
                     text: "[size=14sp][color=#FFFFFF]Host:[/color][/size]"
                 IPInput:
                     id: host_ip
+                    text: str(self.get_host())
                     size_hint: .71, 1
                 RefreshBaseBtn:
                     size_hint: .1, 1
@@ -174,6 +175,7 @@
                     text: "[size=14sp][color=#FFFFFF]Target:   [/color][/size]"
                 IPInput:
                     id: target_ip
+                    text: str(self.get_target())
                     size_hint: .71, 1
                 RefreshBaseBtn:
                     size_hint: .1, 1

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import enum
 import os
 from sys import platform
 import threading
@@ -39,8 +40,96 @@ log_file_names: tuple = ('Editor.log', 'Editor-prev.log', 'upm.log')
 # if `verbose` is True, otherwise, append nothing
 error_msg = lambda error, verbose: f'\n\t\t -> {error}' if verbose else ''
 
-def _get_public_ipv4() -> str:
-    """ Return the IPv4 of this PC and print to log """
+# A list of key words to filter debug information from unneeded information
+_filtered_key_words = {
+    "    com.unity.",
+    "[INFO] Health Request received",
+    "[INFO] Server started on port",
+    "[INFO] Starting Server",
+    "[LicensingClient]",
+    "[Licensing::Module]",
+    "[Package Manager]",
+    "[Performance]",
+    "[Project]",
+    "[Subsystems]",
+    "[MODES]",
+    "[Optix]",
+    "[Radeon Pro]",
+    "<RI>",
+    "ApplyChangesToAssetFolders: ",
+    "Assemblies load time: ",
+    "Asset Database init time: ",
+    "Asset Database refresh time: ",
+    "CategorizeAssets: ",
+    "CleanLegacyArtifacts: ",
+    "CompileScripts: ",
+    "Created GICache directory",
+    "debugger-agent: ",
+    "Deserialize:            ",
+    "device created for Microsoft Media Foundation video decoding",
+    "EditorUpdateCheck: ",
+    "EnsureUptoDateAssetsAreRegisteredWithGuidPM: ",
+    "FixTempGuids: ",
+    "GatherAllCurrentPrimaryArtifactRevisions: ",
+    "GetAllGuidsForCategorization: ",
+    "GetLoadedSourceAssetsSnapshot: ",
+    "gi::BakeBackendSwitch:",
+    "Global illumination init time: ",
+    "Hotreload: ",
+    "ImportAndPostprocessOutOfDateAssets: ",
+    "ImportInProcess: ",
+    "ImportManagerImport: ",
+    "ImportOutOfProcess: ",
+    "InitializeImportedAssetsSnapshot: ",
+    "InitializingProgressBar: ",
+    "Integration:            ",
+    "Integration of assets:  ",
+    "InvokeBeforeRefreshCallbacks: ",
+    "InvokeProjectHasChanged: ",
+    "LoadedImportedAssetsSnapshotReleaseGCHandles: ",
+    "Package Manager init time: ",
+    "PersistCurrentRevisions: ",
+    "PostProcessAllAssetNotificationsAddChangedAssets: ",
+    "PostProcessAllAssets: ",
+    "Project init time: ",
+    "OnDemandSchedulerStart: ",
+    "OnSourceAssetsModified: ",
+    "Refresh completed in ",
+    "RefreshInfo: ",
+    "Refreshing native plugins compatible for Editor",
+    "RefreshProfiler: ",
+    "RemoteAssetCacheDownloadFile: ",
+    "RemoteAssetCacheGetArtifact: ",
+    "RemoteAssetCacheResolve: ",
+    "ReloadImportedAssets: ",
+    "ReloadSourceAssets: ",
+    "RestoreLoadedAssetsState: ",
+    "Scan: ",
+    "Scene opening time: ",
+    "Services packages init time: ",
+    "Template init time: ",
+    "Thread Wait Time:       ",
+    "Total Operation Time:   ",
+    "TrimDiskCacheJob: ",
+    "UpdateCategorizedAssets: ",
+    "UpdateImportedAssetsSnapshot: ",
+    "Unity extensions init time: ",
+    "UnloadImportedAssets: ",
+    "UnloadStreamsBegin: ",
+    "UnloadStreamsEnd: ",
+    "UnregisterDeletedAssets: ",
+    "Untracked: ",
+    "VerifyAssetsAreUpToDateAndCorrect: ",
+    "VerifyGuidPMRegistrations: ",
+    "WriteModifiedImportersToTextMetaFiles: ",
+}
+
+def _get_private_ipv4() -> str:
+    """
+    Return the IPv4 of this PC and print to log
+    NOTE: will return the first IPv4 if multiple IPv4's
+          are open
+    """
     host = socket.gethostname()
     info = socket.getaddrinfo(host, 5555)
     for ip in info:
@@ -51,10 +140,10 @@ def _get_public_ipv4() -> str:
                 logger.info(f'hosted on: {address} ({host})')
                 return address
 
-def _reset_settings():
+def _reset_settings() -> None:
     """ Set settings.json back to default values """
     with open('settings.json', 'w') as output:
-        host = _get_public_ipv4()
+        host = _get_private_ipv4()
         data = {
             'host': host,
             'target': host,
@@ -63,6 +152,14 @@ def _reset_settings():
         }
         json.dump(data, output)
     return data
+
+def _reset_value(value: str) -> None:
+    """ Set settings.json back to default values """
+    with open('settings.json', 'w') as output:
+        data = json.load(output)
+        data[value] = _get_private_ipv4()
+        json.dump(data)
+    return
 
 def startup() -> dict:
     """
@@ -108,8 +205,11 @@ def startup() -> dict:
             data = json.load(settings)
             try:
                 # check that timeout is a number above 0
-                if not (isinstance(data['host'], str) and isinstance(data['target'], str)):
-                    pass
+                if isinstance(data['host'], str) and isinstance(data['target'], str):
+                    if data['host'] == '':
+                        _reset_value('host')
+                    elif data['target'] == '':
+                        _reset_value('target')
                 if not (isinstance(data['timeout'], int) and data['timeout'] > 0):
                     logger.error('Timeout must be a number larger than 0, setting it to 3600')
                     data['timeout'] = 3600
@@ -298,12 +398,20 @@ class Terminal:
             logger.info(f'log {_log_name} has been cleared')
 
             # Send contents of file to application
-            content = None
+            content = []
+            """
             pattern = re.compile(r'[\t]', flags=re.MULTILINE)
             with open(temp_path, 'r') as log_file:
                 logger.info(f'sending contents of {_log_name} to application...')
                 content = [re.sub(pattern, '', line) for line in log_file]
             self.one_way_handler(package=content)
+            """
+            with open(temp_path, 'r') as file:
+                for line in file:
+                    clean_line = re.sub('[\n\t\r]', '', line)
+                    if not any((fline in clean_line) for fline in _filtered_key_words):
+                        content.append(clean_line)
+            self.one_way_handler(package=(x for x in content if x != ''))
 
             os.remove(temp_path)
 
@@ -405,9 +513,7 @@ class Terminal:
                     return True
                 # send a list of messages if package not blank
                 if package:
-                    for index, line in enumerate(package):
-                        # limit number of lines to `limit`
-                        if index >= 1999: break
+                    for line in package:
                         sock.send(line.encode('utf-8'))
                     sock.send('--EOF'.encode('utf-8'))
                     return True
