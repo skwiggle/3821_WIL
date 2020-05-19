@@ -168,18 +168,15 @@ def startup() -> dict:
     Delete temporary log files that failed to delete from a
     previous session if either the app lost connection too early
     or the terminal closed unexpectedly.
-
     Load settings from the `settings.json` file into the terminal
     class or create a new settings default class if the former does
     not exist
-
     These settings include the following properties:
         - ipv4      default to [THIS IP] (IP)   The host IP address (this computer)
         - timeout   default to 3600 (seconds)   The number of seconds before the :class:`Terminal` times out
         - verbose   default to True (boolean)   Specifies whether or not the error messages should contain
                                                 the actual system error messages or just errors created by the
                                                 terminal, defaults to True
-
     :returns: global settings dictionary
     """
     parent = log_path(observer=True)
@@ -230,7 +227,6 @@ def log_path(log_name: str = 'no_file_given', observer: bool = False) -> str:
     """
     Returns the current log file location or the log's parent directory for the
     watchdog observer to monitor for changes.
-
     :param log_name: name of log file, can be one of the following
                         - Editor.log
                         - Editor-prev.log
@@ -278,13 +274,12 @@ class Terminal:
         Initialise the server class by creating an observer object to monitor
         for unity debug log file changes and start main server. Observer and program
         stop once server shuts down.
-
         :param unittest: Used to stop automatically connecting for unit test
                          purposes, defaults to False
         """
 
         self.settings = startup()
-        self._buffer: int = 2048                            # buffer limit (prevent buffer overflow)
+        self._buffer: int = 2046                            # buffer limit (prevent buffer overflow)
         self._log_path_dir: str = log_path(observer=True)   # Unity log directory location
 
         # Open a secondary thread to monitor file system changes
@@ -300,10 +295,8 @@ class Terminal:
     def check_for_updates(self, _manual_update: bool = False) -> None:
         """
         Check for file system events within Editor directory of Unity.
-
         Asynchronously checks for active logs that aren't empty before
         sending name of log to _log_manager()
-
         :param _manual_update: force the terminal to return all logs, defaults to False
         """
 
@@ -344,15 +337,12 @@ class Terminal:
         """
         Extends on_modified function or used whenever 'get log'
         is retrieved.
-
         This function will attempt to
         -   check for empty log file(s),
         -   send log file(s) if not empty
         -   clear log file(s)
-
         If any `src_files` are given, only those files will
         be updated.
-
         :param src_files: Log file, defaults to None
         """
 
@@ -361,9 +351,6 @@ class Terminal:
             Delay the update by 1 second every time the log is modified
             to reduce the chance of data loss
             """
-
-            await self.async_one_way_handler(msg='reading incoming unity updates, please wait...')
-
             path = f'{self._log_path_dir}{_log_name}'  # absolute path to log file
             _orig_log_len = os.stat(path).st_size
             while True:
@@ -378,7 +365,6 @@ class Terminal:
         async def _safeguard(_log_name: str) -> None:
             """
              Commit main operations of log file interaction
-
              :param _log_name: Name of log file e.g. Editor.log
             """
 
@@ -390,7 +376,6 @@ class Terminal:
             """
             Send contents of temporary log to application and then
             delete the file
-
             :param _log_name: name of log file
             """
 
@@ -405,7 +390,7 @@ class Terminal:
             content = []
             with open(temp_path, 'r') as file:
                 for line in file:
-                    clean_line = re.sub('[\n\t\r]', '', line)
+                    clean_line = re.sub('[\t\r]', '', line)
                     if not any((fline in clean_line) for fline in _filtered_key_words):
                         if clean_line[-1] == '\n':
                             clean_line = clean_line[:-1]
@@ -432,7 +417,6 @@ class Terminal:
         Wrapper in charge of initialising and stopping a socket correctly
         as well as stopping the server when an event or error occurs such
         as a timeout event.
-
         :param func: handler function that extends from `_wrapper`
         """
 
@@ -459,10 +443,8 @@ class Terminal:
     def two_way_handler(self, sock: socket.socket = None) -> None:
         """
         Constantly listen for incoming messages from other hosts.
-
         Should be used to handle incoming log updates from the terminal
         or incoming commands from the application. Also displays error info.
-
         :param sock: parent socket, defaults to None
         """
 
@@ -496,10 +478,8 @@ class Terminal:
     async def async_one_way_handler(self, msg: str = None, package: [str] = None) -> bool:
         """
         Sends a message or an array of messages to application.
-
         Should be used to receive commands from the app or send the current
         Unity debug log information to the application. Also displays error info.
-
         :param msg: a message, defaults to None
         :param package: a list of messages, defaults to None
         """
@@ -523,10 +503,8 @@ class Terminal:
     def one_way_handler(self, msg: str = None, package: [str] = None) -> bool:
         """
         Sends a message or an array of messages to application.
-
         Should be used to receive commands from the app or send the current
         Unity debug log information to the application. Also displays error info.
-
         :param msg: a message, defaults to None
         :param package: a list of messages, defaults to None
         """

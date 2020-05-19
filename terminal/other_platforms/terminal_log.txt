@@ -1,20 +1,31 @@
-INFO     2020-05-19 22:54:48,368: Host address (192.168.0.77:5554) is valid
-INFO     2020-05-19 22:54:58,371: log Editor.log has been cleared
-INFO     2020-05-19 22:56:36,074: Unity log file ('Editor.log') is empty
-INFO     2020-05-19 22:56:36,075: Unity log file ('Editor-prev.log') is empty
-INFO     2020-05-19 22:56:36,075: Unity log file ('upm.log') is empty
-INFO     2020-05-19 22:57:08,709: Host address (192.168.0.77:5554) is valid
-INFO     2020-05-19 22:58:13,746: log upm.log has been cleared
-INFO     2020-05-19 22:58:13,748: log Editor.log has been cleared
-INFO     2020-05-19 23:00:59,768: Host address (192.168.0.77:5554) is valid
-ERROR    2020-05-19 23:01:01,802: Failed to send message because no connection could be found
+INFO     2020-05-19 23:55:07,099: log Editor.log has been cleared
+INFO     2020-05-19 23:55:07,169: log upm.log has been cleared
+INFO     2020-05-19 23:57:23,221: Host address (192.168.0.77:5554) is valid
+ERROR    2020-05-19 23:57:25,554: Failed to send message because no connection could be found
 		 -> [WinError 10061] No connection could be made because the target machine actively refused it
-INFO     2020-05-19 23:01:10,774: Host address (192.168.0.77:5554) is valid
-INFO     2020-05-19 23:01:20,781: log Editor.log has been cleared
-INFO     2020-05-19 23:02:21,981: Host address (192.168.0.77:5554) is valid
-INFO     2020-05-19 23:02:31,989: log Editor.log has been cleared
-INFO     2020-05-19 23:02:31,994: log upm.log has been cleared
-INFO     2020-05-19 23:03:52,024: log Editor.log has been cleared
-INFO     2020-05-19 23:03:52,034: log upm.log has been cleared
-INFO     2020-05-19 23:05:58,466: Host address (192.168.0.77:5554) is valid
-INFO     2020-05-19 23:06:23,480: log Editor.log has been cleared
+INFO     2020-05-19 23:57:27,570: log Editor.log has been cleared
+ERROR    2020-05-19 23:57:29,943: Failed to send message because no connection could be found
+		 -> [WinError 10061] No connection could be made because the target machine actively refused it
+INFO     2020-05-19 23:58:10,199: log Editor.log has been cleared
+INFO     2020-05-19 23:58:10,300: log upm.log has been cleared
+INFO     2020-05-19 23:58:17,335: log Editor.log has been cleared
+INFO     2020-05-19 23:58:24,499: log Editor.log has been cleared
+INFO     2020-05-19 23:59:01,658: log Editor.log has been cleared
+INFO     2020-05-19 23:59:27,926: Host address (192.168.0.77:5554) is valid
+INFO     2020-05-19 23:59:50,138: log upm.log has been cleared
+INFO     2020-05-19 23:59:50,238: log Editor.log has been cleared
+INFO     2020-05-20 00:00:04,408: log Editor.log has been cleared
+INFO     2020-05-20 00:02:49,800: Host address (192.168.0.77:5554) is valid
+INFO     2020-05-20 00:03:09,866: log Editor.log has been cleared
+INFO     2020-05-20 00:10:40,758: Host address (192.168.0.77:5554) is valid
+INFO     2020-05-20 00:10:58,004: Unity log file ('Editor.log') is empty
+INFO     2020-05-20 00:10:58,005: Unity log file ('Editor-prev.log') is empty
+INFO     2020-05-20 00:10:58,006: Unity log file ('upm.log') is empty
+INFO     2020-05-20 00:11:50,806: log Editor.log has been cleared
+INFO     2020-05-20 00:11:50,821: log upm.log has been cleared
+INFO     2020-05-20 00:13:00,853: log Editor.log has been cleared
+INFO     2020-05-20 00:14:00,957: log Editor.log has been cleared
+INFO     2020-05-20 00:15:10,989: log Editor.log has been cleared
+INFO     2020-05-20 00:15:26,007: log upm.log has been cleared
+INFO     2020-05-20 00:16:51,111: log Editor.log has been cleared
+INFO     2020-05-20 00:17:06,121: log Editor.log has been cleared
