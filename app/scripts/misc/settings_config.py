@@ -41,11 +41,11 @@ class Settings:
                 json.dump(data, file)
         self.get_settings()
 
-    def get_host(self) -> dict:
+    def get_host(self) -> str:
         """ return Application ipv4 address """
         return self._settings['host']
 
-    def get_target(self) -> dict:
+    def get_target(self) -> str:
         """ return Terminal ipv4 address """
         return self._settings['target']
 
