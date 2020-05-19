@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import enum
 import os
 from sys import platform
 import threading
@@ -140,7 +139,7 @@ def _get_private_ipv4() -> str:
                 logger.info(f'hosted on: {address} ({host})')
                 return address
 
-def _reset_settings() -> None:
+def _reset_settings() -> dict:
     """ Set settings.json back to default values """
     with open('settings.json', 'w') as output:
         host = _get_private_ipv4()
@@ -153,6 +152,8 @@ def _reset_settings() -> None:
         json.dump(data, output)
     return data
 
+
+# noinspection PyArgumentList
 def _reset_value(value: str) -> None:
     """ Set settings.json back to default values """
     with open('settings.json', 'w') as output:
@@ -282,7 +283,7 @@ class Terminal:
         """
 
         self.settings = startup()
-        self._buffer: int = 2048                            # buffer limit (prevent buffer overflow)
+        self._buffer: int = 2046                            # buffer limit (prevent buffer overflow)
         self._log_path_dir: str = log_path(observer=True)   # Unity log directory location
 
         # Open a secondary thread to monitor file system changes
@@ -329,7 +330,7 @@ class Terminal:
                 self.one_way_handler(f'tga:>')
             elif len(_active_logs) > 0:
                 await self._log_manager(src_files=_active_logs)
-            await asyncio.sleep(1)
+            await asyncio.sleep(5)
 
         while True:
             if _manual_update:
@@ -362,7 +363,7 @@ class Terminal:
             path = f'{self._log_path_dir}{_log_name}'  # absolute path to log file
             _orig_log_len = os.stat(path).st_size
             while True:
-                await asyncio.sleep(1)
+                await asyncio.sleep(2)
                 _new_len = os.stat(path).st_size
                 if _new_len != _orig_log_len:
                     _orig_log_len = _new_len
@@ -379,7 +380,6 @@ class Terminal:
 
             path = f'{self._log_path_dir}{_log_name}'  # absolute path to log file
             temp_path = f'{self._log_path_dir}~{_log_name}'  # absolute path to log file
-
             shutil.copy(path, temp_path)
 
         async def _send_log(_log_name: str) -> None:
@@ -399,19 +399,12 @@ class Terminal:
 
             # Send contents of file to application
             content = []
-            """
-            pattern = re.compile(r'[\t]', flags=re.MULTILINE)
-            with open(temp_path, 'r') as log_file:
-                logger.info(f'sending contents of {_log_name} to application...')
-                content = [re.sub(pattern, '', line) for line in log_file]
-            self.one_way_handler(package=content)
-            """
             with open(temp_path, 'r') as file:
                 for line in file:
-                    clean_line = re.sub('[\n\t\r]', '', line)
+                    clean_line = re.sub('[\t\r]', '', line)
                     if not any((fline in clean_line) for fline in _filtered_key_words):
                         content.append(clean_line)
-            self.one_way_handler(package=(x for x in content if x != ''))
+            await self.async_one_way_handler(package=(x for x in content if x != ''))
 
             os.remove(temp_path)
 
@@ -494,6 +487,33 @@ class Terminal:
                 logger.error(local_msg['timeout'] % error_msg(error, self.settings['verbose']))
                 exit(-1)
 
+    async def async_one_way_handler(self, msg: str = None, package: [str] = None) -> bool:
+        """
+        Sends a message or an array of messages to application.
+
+        Should be used to receive commands from the app or send the current
+        Unity debug log information to the application. Also displays error info.
+
+        :param msg: a message, defaults to None
+        :param package: a list of messages, defaults to None
+        """
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                sock.connect((self.settings['target'], 5555))
+                # send the message if message not blank
+                if msg:
+                    sock.send(msg.replace('\t', '').encode('utf-8'))
+                    return True
+                # send a list of messages if package not blank
+                if package:
+                    for line in package:
+                        sock.send(line.encode('utf-8'))
+                    sock.send('--EOF'.encode('utf-8'))
+            return True
+        except Exception as error:
+            logger.error(local_msg['connection_closed'] % error_msg(error, self.settings['verbose']))
+        return False
+
     def one_way_handler(self, msg: str = None, package: [str] = None) -> bool:
         """
         Sends a message or an array of messages to application.
@@ -516,7 +536,7 @@ class Terminal:
                     for line in package:
                         sock.send(line.encode('utf-8'))
                     sock.send('--EOF'.encode('utf-8'))
-                    return True
+            return True
         except Exception as error:
             logger.error(local_msg['connection_closed'] % error_msg(error, self.settings['verbose']))
         return False

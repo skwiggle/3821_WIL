@@ -22,7 +22,7 @@ class Server:
         self.host = None                            # Ip address of Application (IPv4)
         self.target = None                          # Ip address of Terminal (IPv4)
 
-        self._buffer: int = 2048                    # buffer limit (prevent buffer overflow)
+        self._buffer: int = 2046                    # buffer limit (prevent buffer overflow)
         self.scroll_down: bool = False              # checks if app should scroll to the bottom
         self.DATA: Queue = Queue()                  # temporary log data storage
         self._temp_log_folder = temp_log_folder     # temporary log directory location
@@ -121,6 +121,7 @@ class Server:
                                 # Any other message is recognised as log data,
                                 # appends to `temp_msg`
                                 else:
+                                    print(reply)
                                     temp_msg.put(reply)
                             continue
                         break
