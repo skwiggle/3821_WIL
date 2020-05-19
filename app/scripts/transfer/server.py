@@ -12,7 +12,6 @@ from app.scripts.misc.essentials import local_msg
 class Server:
     """
     A server handler in charge or listening and sending information over sockets
-
     the class consists of one/two way connection handling as well as allowing for
     custom actions upon event change.
     """
@@ -39,7 +38,6 @@ class Server:
     def _connectionBootstrap(func) -> ():
         """
         Handler function to return wrapper function
-
         :param func: handler function that extends from `_wrapper`
         :returns: wrapper function
         """
@@ -50,7 +48,6 @@ class Server:
             Wrapper in charge of initialising and stopping a socket correctly
             as well as stopping the server when an event or error occurs such
             as a timeout event.
-
             :param port: inbound port number
             :param sock: parent socket, defaults to None
             """
@@ -76,7 +73,6 @@ class Server:
         Constantly listen for incoming messages from other hosts.
         Should be used to handle incoming log updates from the terminal
         or incoming commands from the application. Also displays error info.
-
         :param port: inbound port number
         :param sock: parent socket, defaults to None
         """
@@ -121,7 +117,6 @@ class Server:
                                 # Any other message is recognised as log data,
                                 # appends to `temp_msg`
                                 else:
-                                    print(reply)
                                     temp_msg.put(reply)
                             continue
                         break
@@ -132,10 +127,8 @@ class Server:
     def one_way_handler(self, port: int, msg: str = None, package: [str] = None) -> bool:
         """
         Sends a message or an array of messages to server host.
-
         Should be used to send commands to the terminal or send the current
         Unity debug log information to the application. Also displays error info.
-
         :param port: outbound port number
         :param msg: the message (defaults to none)
         :param package: a list of messages (defaults to none)
@@ -164,7 +157,6 @@ class Server:
     def _append_error(self, error: str, verbose_msg) -> None:
         """
         Appends error to application debug panel to display to the user.
-
         :param error: custom error message
         :param verbose_msg: system error message, only appends if
                             `_verbose` is True
@@ -178,7 +170,6 @@ class Server:
     def test_connection(self, port: int) -> bool:
         """
         Test the connection to terminal
-
         :param port: outbound port number
         """
         try:
