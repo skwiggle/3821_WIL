@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import enum
 import os
 from sys import platform
 import threading
@@ -279,7 +278,7 @@ class Terminal:
         """
 
         self.settings = startup()
-        self._buffer: int = 2046                            # buffer limit (prevent buffer overflow)
+        self._buffer: int = 2048                            # buffer limit (prevent buffer overflow)
         self._log_path_dir: str = log_path(observer=True)   # Unity log directory location
 
         # Open a secondary thread to monitor file system changes
@@ -346,6 +345,20 @@ class Terminal:
         :param src_files: Log file, defaults to None
         """
 
+        async def _remove_temp(temp_path):
+            os.remove(temp_path)
+            print(f'deleted temp -> {temp_path}')
+
+        async def _get_content(temp_path):
+            content = []
+            with open(temp_path, 'r') as file:
+                for line in file:
+                    clean_line = re.sub('[\t\r]', '', line)
+                    if not any((fline in clean_line) for fline in _filtered_key_words):
+                        content.append(clean_line)
+            print(f'got content -> {content}')
+            return content
+
         async def _delay(_log_name: str, _orig_log_len: int = -1):
             """
             Delay the update by 1 second every time the log is modified
@@ -354,7 +367,9 @@ class Terminal:
             path = f'{self._log_path_dir}{_log_name}'  # absolute path to log file
             _orig_log_len = os.stat(path).st_size
             while True:
+                print(f'before _delay 10 sec timer')
                 await asyncio.sleep(10)
+                print(f'after _delay 10 sec timer')
                 _new_len = os.stat(path).st_size
                 if _new_len != _orig_log_len:
                     _orig_log_len = _new_len
@@ -371,6 +386,7 @@ class Terminal:
             path = f'{self._log_path_dir}{_log_name}'  # absolute path to log file
             temp_path = f'{self._log_path_dir}~{_log_name}'  # absolute path to log file
             shutil.copy(path, temp_path)
+            print(f'got content -> {_log_name}')
 
         async def _send_log(_log_name: str) -> None:
             """
@@ -387,17 +403,9 @@ class Terminal:
             logger.info(f'log {_log_name} has been cleared')
 
             # Send contents of file to application
-            content = []
-            with open(temp_path, 'r') as file:
-                for line in file:
-                    clean_line = re.sub('[\t\r]', '', line)
-                    if not any((fline in clean_line) for fline in _filtered_key_words):
-                        if clean_line[-1] == '\n':
-                            clean_line = clean_line[:-1]
-                        content.append(clean_line)
+            content = await _get_content(temp_path)
             await self.async_one_way_handler(package=(x for x in content if x != ''))
-
-            os.remove(temp_path)
+            await _remove_temp(temp_path)
 
         # Check, send and clear all log files within the set passed from
         # :function:`_check_for_updates` at once but finish concurrently to avoid
