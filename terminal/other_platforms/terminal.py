@@ -305,13 +305,11 @@ class Terminal:
 
         :param _manual_update: force the terminal to return all logs, defaults to False
         """
-        print('check for updates')
 
         _active_logs = set()
 
         async def _is_empty(_log_name: str):
             """ Check that log file is empty """
-            print('check for updates -> _is_empty')
             if os.stat(f'{self._log_path_dir}{_log_name}').st_size == 0 and _manual_update:
                 logger.info(f'Unity log file (\'{_log_name}\') is empty')
                 await self.one_way_handler([f'tg:>{_log_name}'])
@@ -323,7 +321,6 @@ class Terminal:
             Run _is_empty() asynchronously for each log file in `_active_logs`
             and then perform log operations if at least one file contains content
             """
-            print('check for updates -> update')
             await asyncio.gather(
                 _is_empty(log_file_names[0]),
                 _is_empty(log_file_names[1]),
@@ -332,15 +329,12 @@ class Terminal:
             if len(_active_logs) == 0 and _manual_update:
                 await self.one_way_handler(['tga:>'])
             elif len(_active_logs) > 0:
-                print(2)
                 await self._log_manager(src_files=_active_logs)
             await asyncio.sleep(2)
 
         while True:
             if _manual_update:
-                print('manual called')
                 await _update()
-                break
             await _update()
             _active_logs.clear()
 
@@ -359,14 +353,13 @@ class Terminal:
 
         :param src_files: Log file, defaults to None
         """
-        print('log manager')
 
         async def _delay(_log_name: str, _orig_log_len: int = -1):
             """
             Delay the update by 1 second every time the log is modified
             to reduce the chance of data loss
             """
-            print('_delay')
+
             path = f'{self._log_path_dir}{_log_name}'  # absolute path to log file
             _orig_log_len = os.stat(path).st_size
             while True:
@@ -379,7 +372,6 @@ class Terminal:
             return True
 
         async def _safeguard(_log_name: str) -> None:
-            print('safeguard')
             """
              Commit main operations of log file interaction
 
@@ -391,7 +383,6 @@ class Terminal:
             shutil.copy(path, temp_path)
 
         async def _delete_temp(temp_name: str):
-            print('delete temp')
             os.remove(temp_name)
 
         async def _send_log(_log_name: str) -> None:
@@ -415,7 +406,7 @@ class Terminal:
                 for line in file:
                     clean_line = re.sub('[\t\r]', '', line)
                     if not any((fline in clean_line) for fline in _filtered_key_words):
-                        content.append(clean_line)
+                        content.append(clean_line if clean_line != 'EOF--' else clean_line)
             await _delete_temp(temp_path)
             await self.one_way_handler(package=(x for x in content if x != ''))
 
@@ -446,8 +437,6 @@ class Terminal:
                 self.handle_requests, self.settings['host'], 5554)
             addr = server.sockets[0].getsockname()
 
-            print(f'Serving on {addr}')
-
             async with server:
                 await server.serve_forever()
         except Exception as error:
@@ -456,15 +445,12 @@ class Terminal:
 
     async def handle_requests(self, reader, writer):
         data = await reader.readuntil(b'--EOF')
-        print(data)
         message = data.decode('utf-8')
         msg_fmt = re.split('\n', message)[-2]
-        print(msg_fmt)
 
         if msg_fmt[:4] == 'uc:>':
             print(msg_fmt[4:])
         if msg_fmt[:4] == 'kc:>':
-            print('get log')
             if msg_fmt[4:] == 'get log':
                 await self.check_for_updates(_manual_update=True)
             else:
@@ -480,12 +466,11 @@ class Terminal:
         """
         try:
             reader, writer = await asyncio.open_connection(
-                self.settings['host'], 5555)
+                self.settings['target'], 5555)
 
             message: list = []
             if package:
                 message = [f"{x}\n".encode('utf-8') for x in package]
-                print(message)
                 writer.writelines(message)
                 writer.write(b'--EOF')
                 await writer.drain()

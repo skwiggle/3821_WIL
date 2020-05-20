@@ -216,3 +216,60 @@ INFO     2020-05-20 15:24:04,662: log Editor.log has been cleared
 INFO     2020-05-20 15:24:16,701: log Editor.log has been cleared
 ERROR    2020-05-20 15:24:18,736: Failed to send message because no connection could be found
 		 -> [Errno 10061] Connect call failed ('192.168.0.77', 5555)
+INFO     2020-05-20 15:38:09,590: log Editor.log has been cleared
+ERROR    2020-05-20 15:38:11,618: Failed to send message because no connection could be found
+		 -> [Errno 10061] Connect call failed ('192.168.0.77', 5555)
+ERROR    2020-05-20 15:39:36,039: Task exception was never retrieved
+future: <Task finished coro=<Terminal.handle_requests() done, defined at D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py:457> exception=IncompleteReadError('4 bytes read on a total of None expected bytes')>
+Traceback (most recent call last):
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 458, in handle_requests
+    data = await reader.readuntil(b'--EOF')
+  File "C:\python\lib\asyncio\streams.py", line 585, in readuntil
+    raise IncompleteReadError(chunk, None)
+asyncio.streams.IncompleteReadError: 4 bytes read on a total of None expected bytes
+INFO     2020-05-20 15:39:53,988: log Editor.log has been cleared
+ERROR    2020-05-20 15:39:55,991: Failed to send message because no connection could be found
+		 -> [Errno 10061] Connect call failed ('192.168.0.77', 5555)
+INFO     2020-05-20 15:40:01,998: log Editor.log has been cleared
+ERROR    2020-05-20 15:40:04,001: Failed to send message because no connection could be found
+		 -> [Errno 10061] Connect call failed ('192.168.0.77', 5555)
+INFO     2020-05-20 15:40:04,002: log upm.log has been cleared
+ERROR    2020-05-20 15:40:06,005: Failed to send message because no connection could be found
+		 -> [Errno 10061] Connect call failed ('192.168.0.77', 5555)
+INFO     2020-05-20 15:40:24,108: log Editor.log has been cleared
+ERROR    2020-05-20 15:40:26,132: Failed to send message because no connection could be found
+		 -> [Errno 10061] Connect call failed ('192.168.0.77', 5555)
+INFO     2020-05-20 15:40:30,173: log Editor.log has been cleared
+ERROR    2020-05-20 15:40:32,180: Failed to send message because no connection could be found
+		 -> [Errno 10061] Connect call failed ('192.168.0.77', 5555)
+INFO     2020-05-20 15:40:36,227: log Editor.log has been cleared
+ERROR    2020-05-20 15:40:38,237: Failed to send message because no connection could be found
+		 -> [Errno 10061] Connect call failed ('192.168.0.77', 5555)
+INFO     2020-05-20 15:40:46,874: log Editor.log has been cleared
+ERROR    2020-05-20 15:40:48,881: Failed to send message because no connection could be found
+		 -> [Errno 10061] Connect call failed ('192.168.0.77', 5555)
+INFO     2020-05-20 15:42:07,114: log Editor.log has been cleared
+ERROR    2020-05-20 15:42:09,120: Failed to send message because no connection could be found
+		 -> [Errno 10061] Connect call failed ('192.168.0.77', 5555)
+ERROR    2020-05-20 15:42:11,311: Task exception was never retrieved
+future: <Task finished coro=<Terminal.handle_requests() done, defined at D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py:457> exception=IncompleteReadError('4 bytes read on a total of None expected bytes')>
+Traceback (most recent call last):
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 458, in handle_requests
+    data = await reader.readuntil(b'--EOF')
+  File "C:\python\lib\asyncio\streams.py", line 585, in readuntil
+    raise IncompleteReadError(chunk, None)
+asyncio.streams.IncompleteReadError: 4 bytes read on a total of None expected bytes
+INFO     2020-05-20 15:43:21,872: log Editor.log has been cleared
+INFO     2020-05-20 15:43:25,961: log upm.log has been cleared
+INFO     2020-05-20 15:43:38,037: log Editor.log has been cleared
+INFO     2020-05-20 15:43:42,129: log Editor.log has been cleared
+INFO     2020-05-20 15:43:54,225: log Editor.log has been cleared
+INFO     2020-05-20 15:44:04,306: log Editor.log has been cleared
+ERROR    2020-05-20 15:54:40,004: Task exception was never retrieved
+future: <Task finished coro=<Terminal.handle_requests() done, defined at D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py:446> exception=IncompleteReadError('4 bytes read on a total of None expected bytes')>
+Traceback (most recent call last):
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 447, in handle_requests
+    data = await reader.readuntil(b'--EOF')
+  File "C:\python\lib\asyncio\streams.py", line 585, in readuntil
+    raise IncompleteReadError(chunk, None)
+asyncio.streams.IncompleteReadError: 4 bytes read on a total of None expected bytes
