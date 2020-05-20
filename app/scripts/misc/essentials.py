@@ -32,3 +32,7 @@ local_msg: dict = {
     'all_unity_logs_empty': 'no new updates from unity',
     'unknown': 'unknown error, please restart terminal'
 }
+
+public_msg: dict = {
+    'server_bind': 'The target IP specified cannot be reached%s'
+}

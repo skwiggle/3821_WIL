@@ -1,42 +1,218 @@
-INFO     2020-05-20 05:02:58,865: Host address (192.168.0.77:5554) is valid
-INFO     2020-05-20 05:02:59,881: log Editor.log has been cleared
-INFO     2020-05-20 05:03:19,266: command executed: 'get log --today'
-INFO     2020-05-20 05:08:01,334: Host address (192.168.0.77:5554) is valid
-INFO     2020-05-20 08:31:57,221: Host address (192.168.0.77:5554) is valid
-INFO     2020-05-20 08:35:53,321: Host address (192.168.0.77:5554) is valid
-INFO     2020-05-20 08:35:55,328: log Editor.log has been cleared
-ERROR    2020-05-20 08:35:58,005: Failed to send message because no connection could be found
-		 -> [WinError 10061] No connection could be made because the target machine actively refused it
-INFO     2020-05-20 08:36:32,024: log Editor.log has been cleared
-INFO     2020-05-20 08:36:39,106: log Editor.log has been cleared
-INFO     2020-05-20 08:36:39,493: log upm.log has been cleared
-INFO     2020-05-20 08:36:46,577: log Editor.log has been cleared
-INFO     2020-05-20 08:37:04,198: command executed: 'get log --today'
-INFO     2020-05-20 08:39:31,373: Host address (192.168.0.77:5554) is valid
-INFO     2020-05-20 08:39:55,388: log Editor.log has been cleared
-INFO     2020-05-20 08:40:15,331: command executed: 'get log --today'
-INFO     2020-05-20 08:40:45,409: command executed: 'clear log --today'
-INFO     2020-05-20 08:40:46,401: command executed: 'clear log --today'
-INFO     2020-05-20 08:41:35,522: log Editor.log has been cleared
-INFO     2020-05-20 08:41:35,617: log upm.log has been cleared
-INFO     2020-05-20 08:41:42,632: log Editor.log has been cleared
-INFO     2020-05-20 08:41:49,690: log Editor.log has been cleared
-INFO     2020-05-20 08:42:08,647: command executed: 'get log --today'
-INFO     2020-05-20 08:51:02,811: Host address (192.168.0.77:5554) is valid
-INFO     2020-05-20 08:51:04,817: log Editor.log has been cleared
-ERROR    2020-05-20 08:51:09,049: Failed to send message because no connection could be found
-		 -> [WinError 10061] No connection could be made because the target machine actively refused it
-INFO     2020-05-20 08:51:33,062: log Editor.log has been cleared
-ERROR    2020-05-20 08:51:36,804: Failed to send message because no connection could be found
-		 -> [WinError 10061] No connection could be made because the target machine actively refused it
-INFO     2020-05-20 08:51:43,814: log upm.log has been cleared
-ERROR    2020-05-20 08:51:47,143: Failed to send message because no connection could be found
-		 -> [WinError 10061] No connection could be made because the target machine actively refused it
-INFO     2020-05-20 08:51:47,145: log Editor.log has been cleared
-ERROR    2020-05-20 08:51:50,213: Failed to send message because no connection could be found
-		 -> [WinError 10061] No connection could be made because the target machine actively refused it
-INFO     2020-05-20 08:51:57,220: log Editor.log has been cleared
-ERROR    2020-05-20 08:52:00,761: Failed to send message because no connection could be found
-		 -> [WinError 10061] No connection could be made because the target machine actively refused it
-INFO     2020-05-20 08:52:44,761: Host address (192.168.0.77:5554) is valid
-INFO     2020-05-20 08:52:46,767: log Editor.log has been cleared
+ERROR    2020-05-20 13:56:32,847: Task exception was never retrieved
+future: <Task finished coro=<Terminal.handle_requests() done, defined at D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py:432> exception=IndexError('list index out of range')>
+Traceback (most recent call last):
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 441, in handle_requests
+    if msg_fmt[-1][:4] == 'uc:>':
+IndexError: list index out of range
+ERROR    2020-05-20 14:03:50,577: Task exception was never retrieved
+future: <Task finished coro=<Terminal.handle_requests() done, defined at D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py:432> exception=IndexError('list index out of range')>
+Traceback (most recent call last):
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 441, in handle_requests
+    if msg_fmt[-1][:4] == 'uc:>':
+IndexError: list index out of range
+ERROR    2020-05-20 14:11:03,422: Task exception was never retrieved
+future: <Task finished coro=<Terminal.handle_requests() done, defined at D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py:455> exception=IncompleteReadError('4 bytes read on a total of None expected bytes')>
+Traceback (most recent call last):
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 456, in handle_requests
+    data = await reader.readuntil(b'--EOF')
+  File "C:\python\lib\asyncio\streams.py", line 585, in readuntil
+    raise IncompleteReadError(chunk, None)
+asyncio.streams.IncompleteReadError: 4 bytes read on a total of None expected bytes
+ERROR    2020-05-20 14:11:10,593: Task exception was never retrieved
+future: <Task finished coro=<Terminal.handle_requests() done, defined at D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py:455> exception=IndexError('list index out of range')>
+Traceback (most recent call last):
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 464, in handle_requests
+    if msg_fmt[-1][:4] == 'uc:>':
+IndexError: list index out of range
+ERROR    2020-05-20 14:13:48,484: Task exception was never retrieved
+future: <Task finished coro=<Terminal.handle_requests() done, defined at D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py:455> exception=IndexError('list index out of range')>
+Traceback (most recent call last):
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 464, in handle_requests
+    if msg_fmt[-1][:4] == 'uc:>':
+IndexError: list index out of range
+ERROR    2020-05-20 14:14:57,594: Task exception was never retrieved
+future: <Task finished coro=<Terminal.handle_requests() done, defined at D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py:455> exception=TypeError("_update() missing 1 required positional argument: '_active_log_count'")>
+Traceback (most recent call last):
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 468, in handle_requests
+    self.check_for_updates(_manual_update=True)
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 340, in check_for_updates
+    asyncio.run(_update())
+TypeError: _update() missing 1 required positional argument: '_active_log_count'
+ERROR    2020-05-20 14:23:48,141: Task exception was never retrieved
+future: <Task finished coro=<Terminal.handle_requests() done, defined at D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py:455> exception=TypeError("_update() missing 1 required positional argument: '_active_log_count'")>
+Traceback (most recent call last):
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 468, in handle_requests
+    self.check_for_updates(_manual_update=True)
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 340, in check_for_updates
+    asyncio.run(_update())
+TypeError: _update() missing 1 required positional argument: '_active_log_count'
+ERROR    2020-05-20 14:24:23,907: Task exception was never retrieved
+future: <Task finished coro=<Terminal.handle_requests() done, defined at D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py:455> exception=TypeError("_update() missing 1 required positional argument: '_active_log_count'")>
+Traceback (most recent call last):
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 468, in handle_requests
+    self.check_for_updates(_manual_update=True)
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 340, in check_for_updates
+    asyncio.run(_update())
+TypeError: _update() missing 1 required positional argument: '_active_log_count'
+ERROR    2020-05-20 14:32:28,352: Task exception was never retrieved
+future: <Task finished coro=<Terminal.handle_requests() done, defined at D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py:455> exception=TypeError("_update() missing 1 required positional argument: '_active_log_count'")>
+Traceback (most recent call last):
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 468, in handle_requests
+    self.check_for_updates(_manual_update=True)
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 340, in check_for_updates
+    asyncio.run(_update())
+TypeError: _update() missing 1 required positional argument: '_active_log_count'
+ERROR    2020-05-20 14:41:19,494: Task exception was never retrieved
+future: <Task finished coro=<Terminal.handle_requests() done, defined at D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py:455> exception=TypeError("_update() missing 1 required positional argument: '_active_log_count'")>
+Traceback (most recent call last):
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 468, in handle_requests
+    self.check_for_updates(_manual_update=True)
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 340, in check_for_updates
+    asyncio.run(_update())
+TypeError: _update() missing 1 required positional argument: '_active_log_count'
+ERROR    2020-05-20 14:43:01,778: Task exception was never retrieved
+future: <Task finished coro=<Terminal.handle_requests() done, defined at D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py:455> exception=TypeError("_update() missing 1 required positional argument: '_active_log_count'")>
+Traceback (most recent call last):
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 468, in handle_requests
+    self.check_for_updates(_manual_update=True)
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 340, in check_for_updates
+    asyncio.run(_update())
+TypeError: _update() missing 1 required positional argument: '_active_log_count'
+ERROR    2020-05-20 14:43:08,866: Task exception was never retrieved
+future: <Task finished coro=<Terminal.handle_requests() done, defined at D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py:455> exception=TypeError("_update() missing 1 required positional argument: '_active_log_count'")>
+Traceback (most recent call last):
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 468, in handle_requests
+    self.check_for_updates(_manual_update=True)
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 340, in check_for_updates
+    asyncio.run(_update())
+TypeError: _update() missing 1 required positional argument: '_active_log_count'
+ERROR    2020-05-20 14:44:13,768: Task exception was never retrieved
+future: <Task finished coro=<Terminal.handle_requests() done, defined at D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py:455> exception=TypeError("_update() missing 1 required positional argument: '_active_log_count'")>
+Traceback (most recent call last):
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 468, in handle_requests
+    self.check_for_updates(_manual_update=True)
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 340, in check_for_updates
+    asyncio.run(_update())
+TypeError: _update() missing 1 required positional argument: '_active_log_count'
+ERROR    2020-05-20 14:45:14,625: Task exception was never retrieved
+future: <Task finished coro=<Terminal.handle_requests() done, defined at D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py:455> exception=TypeError("_update() missing 1 required positional argument: '_active_log_count'")>
+Traceback (most recent call last):
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 468, in handle_requests
+    self.check_for_updates(_manual_update=True)
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 340, in check_for_updates
+    asyncio.run(_update())
+TypeError: _update() missing 1 required positional argument: '_active_log_count'
+ERROR    2020-05-20 14:45:47,294: Task exception was never retrieved
+future: <Task finished coro=<Terminal.handle_requests() done, defined at D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py:455> exception=TypeError("_update() missing 1 required positional argument: '_active_log_count'")>
+Traceback (most recent call last):
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 468, in handle_requests
+    self.check_for_updates(_manual_update=True)
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 340, in check_for_updates
+    asyncio.run(_update())
+TypeError: _update() missing 1 required positional argument: '_active_log_count'
+ERROR    2020-05-20 14:46:16,949: Task exception was never retrieved
+future: <Task finished coro=<Terminal.handle_requests() done, defined at D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py:455> exception=TypeError("_update() missing 1 required positional argument: '_active_log_count'")>
+Traceback (most recent call last):
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 468, in handle_requests
+    self.check_for_updates(_manual_update=True)
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 340, in check_for_updates
+    asyncio.run(_update())
+TypeError: _update() missing 1 required positional argument: '_active_log_count'
+ERROR    2020-05-20 14:46:36,599: Task exception was never retrieved
+future: <Task finished coro=<Terminal.handle_requests() done, defined at D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py:455> exception=TypeError("_update() missing 1 required positional argument: '_active_log_count'")>
+Traceback (most recent call last):
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 468, in handle_requests
+    self.check_for_updates(_manual_update=True)
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 340, in check_for_updates
+    asyncio.run(_update())
+TypeError: _update() missing 1 required positional argument: '_active_log_count'
+ERROR    2020-05-20 14:47:19,167: Task exception was never retrieved
+future: <Task finished coro=<Terminal.handle_requests() done, defined at D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py:455> exception=TypeError("_update() missing 1 required positional argument: '_active_log_count'")>
+Traceback (most recent call last):
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 468, in handle_requests
+    self.check_for_updates(_manual_update=True)
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 340, in check_for_updates
+    asyncio.run(_update())
+TypeError: _update() missing 1 required positional argument: '_active_log_count'
+ERROR    2020-05-20 14:48:19,205: Task exception was never retrieved
+future: <Task finished coro=<Terminal.handle_requests() done, defined at D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py:455> exception=TypeError("_update() missing 1 required positional argument: '_active_log_count'")>
+Traceback (most recent call last):
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 468, in handle_requests
+    self.check_for_updates(_manual_update=True)
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 340, in check_for_updates
+    asyncio.run(_update())
+TypeError: _update() missing 1 required positional argument: '_active_log_count'
+ERROR    2020-05-20 14:49:29,305: Task exception was never retrieved
+future: <Task finished coro=<Terminal.handle_requests() done, defined at D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py:455> exception=TypeError("_update() missing 1 required positional argument: '_active_log_count'")>
+Traceback (most recent call last):
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 468, in handle_requests
+    self.check_for_updates(_manual_update=True)
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 340, in check_for_updates
+    asyncio.run(_update())
+TypeError: _update() missing 1 required positional argument: '_active_log_count'
+ERROR    2020-05-20 14:54:07,739: Task exception was never retrieved
+future: <Task finished coro=<Terminal.handle_requests() done, defined at D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py:455> exception=TypeError("_update() missing 1 required positional argument: '_active_log_count'")>
+Traceback (most recent call last):
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 467, in handle_requests
+    self.check_for_updates(_manual_update=True)
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 340, in check_for_updates
+    asyncio.run(_update())
+TypeError: _update() missing 1 required positional argument: '_active_log_count'
+ERROR    2020-05-20 14:54:10,845: Task exception was never retrieved
+future: <Task finished coro=<Terminal.handle_requests() done, defined at D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py:455> exception=TypeError("_update() missing 1 required positional argument: '_active_log_count'")>
+Traceback (most recent call last):
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 467, in handle_requests
+    self.check_for_updates(_manual_update=True)
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 340, in check_for_updates
+    asyncio.run(_update())
+TypeError: _update() missing 1 required positional argument: '_active_log_count'
+ERROR    2020-05-20 14:56:06,843: Task exception was never retrieved
+future: <Task finished coro=<Terminal.handle_requests() done, defined at D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py:456> exception=TypeError("_update() missing 1 required positional argument: '_active_log_count'")>
+Traceback (most recent call last):
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 468, in handle_requests
+    self.check_for_updates(_manual_update=True)
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 341, in check_for_updates
+    asyncio.run(_update())
+TypeError: _update() missing 1 required positional argument: '_active_log_count'
+ERROR    2020-05-20 14:58:27,696: Task exception was never retrieved
+future: <Task finished coro=<Terminal.handle_requests() done, defined at D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py:456> exception=RuntimeError('asyncio.run() cannot be called from a running event loop')>
+Traceback (most recent call last):
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 468, in handle_requests
+    self.check_for_updates(_manual_update=True)
+  File "D:/MAX/griffith/project/3821_WIL/terminal/other_platforms/terminal.py", line 341, in check_for_updates
+    asyncio.run(_update(len(_active_logs)))
+  File "C:\python\lib\asyncio\runners.py", line 34, in run
+    "asyncio.run() cannot be called from a running event loop")
+RuntimeError: asyncio.run() cannot be called from a running event loop
+INFO     2020-05-20 15:01:23,187: Unity log file ('Editor.log') is empty
+INFO     2020-05-20 15:01:23,188: Unity log file ('Editor-prev.log') is empty
+INFO     2020-05-20 15:01:23,189: Unity log file ('upm.log') is empty
+INFO     2020-05-20 15:03:21,229: Unity log file ('Editor.log') is empty
+INFO     2020-05-20 15:03:21,230: Unity log file ('Editor-prev.log') is empty
+INFO     2020-05-20 15:03:21,231: Unity log file ('upm.log') is empty
+INFO     2020-05-20 15:04:57,185: Unity log file ('Editor.log') is empty
+INFO     2020-05-20 15:04:57,186: Unity log file ('Editor-prev.log') is empty
+INFO     2020-05-20 15:04:57,187: Unity log file ('upm.log') is empty
+INFO     2020-05-20 15:06:23,437: Unity log file ('Editor.log') is empty
+INFO     2020-05-20 15:06:23,438: Unity log file ('Editor-prev.log') is empty
+INFO     2020-05-20 15:06:23,438: Unity log file ('upm.log') is empty
+INFO     2020-05-20 15:08:01,853: Unity log file ('Editor.log') is empty
+INFO     2020-05-20 15:08:01,854: Unity log file ('Editor-prev.log') is empty
+INFO     2020-05-20 15:08:01,855: Unity log file ('upm.log') is empty
+INFO     2020-05-20 15:18:45,938: log Editor.log has been cleared
+ERROR    2020-05-20 15:18:47,956: Failed to send message because no connection could be found
+		 -> [Errno 10061] Connect call failed ('192.168.0.77', 5555)
+INFO     2020-05-20 15:18:47,956: log upm.log has been cleared
+ERROR    2020-05-20 15:18:50,002: Failed to send message because no connection could be found
+		 -> [Errno 10061] Connect call failed ('192.168.0.77', 5555)
+INFO     2020-05-20 15:19:48,417: log Editor.log has been cleared
+INFO     2020-05-20 15:19:52,430: log Editor.log has been cleared
+INFO     2020-05-20 15:19:52,433: log upm.log has been cleared
+INFO     2020-05-20 15:23:06,588: log Editor.log has been cleared
+INFO     2020-05-20 15:23:24,614: log Editor.log has been cleared
+INFO     2020-05-20 15:23:54,639: log Editor.log has been cleared
+INFO     2020-05-20 15:23:58,653: log upm.log has been cleared
+INFO     2020-05-20 15:24:04,662: log Editor.log has been cleared
+INFO     2020-05-20 15:24:16,701: log Editor.log has been cleared
+ERROR    2020-05-20 15:24:18,736: Failed to send message because no connection could be found
+		 -> [Errno 10061] Connect call failed ('192.168.0.77', 5555)

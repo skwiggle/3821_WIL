@@ -1,9 +1,9 @@
+import asyncio
 import re
 import socket
 import time
 from threading import Thread
 
-from kivy.properties import StringProperty
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.button import Button
 from kivy.uix.image import Image
@@ -53,7 +53,7 @@ class DebugPanel(RecycleView, Server, CommandLookup):
     def start_server(self) -> None:
         self.host = settings.get_host()
         self.target = settings.get_target()
-        update_thd = Thread(target=self.two_way_handler, args=(5555,), daemon=True)
+        update_thd = Thread(target=asyncio.run, args=(self.two_way_handler(),), daemon=True)
         watch_data_thd = Thread(target=self.watch_log_update, daemon=True)  # monitor for data changes until app closes
         update_thd.start()
         watch_data_thd.start()
@@ -64,7 +64,7 @@ class DebugPanel(RecycleView, Server, CommandLookup):
         create a new connection to terminal
         """
         if not self.test_connection(5554):
-            update_thd = Thread(target=self.two_way_handler, args=(5555,))
+            update_thd = Thread(target=asyncio.run, args=(self.two_way_handler(),), daemon=True)
             update_thd.start()
         self.scroll_y = 0
 
@@ -79,7 +79,7 @@ class DebugPanel(RecycleView, Server, CommandLookup):
             if not self.DATA.empty():
                 # Retrieve incoming data from server script and display to the log
                 while not self.DATA.empty():
-                    self.temp_data.append(fmt_datacell(self.DATA.get(block=True)))
+                    self.temp_data.append(fmt_datacell(self.DATA.get()))
                 self.data = self.temp_data
                 # Set screen scroll to bottom once data is updated to screen
                 if self.scroll_down:
@@ -98,7 +98,7 @@ class DebugPanel(RecycleView, Server, CommandLookup):
         # Check validity of command
         self.temp_data = self.lookup(command, self.data)
         # Send command
-        self.one_way_handler(5554, f'kc:>{command}' if self.check(command) else f'uc:>{command}')
+        asyncio.run(self.one_way_handler([f'kc:>{command}' if self.check(command) else f'uc:>{command}']))
         # Set scroll to bottom
         self.scroll_y = 0
 

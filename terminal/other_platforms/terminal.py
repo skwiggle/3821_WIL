@@ -289,14 +289,14 @@ class Terminal:
         # Open a secondary thread to monitor file system changes
         # to `_log_path_dir` directory
         _log_dir_handler = threading.Thread(
-            target=self.check_for_updates, daemon=True,
-            name='FileHandler')
+            target=asyncio.run, args=(self.check_for_updates(),),
+            daemon=True)
         _log_dir_handler.start()
 
         if not unittest:
-            self.two_way_handler()
+            asyncio.run(self.two_way_handler())
 
-    def check_for_updates(self, _manual_update: bool = False) -> None:
+    async def check_for_updates(self, _manual_update: bool = False) -> None:
         """
         Check for file system events within Editor directory of Unity.
 
@@ -305,14 +305,16 @@ class Terminal:
 
         :param _manual_update: force the terminal to return all logs, defaults to False
         """
+        print('check for updates')
 
         _active_logs = set()
 
         async def _is_empty(_log_name: str):
             """ Check that log file is empty """
+            print('check for updates -> _is_empty')
             if os.stat(f'{self._log_path_dir}{_log_name}').st_size == 0 and _manual_update:
                 logger.info(f'Unity log file (\'{_log_name}\') is empty')
-                self.one_way_handler(f'tg:>{_log_name}')
+                await self.one_way_handler([f'tg:>{_log_name}'])
             if not os.stat(f'{self._log_path_dir}{_log_name}').st_size == 0:
                 _active_logs.add(_log_name)
 
@@ -321,22 +323,25 @@ class Terminal:
             Run _is_empty() asynchronously for each log file in `_active_logs`
             and then perform log operations if at least one file contains content
             """
+            print('check for updates -> update')
             await asyncio.gather(
                 _is_empty(log_file_names[0]),
                 _is_empty(log_file_names[1]),
                 _is_empty(log_file_names[2])
             )
             if len(_active_logs) == 0 and _manual_update:
-                self.one_way_handler(f'tga:>')
+                await self.one_way_handler(['tga:>'])
             elif len(_active_logs) > 0:
+                print(2)
                 await self._log_manager(src_files=_active_logs)
-            await asyncio.sleep(5)
+            await asyncio.sleep(2)
 
         while True:
             if _manual_update:
-                asyncio.run(_update())
+                print('manual called')
+                await _update()
                 break
-            asyncio.run(_update())
+            await _update()
             _active_logs.clear()
 
     async def _log_manager(self, src_files: {str} = None):
@@ -354,12 +359,14 @@ class Terminal:
 
         :param src_files: Log file, defaults to None
         """
+        print('log manager')
 
         async def _delay(_log_name: str, _orig_log_len: int = -1):
             """
             Delay the update by 1 second every time the log is modified
             to reduce the chance of data loss
             """
+            print('_delay')
             path = f'{self._log_path_dir}{_log_name}'  # absolute path to log file
             _orig_log_len = os.stat(path).st_size
             while True:
@@ -372,6 +379,7 @@ class Terminal:
             return True
 
         async def _safeguard(_log_name: str) -> None:
+            print('safeguard')
             """
              Commit main operations of log file interaction
 
@@ -381,6 +389,10 @@ class Terminal:
             path = f'{self._log_path_dir}{_log_name}'  # absolute path to log file
             temp_path = f'{self._log_path_dir}~{_log_name}'  # absolute path to log file
             shutil.copy(path, temp_path)
+
+        async def _delete_temp(temp_name: str):
+            print('delete temp')
+            os.remove(temp_name)
 
         async def _send_log(_log_name: str) -> None:
             """
@@ -404,9 +416,8 @@ class Terminal:
                     clean_line = re.sub('[\t\r]', '', line)
                     if not any((fline in clean_line) for fline in _filtered_key_words):
                         content.append(clean_line)
-            await self.async_one_way_handler(package=(x for x in content if x != ''))
-
-            os.remove(temp_path)
+            await _delete_temp(temp_path)
+            await self.one_way_handler(package=(x for x in content if x != ''))
 
         # Check, send and clear all log files within the set passed from
         # :function:`_check_for_updates` at once but finish concurrently to avoid
@@ -420,37 +431,8 @@ class Terminal:
         for log in src_files:
             await asyncio.shield(_send_log(log))
 
-    # noinspection PyMethodParameters
-    def _connectionBootstrap(func) -> ():
-        """
-        Wrapper in charge of initialising and stopping a socket correctly
-        as well as stopping the server when an event or error occurs such
-        as a timeout event.
-
-        :param func: handler function that extends from `_wrapper`
-        """
-
-        # noinspection PyCallingNonCallable
-        def _wrapper(self, sock: socket.socket = None):
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                try:
-                    s.settimeout(self.settings['timeout'])
-                    s.bind((self.settings['host'], 5554))
-                    s.listen()
-                    logger.info(f'Host address ({self.settings["host"]}:5554) is valid')
-                    try:
-                        func(self, s)
-                    except Exception as error:
-                        logger.critical(local_msg['unknown'] % error_msg(error, self.settings['verbose']))
-                except Exception as error:
-                    logger.critical(local_msg['server_connect_failed'] % error_msg(error, self.settings['verbose']))
-            logger.critical('Server closed')
-
-        return _wrapper
-
     # noinspection PyArgumentList
-    @_connectionBootstrap
-    def two_way_handler(self, sock: socket.socket = None) -> None:
+    async def two_way_handler(self, sock: socket.socket = None) -> None:
         """
         Constantly listen for incoming messages from other hosts.
 
@@ -459,87 +441,62 @@ class Terminal:
 
         :param sock: parent socket, defaults to None
         """
+        try:
+            server = await asyncio.start_server(
+                self.handle_requests, self.settings['host'], 5554)
+            addr = server.sockets[0].getsockname()
 
-        # Continuously check for incoming clients waiting for request
-        while True:
-            try:
-                client, address = sock.accept()
-                with client:
-                    # Continuously check for incoming messages
-                    while True:
-                        reply = client.recv(self._buffer).decode('utf-8')  # received message
-                        if reply:
-                            # print unknown command
-                            if reply[:4] == 'uc:>':
-                                print(reply[4:])
-                            # do nothing if the command is valid. If the command is
-                            # 'get log', send it to app
-                            elif reply[:4] == 'kc:>':
-                                if reply[4:] == 'get log':
-                                    self.check_for_updates(_manual_update=True)
-                                else:
-                                    logger.info(f'command executed: \'{reply[4:]}\'')
-                            elif reply[:4] == 'tc:>':
-                                pass
-                            continue
-                        break
-            except Exception as error:
-                logger.error(local_msg['timeout'] % error_msg(error, self.settings['verbose']))
-                exit(-1)
+            print(f'Serving on {addr}')
 
-    async def async_one_way_handler(self, msg: str = None, package: [str] = None) -> bool:
+            async with server:
+                await server.serve_forever()
+        except Exception as error:
+            logger.error(local_msg['timeout'] % error_msg(error, self.settings['verbose']))
+            exit(-1)
+
+    async def handle_requests(self, reader, writer):
+        data = await reader.readuntil(b'--EOF')
+        print(data)
+        message = data.decode('utf-8')
+        msg_fmt = re.split('\n', message)[-2]
+        print(msg_fmt)
+
+        if msg_fmt[:4] == 'uc:>':
+            print(msg_fmt[4:])
+        if msg_fmt[:4] == 'kc:>':
+            print('get log')
+            if msg_fmt[4:] == 'get log':
+                await self.check_for_updates(_manual_update=True)
+            else:
+                logger.info(f'command executed: \'{msg_fmt[4:]}\'')
+        if msg_fmt[:4] == 'tc:>':
+            pass
+
+        await writer.drain()
+        writer.close()
+
+    async def one_way_handler(self, package: [str] = None) -> bool:
         """
-        Sends a message or an array of messages to application.
-
-        Should be used to receive commands from the app or send the current
-        Unity debug log information to the application. Also displays error info.
-
-        :param msg: a message, defaults to None
-        :param package: a list of messages, defaults to None
         """
         try:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-                sock.connect((self.settings['target'], 5555))
-                # send the message if message not blank
-                if msg:
-                    sock.send(msg.replace('\t', '').encode('utf-8'))
-                    return True
-                # send a list of messages if package not blank
-                if package:
-                    for line in package:
-                        sock.send(line.encode('utf-8'))
-                    sock.send('--EOF'.encode('utf-8'))
-            return True
+            reader, writer = await asyncio.open_connection(
+                self.settings['host'], 5555)
+
+            message: list = []
+            if package:
+                message = [f"{x}\n".encode('utf-8') for x in package]
+                print(message)
+                writer.writelines(message)
+                writer.write(b'--EOF')
+                await writer.drain()
+                writer.close()
+                return True
+
         except Exception as error:
             logger.error(local_msg['connection_closed'] % error_msg(error, self.settings['verbose']))
-        return False
+            return False
 
-    def one_way_handler(self, msg: str = None, package: [str] = None) -> bool:
-        """
-        Sends a message or an array of messages to application.
-
-        Should be used to receive commands from the app or send the current
-        Unity debug log information to the application. Also displays error info.
-
-        :param msg: a message, defaults to None
-        :param package: a list of messages, defaults to None
-        """
-        try:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-                sock.connect((self.settings['target'], 5555))
-                # send the message if message not blank
-                if msg:
-                    sock.send(msg.replace('\t', '').encode('utf-8'))
-                    return True
-                # send a list of messages if package not blank
-                if package:
-                    for line in package:
-                        sock.send(line.encode('utf-8'))
-                    sock.send('--EOF'.encode('utf-8'))
-            return True
-        except Exception as error:
-            logger.error(local_msg['connection_closed'] % error_msg(error, self.settings['verbose']))
-        return False
+        writer.close()
 
 
 if __name__ == '__main__':
