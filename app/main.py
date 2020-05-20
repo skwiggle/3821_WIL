@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+**************
+Terminal Genie
+**************
+
 The main GUI of the application that handles all user
 events, connected to the client.
 Purposes:
@@ -22,6 +26,8 @@ kivy.require('1.11.1')
 # configuration for testing only
 from kivy.config import Config
 
+# Default configuration options for non-android
+# devices (Testing)
 Config.set('graphics', 'minimum_width', '480')
 Config.set('graphics', 'minimum_height', '720')
 Config.set('graphics', 'width', '480')
@@ -61,21 +67,23 @@ class MainApp(MDApp):
         - request a clearing of console data
     """
 
-    title = "Terminal Genie"
-    icon = './ui/icon/app/app_icon256x256.png'
-    is_focused: bool = False
-    cmd_text: str = ''
-    debug_data: [set] = [{}]
+    title = "Terminal Genie"    # Application title
+    icon = './ui/icon/app/app_icon256x256.png'  # Application icon
+    is_focused: bool = False    # boolean, is the input focused on
+    cmd_text: str = ''      # Input field text value
+    debug_data: [set] = [{}]    # temporary data storage location to transfer data between pages
 
     def reconnect(self) -> None:
-        """ test connection to terminal """
+        """ Test connection to terminal """
         rec_thd = Thread(target=self.root.get_screen('main').ids['debug_panel'].reconnect)
         rec_thd.start()
 
-    def refresh_host(self):
+    def refresh_host(self) -> None:
+        """ Reset host field to null """
         self.root.get_screen('start').ids['host_ip'].text = ''
 
     def refresh_target(self):
+        """ Reset target field to null """
         self.root.get_screen('start').ids['target_ip'].text = ''
 
     def clear_content(self) -> None:
@@ -86,7 +94,7 @@ class MainApp(MDApp):
             [fmt_datacell('type ? to see list of commands')]
 
     def send_command(self):
-        """ Send command to debug panel """
+        """ Send command to DebugPanel """
         command = self.root.get_screen('main').ids['cmd_input'].text
         cmd_thd = Thread(target=self.root.get_screen('main').ids['debug_panel'].send_command,
                          args=(command,), name='send_command')
@@ -105,6 +113,10 @@ class MainApp(MDApp):
             self.is_focused = True
 
     def start_screen_submit(self) -> None:
+        """
+        Save host and target IPs to settings and then change
+        start screen to main screen
+        """
         host_ipv4 = self.root.get_screen('start').ids['host_ip'].text
         target_ipv4 = self.root.get_screen('start').ids['target_ip'].text
         if _ipv4_is_valid(host_ipv4) and _ipv4_is_valid(target_ipv4):

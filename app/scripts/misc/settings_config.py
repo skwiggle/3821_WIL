@@ -20,9 +20,14 @@ def _ipv4_is_valid(ipv4: str) -> bool:
     return True
 
 class Settings:
+    """Settings Class
 
-    _directory: str = './settings.json'
-    _settings: dict = {}
+    Retrieving and saving settings to a JSON file to maintain continuous
+    data between sessions
+    """
+
+    _directory: str = './settings.json'     # path to settings.json file
+    _settings: dict = {}    # dictionary containing setting's values
 
     def __init__(self, directory: str):
         """
@@ -32,6 +37,8 @@ class Settings:
         if pathlib.Path(directory).exists():
             self._directory = directory
         else:
+            # create settings.json if it
+            # does not exist
             with open(directory, 'w') as file:
                 data = {
                     'host': 'none',

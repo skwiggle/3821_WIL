@@ -7,8 +7,8 @@ import asyncio
 import socket
 import shutil
 import logging
-import re
 import json
+import re
 
 # Configuration of logging system,
 # - appends data to 'terminal_log.txt'
@@ -28,6 +28,9 @@ local_msg: dict = {
     'connection_closed': 'Failed to send message because no connection could be found%s',
     'timeout': 'Connection timed out%s',
     'settings_parse': 'One of the values in settings.json was incorrectly parsed%s',
+    'log_copied': 'Info from %s was copied over to temporary log file',
+    'log_send': 'Contents of %s was sent to client',
+    'log_delete': 'Temporary log file %s was deleted',
     'unknown': 'Unknown error, please restart terminal%s'
 }
 
@@ -126,8 +129,14 @@ _filtered_key_words = {
 def _get_private_ipv4() -> str:
     """
     Return the IPv4 of this PC and print to log
-    NOTE: will return the first IPv4 if multiple IPv4's
-          are open
+
+    .. note::
+        will return the first IPv4 if multiple IPv4's
+        are given, Highly recommended to manually supply
+        this field.
+
+    :returns: string value of an IPv4 Address
+              e.g. 100.0.0.1
     """
     host = socket.gethostname()
     info = socket.getaddrinfo(host, 5555)
@@ -381,9 +390,12 @@ class Terminal:
             path = f'{self._log_path_dir}{_log_name}'  # absolute path to log file
             temp_path = f'{self._log_path_dir}~{_log_name}'  # absolute path to log file
             shutil.copy(path, temp_path)
+            logger.info(local_msg['log_copied'] % _log_name)
 
         async def _delete_temp(temp_name: str):
+            """ Delete temporary log file """
             os.remove(temp_name)
+            logger.info(local_msg['log_delete'] % temp_name)
 
         async def _send_log(_log_name: str) -> None:
             """
@@ -407,8 +419,10 @@ class Terminal:
                     clean_line = re.sub('[\t\r]', '', line)
                     if not any((fline in clean_line) for fline in _filtered_key_words):
                         content.append(clean_line if clean_line != 'EOF--' else clean_line)
+
             await _delete_temp(temp_path)
             await self.one_way_handler(package=(x for x in content if x != ''))
+            logger.info(local_msg['log_send'] % temp_path)
 
         # Check, send and clear all log files within the set passed from
         # :function:`_check_for_updates` at once but finish concurrently to avoid
@@ -436,7 +450,6 @@ class Terminal:
             server = await asyncio.start_server(
                 self.handle_requests, self.settings['host'], 5554)
             addr = server.sockets[0].getsockname()
-
             async with server:
                 await server.serve_forever()
         except Exception as error:
@@ -462,7 +475,13 @@ class Terminal:
         writer.close()
 
     async def one_way_handler(self, package: [str] = None) -> bool:
-        """
+        """Sending TCP Messages
+
+        A one-way-handler in charge of sending messages to the Application in
+        the form of string lists where the last element is always '--EOF'
+        to inform the Application server of when to stop listening.
+
+        :param package: data to send to Terminal
         """
         try:
             reader, writer = await asyncio.open_connection(
@@ -485,6 +504,10 @@ class Terminal:
 
 
 if __name__ == '__main__':
+    """
+    Run the Terminal class on startup and continue to
+    run until the user keyboard interrupts (CTRL + C)
+    """
     try:
         Terminal()
     except KeyboardInterrupt as end:
